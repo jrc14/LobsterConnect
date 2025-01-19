@@ -8,7 +8,7 @@ namespace LobsterConnect.Model
             LogMessage(l, context, null, details);
         }
 
-        static public void LogMessage(Level l, string context, Exception ex, string details="")
+        static public void LogMessage(Level l, string context, Exception ex, string details = "")
         {
 #if !DEBUG
             if (l == Level.DEBUG)
@@ -16,7 +16,7 @@ namespace LobsterConnect.Model
 #endif
             string msg = "";
 
-            switch(l)
+            switch (l)
             {
                 case Level.DEBUG: msg = "DEBUG: "; break;
                 case Level.INFO: msg = "INFO: "; break;
@@ -37,17 +37,21 @@ namespace LobsterConnect.Model
 
                 if (ex.Message != null)
                 {
-                    msg += " - " + ex.Message + " "; 
+                    msg += " - " + ex.Message + " ";
                 }
             }
 
             if (msg.Length > 200)
                 msg = msg.Substring(0, 199) + "[truncated]";
 
-            msg += details;
+            if (!string.IsNullOrEmpty(details))
+            {
+                msg += ": " + details;
 
-            if (msg.Length > 400)
-                msg = msg.Substring(0, 399) + "[truncated]";
+                if (msg.Length > 400)
+                    msg = msg.Substring(0, 399) + "[truncated]";
+            }
+        
 
             if (System.Diagnostics.Debugger.IsAttached)
             {

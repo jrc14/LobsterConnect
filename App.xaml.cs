@@ -7,8 +7,20 @@ public partial class App : Application
 	public App()
 	{
 		InitializeComponent();
-		
-		MainPage = new AppShell();
+
+        App.ApplicationSuspended = false;
+
+
+        DispatcherHelper.Initialise(Environment.CurrentManagedThreadId, this.Dispatcher); // because I am pretty sure that Window.Current exists at this stage.
+
+        if (!DispatcherHelper.UIDispatcherHasThreadAccess)
+        {
+            Logger.LogMessage(Logger.Level.ERROR,"App ctor","Horrible error; this code should only be run on the UI thread!");
+        }
+
+        Logger.LogMessage(Logger.Level.DEBUG, "App ctor", "about to create main page");
+
+        MainPage = new AppShell();
 	}
 
     public static bool ApplicationSuspended = false; // used to tell our various timers to shut themselves down.
