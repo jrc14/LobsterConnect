@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.Model
 {
-    internal class LobsterWorker
+    public class LobsterWorker
     {
         public LobsterWorker()
         {

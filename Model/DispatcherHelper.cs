@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace LobsterConnect.Model
 {
 
-    internal static class DispatcherHelper
+    public static class DispatcherHelper
     {
-        internal static void RunAsyncOnUI(Action action)
+        public static void RunAsyncOnUI(Action action)
         {
             try
             {

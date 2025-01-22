@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.Model
 {
-    static internal class Utilities
+    static public class Utilities
     {
 
         public static bool FileExists(string path)
