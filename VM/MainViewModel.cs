@@ -61,7 +61,58 @@ namespace LobsterConnect.VM
         }
         private static List<string> _AvailableEvents = new List<string> {"LoBsterCon XXVIII" };
 
-        public List<Session> sessions = new List<Session>();
+        public Session GetSession(string id)
+        {
+            lock(_sessionsLock)
+            {
+                foreach (Session s in _sessions)
+                    if (s.Id == id)
+                        return s;
+            }
+            return null;
+        }
+        private List<Session> _sessions = new List<Session>();
+        private readonly LobsterLock _sessionsLock = new LobsterLock();
+
+        public Person GetPerson(string handle)
+        {
+            lock(_personsLock)
+            {
+                foreach (Person p in _persons)
+                    if (p.Handle == handle)
+                        return p;
+            }
+            return null;
+        }
+        public bool CheckPersonHandleExists(string handle)
+        {
+            if (this.GetPerson(handle) == null)
+                return false;
+            else
+                return true;
+        }
+        private List<Person> _persons = new List<Person>();
+        private readonly LobsterLock _personsLock = new LobsterLock();
+
+        public bool CheckGameNameExists(string name)
+        {
+            if (this.GetGame(name) == null)
+                return false;
+            else
+                return true;
+        }
+        public Game GetGame(string name)
+        {
+            lock (_gamesLock)
+            {
+                foreach (Game g in _games)
+                    if (g.Name == name)
+                        return g;
+            }
+            return null;
+        }
+        private List<Game> _games = new List<Game>();
+        private readonly LobsterLock _gamesLock = new LobsterLock();
 
         private static MainViewModel _Instance = null;
         private static readonly LobsterLock _InstanceLock = new LobsterLock();

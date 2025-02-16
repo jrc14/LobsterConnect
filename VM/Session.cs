@@ -1,6 +1,8 @@
-﻿using System;
+﻿using LobsterConnect.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,6 +30,9 @@ namespace LobsterConnect.VM
             return 0;
         }
 
+        /// <summary>
+        /// Opaque Id, in case I need one
+        /// </summary>
         public string Id
         {
             get
@@ -55,7 +60,10 @@ namespace LobsterConnect.VM
         }
         private string _id;
 
-        public string Proposer // a player handle
+        /// <summary>
+        /// Person handle of the person proposing this gaming session
+        /// </summary>
+        public string Proposer
         {
             get
             {
@@ -71,6 +79,11 @@ namespace LobsterConnect.VM
                     if (value == "" && this._proposer == null)
                         dontNotify = true;
 
+                    if (!Person.CheckHandle(value))
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "Session.Proposer set accessor", "invalid person:'" + value + "'");
+                        throw new ArgumentException("Session.Proposer set accessor: invalid person:'" + value + "'");
+                    }
 
                     this._proposer = value;
 
@@ -83,7 +96,10 @@ namespace LobsterConnect.VM
         }
         private string _proposer;
 
-        public string ToPlay // a game full name
+        /// <summary>
+        /// The full name of the game that is to be played
+        /// </summary>
+        public string ToPlay
         {
             get
             {
@@ -99,6 +115,12 @@ namespace LobsterConnect.VM
                     if (value == "" && this._toPlay == null)
                         dontNotify = true;
 
+                    if (!Game.CheckName(value))
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "Session.ToPlay set accessor", "invalid game:'" + value + "'");
+                        throw new ArgumentException("Session.ToPlay set accessor: invalid game:'" + value + "'");
+                    }
+
                     this._toPlay = value;
 
                     if (!dontNotify)
@@ -110,6 +132,9 @@ namespace LobsterConnect.VM
         }
         private string _toPlay;
 
+        /// <summary>
+        /// When the session starts
+        /// </summary>
         public SessionTime StartAt // session time slot for the start of the game
         {
             get
@@ -132,5 +157,176 @@ namespace LobsterConnect.VM
             }
         }
         private SessionTime _startAt;
+
+        /// <summary>
+        /// Human-readable notes about this session
+        /// </summary>
+        public string Notes 
+        {
+            get
+            {
+                return this._notes;
+            }
+            set
+            {
+                if (this._notes != value)
+                {
+                    bool dontNotify = false;
+                    if (value == null && this._notes == "")
+                        dontNotify = true;
+                    if (value == "" && this._notes == null)
+                        dontNotify = true;
+
+                    this._notes = value;
+
+                    if (!dontNotify)
+                    {
+                        this.OnPropertyChanged("Notes");
+                    }
+                }
+            }
+        }
+        private string _notes;
+
+        /// <summary>
+        /// Link to WhatsApp chat for this session
+        /// </summary>
+        public string WhatsAppLink
+        {
+            get
+            {
+                return this._whatsAppLink;
+            }
+            set
+            {
+                if (this._whatsAppLink != value)
+                {
+                    bool dontNotify = false;
+                    if (value == null && this._whatsAppLink == "")
+                        dontNotify = true;
+                    if (value == "" && this._whatsAppLink == null)
+                        dontNotify = true;
+
+                    this._whatsAppLink = value;
+
+                    if (!dontNotify)
+                    {
+                        this.OnPropertyChanged("WhatsAppLink");
+                    }
+                }
+            }
+        }
+        private string _whatsAppLink;
+
+        /// <summary>
+        /// Link to BGG entry for the game played in this session
+        /// </summary>
+        public string BggLink
+        {
+            get
+            {
+                return this._bggLink;
+            }
+            set
+            {
+                if (this._bggLink != value)
+                {
+                    bool dontNotify = false;
+                    if (value == null && this._bggLink == "")
+                        dontNotify = true;
+                    if (value == "" && this._bggLink == null)
+                        dontNotify = true;
+
+                    this._bggLink = value;
+
+                    if (!dontNotify)
+                    {
+                        this.OnPropertyChanged("BggLink");
+                    }
+                }
+            }
+        }
+        private string _bggLink;
+
+        /// <summary>
+        /// Comma-separated list of person handles, being the people signed up for this session
+        /// </summary>
+        public string SignUps
+        {
+            get
+            {
+                return this._signUps;
+            }
+            set
+            {
+                if (this._signUps != value)
+                {
+                    if(string.IsNullOrEmpty(value)) // no person handles
+                    {
+                        this._signUps = "";
+                        this._numSignUps = 0;
+                        this._signUps = value;
+                    }
+                    else if( !value.Contains(',')) // one person handle
+                    {
+                        string handle = value.Trim();
+                        if(!Person.CheckHandle(handle))
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "Session.SignUps set accessor", "invalid person:'" + value + "'");
+                            throw new ArgumentException("Session.SignUps set accessor: invalid person:'" + value + "'");
+                        }
+                        this._signUps = handle;
+                        this._numSignUps = 1;
+                    }
+                    else // the list contains more than one person handle
+                    {
+                        int hh = 0;
+                        string handles = "";
+                        foreach(string h in value.Split(','))
+                        {
+                            string handle = h.Trim();
+                            if(string.IsNullOrEmpty(handle))
+                            {
+                                Logger.LogMessage(Logger.Level.ERROR, "Session.SignUps set accessor", "list contains NULL person");
+                                throw new ArgumentException("Session.SignUps set accessor: list contains NULL person'");
+                            }
+                            if (!Person.CheckHandle(handle))
+                            {
+                                Logger.LogMessage(Logger.Level.ERROR, "Session.SignUps set accessor", "list contains invalid person:'" + handle + "'");
+                                throw new ArgumentException("Session.SignUps set accessor: list contains invalid person:'" + handle + "'");
+                            }
+
+                            if (handles == "")
+                                handles = handle;
+                            else
+                                handles += ", " + handle;
+
+                            hh++;
+                        }
+                        this._signUps = handles;
+                        this._numSignUps = hh;
+                    }
+
+                    this._signUps = value;
+
+                    this.OnPropertyChanged("SignUps");
+                    this.OnPropertyChanged("NumSignUps");
+                }
+            }
+        }
+        private string _signUps="";
+
+        /// <summary>
+        /// Number of entries in the SignUps list (the only place this is set, and the only place that
+        /// calls its OnPropertyChanged, is the set access for SignUps
+        /// </summary>
+        public int NumSignUps
+        {
+            get
+            {
+                return this._numSignUps;
+            }
+        }
+        private int _numSignUps = 0;
     }
 }

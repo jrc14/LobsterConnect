@@ -36,6 +36,18 @@ namespace LobsterConnect.VM
             }
         }
 
+        /// <summary>
+        /// The ordinal number of this timeslot, in the range 0 to SessionTime.NumberOfTimeSlots; it represents
+        /// where this timeslot appears in the range of possible timeslots.
+        /// </summary>
+        public int Ordinal
+        {
+            get
+            {
+                return _timeSlotNumber;
+            }
+        }
+
         private int _timeSlotNumber;
 
         // Override equality operators to give value semantics based on _timeSlotNumber
