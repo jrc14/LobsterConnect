@@ -67,10 +67,5 @@ namespace LobsterConnect.VM
             }
         }
         private string _bggLink;
-
-        public static bool CheckName(string n)
-        {
-            return MainViewModel.Instance.CheckGameNameExists(n);
-        }
     }
 }

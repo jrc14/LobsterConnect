@@ -1,21 +1,18 @@
-﻿using System;
+﻿using LobsterConnect.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace LobsterConnect.VM
 {
     public class Person : LobsterConnect.VM.BindableBase
     {
-
-        public static bool CheckHandle(string h)
-        {
-            return MainViewModel.Instance.CheckPersonHandleExists(h);
-        }
-
         /// <summary>
-        /// The handle (user id) of this person
+        /// The handle (user id) of this person.  Attempts to set it to a value containing a comma will result in a value where ',' is replaced
+        /// by '_'.
         /// </summary>
         public string Handle
         {
@@ -33,7 +30,14 @@ namespace LobsterConnect.VM
                     if (value == "" && this._handle == null)
                         dontNotify = true;
 
-                    this._handle = value;
+                    if (value.Contains(','))
+                    {
+                        this._handle = value.Replace(',','_') ;
+                    }
+                    else
+                    {
+                        this._handle = value;
+                    }
 
                     if (!dontNotify)
                     {
@@ -177,15 +181,23 @@ namespace LobsterConnect.VM
             }
             set
             {
-                if (this._isActive != value)
+                lock (this.instanceLock)
                 {
-                    this._isActive = value;
+                    if (this._isActive != value)
+                    {
+                        this._isActive = value;
 
-                    this.OnPropertyChanged("IsActive");
-                    
+                        this.OnPropertyChanged("IsActive");
+
+                    }
                 }
             }
         }
         private bool _isActive;
+
+        /// <summary>
+        /// Lock this if doing something state-changing to this person
+        /// </summary>
+        public LobsterLock instanceLock = new LobsterLock();
     }
 }
