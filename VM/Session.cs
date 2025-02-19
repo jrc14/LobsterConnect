@@ -35,6 +35,9 @@ namespace LobsterConnect.VM
             int c3 = this.Proposer.CompareTo(((Session)that).Proposer);
             if (c3 != 0) return c3;
 
+            int c4 = this.Id.CompareTo(((Session)that).Id);
+            if (c4 != 0) return c4;
+
             return 0;
         }
 

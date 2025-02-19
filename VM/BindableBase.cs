@@ -50,7 +50,7 @@ namespace LobsterConnect.VM
                 {
                     eventHandler(this, new PropertyChangedEventArgs(propertyName));
                 }
-                catch (Exception ex)
+                catch (Exception )
                 {
                     if (propertyName == null)
                         Logger.LogMessage(Logger.Level.ERROR, "BindableBase.OnPropertyChanged", "exception throw when handling change to NULL");

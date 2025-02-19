@@ -9,6 +9,10 @@ namespace LobsterConnect.VM
 {
     public class SessionTime : IComparable
     {
+        public SessionTime(int timeSlotNumber=0)
+        {
+            this._timeSlotNumber = timeSlotNumber;
+        }
         public string DayLabel
         {
             get
@@ -48,7 +52,7 @@ namespace LobsterConnect.VM
             }
         }
 
-        private int _timeSlotNumber;
+        private readonly int _timeSlotNumber;
 
         // Override equality operators to give value semantics based on _timeSlotNumber
         public static bool operator ==(SessionTime b1, SessionTime b2)

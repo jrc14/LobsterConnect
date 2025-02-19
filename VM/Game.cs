@@ -17,6 +17,7 @@ namespace LobsterConnect.VM
     {
         /// <summary>
         /// The name of this game.
+        /// </summary>
         public string Name
         {
             get

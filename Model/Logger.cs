@@ -109,7 +109,7 @@ namespace LobsterConnect.Model
                     _LogWorkerStarted = false;
                     LogWorker = null;
                 };
-                LogWorker.DoWork += async (object sender, Model.DoWorkEventArgs e) =>
+                LogWorker.DoWork += (object sender, Model.DoWorkEventArgs e) =>
                 {
                     try
                     {
@@ -217,7 +217,7 @@ namespace LobsterConnect.Model
                 LogWorker.RunWorkerAsync(true);
                 _LogWorkerStarted = true;
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 // Don't report errors, because it will just lead to this function calling itself recursively, which cannot be a useful thing to do.
             }

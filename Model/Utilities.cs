@@ -41,7 +41,7 @@ namespace LobsterConnect.Model
 
                     return true;
                 }
-                catch (FileNotFoundException ex)
+                catch (FileNotFoundException )
                 {
                     return false;
 
@@ -66,7 +66,7 @@ namespace LobsterConnect.Model
                     {
                         File.Delete(path);
                     }
-                    catch (Exception ex)
+                    catch (Exception )
                     {
                         string dpath = path + "-" + Guid.NewGuid().ToString("N") + ".deleted";
                         try
@@ -77,7 +77,7 @@ namespace LobsterConnect.Model
                                 {
                                     File.Delete(dpath);
                                 }
-                                catch (Exception ex2)
+                                catch (Exception )
                                 {
 
                                 }
@@ -107,51 +107,6 @@ namespace LobsterConnect.Model
             }
         }
 
-        public async static Task<bool> FileExistsAsync(string path)
-        {
-            return FileExists(path);
-        }
-
-
-        public async static Task<bool> FileExistsWithNonZeroSizeAsync(string path)
-        {
-            if (!File.Exists(path))
-                return false;
-            else
-            {
-                try
-                {
-                    using (Stream fs = OpenFileForRead(path))
-                    {
-                        fs.Seek(0, SeekOrigin.End);
-
-                        if (fs.Position == 0)
-                            return false;
-                    }
-
-                    return true;
-                }
-                catch (FileNotFoundException ex)
-                {
-                    return false;
-
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogMessage(Logger.Level.ERROR, "Utilities.FileExistsWithNonZeroSizeAsync", ex);
-                    return false;
-                }
-            }
-
-        }
-
-        public async static Task<bool> FileDeleteIfExistsAsync(string path)
-        {
-
-            return FileDeleteIfExists(path);
-
-        }
-
         public static Stream OpenFileForWrite(string filePath)
         {
             Stream fileStream = System.IO.File.Open(filePath, FileMode.Create, FileAccess.Write);
@@ -159,21 +114,12 @@ namespace LobsterConnect.Model
             return fileStream;
         }
 
-        public async static Task<Stream> OpenFileForWriteAsync(string filePath)
-        {
-            return OpenFileForWrite(filePath);
-        }
 
         public static Stream OpenFileForRead(string filePath)
         {
             Stream fileStream = System.IO.File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             return fileStream;
-        }
-
-        public async static Task<Stream> OpenFileForReadAsync(string filePath)
-        {
-            return OpenFileForRead(filePath);
         }
 
         public static bool FileMove(string pathFrom, string pathTo)
@@ -189,29 +135,7 @@ namespace LobsterConnect.Model
             return true;
         }
 
-        public static async Task<bool> FileMoveAsync(string pathFrom, string pathTo)
-        {
-            return FileMove(pathFrom, pathTo);
-
-        }
-
         public static bool FileRename(string existingFilePath, string newName)
-        {
-            string folderPath = System.IO.Path.GetDirectoryName(existingFilePath);
-            string pathTo = System.IO.Path.Combine(folderPath, newName);
-
-            if (File.Exists(pathTo))
-            {
-                File.Copy(existingFilePath, pathTo, true);
-                File.Delete(existingFilePath);
-            }
-            else
-                File.Move(existingFilePath, pathTo);
-
-            return true;
-        }
-
-        public static async Task<bool> FileRenameAsync(string existingFilePath, string newName)
         {
             string folderPath = System.IO.Path.GetDirectoryName(existingFilePath);
             string pathTo = System.IO.Path.Combine(folderPath, newName);
@@ -234,21 +158,11 @@ namespace LobsterConnect.Model
             return true;
         }
 
-        public static async Task<bool> FileCopyAsync(string pathFrom, string pathTo)
-        {
-            return FileCopy(pathFrom, pathTo);
-        }
-
         public static bool DirectoryExists(string path)
         {
             return Directory.Exists(path);
         }
 
-
-        public async static Task<bool> DirectoryExistsAsync(string folderPath)
-        {
-            return DirectoryExists(folderPath);
-        }
 
         public static bool DirectoryRename(string folderPath, string newName)
         {
@@ -279,6 +193,106 @@ namespace LobsterConnect.Model
             }
         }
 
+        public static bool DirectoryCreate(string path)
+        {
+            Directory.CreateDirectory(path);
+
+            return true;
+        }
+
+
+
+#pragma warning disable 1998 // I want to keep an async signature for these methods in case I change the implementation later
+        public async static Task<bool> FileExistsAsync(string path)
+        {
+            return FileExists(path);
+        }
+
+
+        public async static Task<bool> FileExistsWithNonZeroSizeAsync(string path)
+        {
+            if (!File.Exists(path))
+                return false;
+            else
+            {
+                try
+                {
+                    using (Stream fs = OpenFileForRead(path))
+                    {
+                        fs.Seek(0, SeekOrigin.End);
+
+                        if (fs.Position == 0)
+                            return false;
+                    }
+
+                    return true;
+                }
+                catch (FileNotFoundException )
+                {
+                    return false;
+
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "Utilities.FileExistsWithNonZeroSizeAsync", ex);
+                    return false;
+                }
+            }
+
+        }
+
+        public async static Task<bool> FileDeleteIfExistsAsync(string path)
+        {
+
+            return FileDeleteIfExists(path);
+
+        }
+
+
+
+        public async static Task<Stream> OpenFileForWriteAsync(string filePath)
+        {
+            return OpenFileForWrite(filePath);
+        }
+
+        public async static Task<Stream> OpenFileForReadAsync(string filePath)
+        {
+            return OpenFileForRead(filePath);
+        }
+
+        public static async Task<bool> FileMoveAsync(string pathFrom, string pathTo)
+        {
+            return FileMove(pathFrom, pathTo);
+
+        }
+
+        public static async Task<bool> FileRenameAsync(string existingFilePath, string newName)
+        {
+            string folderPath = System.IO.Path.GetDirectoryName(existingFilePath);
+            string pathTo = System.IO.Path.Combine(folderPath, newName);
+
+            if (File.Exists(pathTo))
+            {
+                File.Copy(existingFilePath, pathTo, true);
+                File.Delete(existingFilePath);
+            }
+            else
+                File.Move(existingFilePath, pathTo);
+
+            return true;
+        }
+
+        public static async Task<bool> FileCopyAsync(string pathFrom, string pathTo)
+        {
+            return FileCopy(pathFrom, pathTo);
+        }
+
+        public async static Task<bool> DirectoryExistsAsync(string folderPath)
+        {
+            return DirectoryExists(folderPath);
+        }
+
+
         public async static Task<List<string>> DirectoryListFileNamesAsync(string folderPath)
         {
             try
@@ -306,11 +320,6 @@ namespace LobsterConnect.Model
 
         }
 
-        public static bool DirectoryCreate(string path)
-        {
-            Directory.CreateDirectory(path);
-
-            return true;
-        }
+#pragma warning restore 1998
     }
 }

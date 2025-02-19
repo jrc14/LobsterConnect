@@ -32,6 +32,32 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
+        /// Initialise the main view model by loading Persons, Games and Sessions (in due course this will come from
+        /// the local jourbal stire and the cloud; initially I'm just creating some test data.
+        /// </summary>
+        public void Load()
+        {
+            CreateGame(false, "Ludo", "https://www.whatever.com/ludo");
+            CreateGame(false, "Chess", "https://www.whatever.com/chess");
+            CreateGame(false, "Diplomacy", "https://www.whatever.com/diplomacy");
+
+            CreatePerson(false, "bobby");
+            CreatePerson(false, "susan");
+            CreatePerson(false, "jrc14");
+            CreatePerson(false, "steve");
+            CreatePerson(false, "mike");
+
+            string s1 = CreateSession(false, "bobby", "Ludo", this.CurrentEvent, new SessionTime(0));
+            SignUp(false, "bobby", s1);
+            SignUp(false, "jrc14", s1);
+
+            string s2 = CreateSession(false, "jrc14", "Diplomacy", this.CurrentEvent, new SessionTime(2));
+            SignUp(false, "bobby", s2);
+            SignUp(false, "jrc14", s2);
+            SignUp(false, "steve", s2);
+            SignUp(false, "mike", s2);
+        }
+        /// <summary>
         /// Create a game.  The only information needed is game name.  There also an optional BoardGameGeek link.
         /// An exception is thrown if the game name is null, or a game of that name is already in the games collection.
         /// </summary>
@@ -126,7 +152,7 @@ namespace LobsterConnect.VM
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "person with that handle already exists:'" + handle + "'");
                     throw new ArgumentException("MainViewModel.CreatePerson: duplicate handle:'" + handle + "'");
                 }
-                _persons.Add(new Person() { Handle = handle, FullName = fullName, PhoneNumber = phoneNumber, Email = email, Password = password });
+                _persons.Add(new Person() { Handle = handle, FullName = fullName, PhoneNumber = phoneNumber, Email = email, Password = password, IsActive = true });
             }
         }
 
@@ -195,7 +221,7 @@ namespace LobsterConnect.VM
                 whatsAppLink = "NO WHATSAPP CHAT";
             }
 
-            string id = new Guid().ToString();
+            string id = Guid.NewGuid().ToString();
 
             proposer = GetPerson(proposerHandle);
             if (proposer == null)
@@ -235,6 +261,10 @@ namespace LobsterConnect.VM
                     State = "OPEN"
                 });
             }
+
+            Model.DispatcherHelper.CheckBeginInvokeOnUI(() => {
+                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+            });
 
             return id;
         }
@@ -390,7 +420,7 @@ namespace LobsterConnect.VM
                 }
             }
         }
-        private string _currentEvent = "";
+        private string _currentEvent = "LoBsterCon XXVIII";
 
         /// <summary>
         /// Retrieve a list of events that we can manage signups for.  Right now, the functionality is stubbed
@@ -403,6 +433,84 @@ namespace LobsterConnect.VM
             return _AvailableEvents;
         }
         private static List<string> _AvailableEvents = new List<string> {"LoBsterCon XXVIII" };
+
+        /// <summary>
+        /// Constructs an array of all sessions for the given event.  The index into the array is session time (turned into
+        /// an ordinal number) so the number of entries in the array will be equal to the number of possible time slots for
+        /// that event.  Each entry in the array is a list of sessions, sorted (first by proposer name then by id).
+        /// If there are no sessions for a specifed time slot, the corresponding array entry will be null.
+        /// </summary>
+        /// <param name="eventName"></param>
+        /// <returns></returns>
+        public List<Session>[] GetAllSessions(string eventName)
+        {
+            int numSlots = GetNumberOfTimeSlots(eventName);
+
+            List<Session>[] allSessions = new List<Session>[numSlots];
+
+            lock(this._sessionsLock)
+            {
+                foreach(Session s in this._sessions)
+                {
+                    if (s.EventName != eventName)
+                        continue;
+
+                    // The sessions we already found for the same time slot as s.  We need to insert s
+                    // into the right spot in this list.
+                    List<Session> existing = allSessions[s.StartAt.Ordinal];
+
+                    if(existing==null)
+                    {
+                        // easy case: so far we found no sessions for this slot; just create a new
+                        // list for this slot, and this session into the list.
+                        allSessions[s.StartAt.Ordinal] = new List<Session>() { s };
+                    }
+                    else
+                    {
+                        // starting at 0, advance insertAt until we find an element that is greater than s, or we run
+                        // out of elements in the existing list
+                        int insertAt = 0;
+                        while(existing[insertAt].CompareTo(s) <= 0 && insertAt<existing.Count)
+                        {
+                            insertAt++;
+                        }
+
+                        if (insertAt < existing.Count) // There is an existing element that the new session should go before
+                        {
+                            existing.Insert(insertAt, s);
+                        }
+                        else
+                        {
+                            existing.Add(s); // The new session should go on the end of the list
+                        }
+                    }
+                }
+            }
+
+            return allSessions;
+        }
+
+        /// <summary>
+        /// Fire this event when you do something that would necessitate refreshing the table of sessions in the UI.
+        /// That means a change the sessions collection (i.e. when you add or remove elements
+        /// to the collection, having Session.EventName==MainViewModel.CurrentEvent), or changing the value of 
+        /// MainViewModel.CurrentEvent.  Note that merely changing an attribute of a session doesn't require
+        /// a refresh of the sessions table in the UI, because we expect the UI to bind to the relevant session
+        /// attributes, so it will see such changes anyway.
+        /// </summary>
+        public event EventHandler SessionsMustBeRefreshed;
+
+        /// <summary>
+        /// Get the number of time slots that exist for the given event.
+        /// </summary>
+        /// <param name="eventName"></param>
+        /// <returns></returns>
+        public int GetNumberOfTimeSlots(string eventName)
+        {
+            // when we actually implement more than one possible event, this will work differently.
+            return SessionTime.NumberOfTimeSlots;
+
+        }
 
         /// <summary>
         /// Fetch a Session object from the game sessions collection, given an id.  If the id is not valid the method
