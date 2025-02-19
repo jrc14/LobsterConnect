@@ -8,6 +8,13 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.VM
 {
+    /// <summary>
+    /// A person that the app knows about.
+    /// Note that its member variables have public set accessors and are bindable
+    /// but UI code should not use those accessors to change their values, because doing so will
+    /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
+    /// cloud storage).
+    /// </summary>
     public class Person : LobsterConnect.VM.BindableBase
     {
         /// <summary>

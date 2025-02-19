@@ -8,6 +8,14 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.VM
 {
+    /// <summary>
+    /// A gaming session that the app knows about, representing the fact that a certain group of people have
+    /// signed up to play some game at an agreed time, at a gaming event.
+    /// Note that its member variables have public set accessors and are bindable
+    /// but UI code should not use those accessors to change their values, because doing so will
+    /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
+    /// cloud storage).
+    /// </summary>
     public class Session : LobsterConnect.VM.BindableBase, IComparable
     {
         public int CompareTo(object that)
@@ -31,7 +39,7 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Opaque Id, in case I need one
+        /// Opaque Id (it will be set to a GUID when the ViewModel creates a session)
         /// </summary>
         public string Id
         {
@@ -119,6 +127,37 @@ namespace LobsterConnect.VM
             }
         }
         private string _toPlay;
+
+
+        /// <summary>
+        /// The name of the event at which this session will happen.  The set accessor does not check that it is a valid game name.
+        /// </summary>
+        public string EventName
+        {
+            get
+            {
+                return this._eventName;
+            }
+            set
+            {
+                if (this._eventName != value)
+                {
+                    bool dontNotify = false;
+                    if (value == null && this._eventName == "")
+                        dontNotify = true;
+                    if (value == "" && this._eventName == null)
+                        dontNotify = true;
+
+                    this._eventName = value;
+
+                    if (!dontNotify)
+                    {
+                        this.OnPropertyChanged("EventName");
+                    }
+                }
+            }
+        }
+        private string _eventName;
 
         /// <summary>
         /// When the session starts
@@ -359,6 +398,79 @@ namespace LobsterConnect.VM
                     }
                     this._signUps += ", " + personHandle;
                     this._numSignUps = hh+1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes a signup from self.  The method doesn't check that the person handle is a valid, active person, but it does
+        /// reject person handles containing a comma, because of the trouble this can cause.
+        /// It will throw an exception if the person isn't signed up.
+        /// </summary>
+        /// <param name="personHandle"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public void RemoveSignUp(string personHandle)
+        {
+            if (string.IsNullOrEmpty(personHandle))
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person handle must not be null");
+                throw new ArgumentException("Session.RemoveSignUp: null person");
+            }
+            if (personHandle.Contains(','))
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person handle invalid (it contains a comma): '" + personHandle + "'");
+                throw new ArgumentException("Session.RemoveSignUp: person handle is invalid");
+            }
+
+            personHandle = personHandle.Trim();
+            lock (this.instanceLock)
+            {
+                if (string.IsNullOrEmpty(this._signUps)) // no person handles existing
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "session has no sign ups");
+                    throw new ArgumentException("Session.RemoveSignUp: session has no sign ups");
+                }
+                else if (!_signUps.Contains(',')) // one person handle existing
+                {
+                    string existing = this._signUps.Trim();
+
+                    if (existing == personHandle)
+                    {
+                        this._signUps= "";
+                        this._numSignUps = 0;
+                    }
+                    else
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
+                        throw new ArgumentException("Session.RemoveSignUp: person was not signed up");
+                    }
+                }
+                else // the existing list contains more than one person handle
+                {
+                    int toRemove = -1;
+                    List<string> existing = new List<string>(this._signUps.Split(','));
+                    for(int hh=0; hh<existing.Count; hh++)
+                    {
+                        existing[hh] = existing[hh].Trim();
+                        if (existing[hh]==personHandle)
+                        {
+                            if(toRemove!=-1)
+                            {
+                                Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was signed up twice: '" + personHandle + "'");
+                                throw new ArgumentException("Session.RemoveSignUp: person was signed up twice");
+                            }
+                            toRemove = hh;
+                        }
+                    }
+                    if(toRemove==-1)
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
+                        throw new ArgumentException("Session.RemoveSignUp: person was not signed up");
+                    }
+                    existing.RemoveAt(toRemove);
+
+                    this._signUps += string.Join(", ",existing);
+                    this._numSignUps = existing.Count-1;
                 }
             }
         }
