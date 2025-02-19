@@ -143,7 +143,7 @@ namespace LobsterConnect.VM
 
                 l++;
             }
-            Debug.Assert(l == 13+1);
+            Debug.Assert(l == 13);
 
             for (int h = 9; h <= 24; h++) // Saturday's hours
             {
@@ -152,7 +152,7 @@ namespace LobsterConnect.VM
 
                 l++;
             }
-            Debug.Assert(l == 13 + 16 + 1);
+            Debug.Assert(l == 13 + 16 );
 
             for (int h = 9; h <= 24; h++) // Sunday's hours
             {
@@ -161,7 +161,7 @@ namespace LobsterConnect.VM
 
                 l++;
             }
-            Debug.Assert(l == 13 + 16 + 16 + 1);
+            Debug.Assert(l == 13 + 16 + 16);
 
             for (int h = 9; h <= 12; h++) // Monday's hours
             {
@@ -170,7 +170,7 @@ namespace LobsterConnect.VM
 
                 l++;
             }
-            Debug.Assert(l == 13 + 16 + 16 + 4 + 1);
+            Debug.Assert(l == 13 + 16 + 16 + 4);
         }
 
         private static string[] _DayLabels = null;

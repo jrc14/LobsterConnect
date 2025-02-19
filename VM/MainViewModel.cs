@@ -56,6 +56,11 @@ namespace LobsterConnect.VM
             SignUp(false, "jrc14", s2);
             SignUp(false, "steve", s2);
             SignUp(false, "mike", s2);
+
+            string s3 = CreateSession(false, "steve", "Chess", this.CurrentEvent, new SessionTime(2));
+            SignUp(false, "jrc14", s3);
+            SignUp(false, "steve", s3);
+            SignUp(false, "mike", s3);
         }
         /// <summary>
         /// Create a game.  The only information needed is game name.  There also an optional BoardGameGeek link.
