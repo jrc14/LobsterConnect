@@ -55,6 +55,21 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="V\PopUpLogIn.xaml.cs">
+	    <DependentUpon>PopupLogIn.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="V\PopupLogIn.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="V\PopupNewUserDetails.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <PackageReference Update="Microsoft.Maui.Controls" Version="9.0.30" />
 	</ItemGroup>
 

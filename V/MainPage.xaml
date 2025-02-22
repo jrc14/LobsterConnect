@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LobsterConnect.V.MainPage">
+	<Grid RowSpacing="0" ColumnSpacing="0">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="50"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="100"/>
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+
+		<Grid Grid.Row="0" Grid.Column="0" HeightRequest="50" Background="Black">
+			<StackLayout  Orientation="Horizontal" HorizontalOptions="Start" >
+				<ImageButton x:Name="btnAddSession" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="5,5,0,5"
+							 Clicked="btnAddSessionClicked">
+					<ImageButton.Source>
+						<FontImageSource Glyph="&#xf10a;" FontFamily="FluentSystemIcons-Regular"/>
+					</ImageButton.Source>
+
+				</ImageButton>
+				<ImageButton  x:Name="btnFilter"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="5,5,0,5"
+							  Clicked="btnFilterClicked">
+					<ImageButton.Source>
+						<FontImageSource Glyph="&#xf407;" FontFamily="FluentSystemIcons-Regular"/>
+					</ImageButton.Source>
+
+				</ImageButton>
+			</StackLayout>
+
+			<StackLayout  Orientation="Horizontal" HorizontalOptions="End" >
+				<Label Text="{Binding LoggedOnUser.Handle}" TextColor="White" VerticalOptions="Center" Margin="0,5,5,5">					
+				</Label>
+				<ImageButton x:Name="btnUser" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="0,5,5,5"
+							 Clicked="btnUserClicked">
+					<ImageButton.Source>
+						<FontImageSource Glyph="&#xe91b;" FontFamily="FluentSystemIcons-Regular"/>
+					</ImageButton.Source>
+
+				</ImageButton>
+			</StackLayout>
+			
+		</Grid>
+
+		<ScrollView Grid.Row="1" Grid.Column="0" Orientation="Vertical" VerticalOptions="Fill" HorizontalOptions="Fill" BackgroundColor="Green">
+			<Grid RowSpacing="0" ColumnSpacing="0" VerticalOptions="Fill" HorizontalOptions="Fill">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="100"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<Grid x:Name="gdSlotLabels" RowSpacing="0" ColumnSpacing="0" Width="100" Grid.Column="0" BackgroundColor="LightGray">
+				</Grid>
+				<ScrollView Grid.Column="1" Orientation="Horizontal" VerticalOptions="Fill" HorizontalOptions="Fill" BackgroundColor="DarkGray">
+					<Grid x:Name="gdSessions" RowSpacing="0" ColumnSpacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
+					</Grid>
+
+				</ScrollView>
+
+			</Grid>
+		</ScrollView>
+		<ListView Grid.Row="2" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog">
+			<ListView.ItemTemplate>
+				<DataTemplate>
+					<ViewCell>
+						<Grid Margin="0,0,0,0" Padding="4,0,4,0" Background="Black">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="80"/>
+								<ColumnDefinition Width="80" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<Label Text="{Binding Item1}" FontFamily="FiraMonoRegular"  TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
+									Grid.Row="0" Grid.Column="0"/>
+							<Label Text="{Binding Item2}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
+									Grid.Row="0" Grid.Column="1"/>
+							<Label Text="{Binding Item3}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
+									LineBreakMode="CharacterWrap"
+									Grid.Row="0" Grid.Column="2"/>
+						</Grid>
+					</ViewCell>
+				</DataTemplate>
+			</ListView.ItemTemplate>
+		</ListView>
+	</Grid>
+</ContentPage>

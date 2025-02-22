@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="LobsterConnect.V.PopupLogIn">
+    <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto" x:Name="rdefButtons"/>
+        <RowDefinition Height="10"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="150"/>
+        <ColumnDefinition Width="150"/>
+    </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Log In" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        <Label Grid.Row="1" Grid.Column="0" Text="User handle:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Entry Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" x:Name="entryUserHandle" Margin="5" VerticalOptions="Center"></Entry>
+        <Label Grid.Row="2" Grid.Column="0" Text="Password:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Entry Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" IsPassword="True" x:Name="entryPassword" Margin="5" VerticalOptions="Center"></Entry>
+        <Button Grid.Row="3" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
+        <Button Grid.Row="3" Grid.Column="1" Text="OK" Clicked="OnOkClicked" Margin="5" x:Name="btnOk" ></Button>
+    </Grid>
+</toolkit:Popup>

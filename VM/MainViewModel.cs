@@ -40,12 +40,17 @@ namespace LobsterConnect.VM
             CreateGame(false, "Ludo", "https://www.whatever.com/ludo");
             CreateGame(false, "Chess", "https://www.whatever.com/chess");
             CreateGame(false, "Diplomacy", "https://www.whatever.com/diplomacy");
+            CreateGame(false, "Bridge", "https://www.whatever.com/bridge");
+            CreateGame(false, "Whist", "https://www.whatever.com/whist");
+            CreateGame(false, "Dominoes", "https://www.whatever.com/dominoes");
 
             CreatePerson(false, "bobby");
             CreatePerson(false, "susan");
             CreatePerson(false, "jrc14");
             CreatePerson(false, "steve");
             CreatePerson(false, "mike");
+
+            LoggedOnUser = GetPerson("jrc14");
 
             string s1 = CreateSession(false, "bobby", "Ludo", this.CurrentEvent, new SessionTime(0));
             SignUp(false, "bobby", s1);
@@ -56,11 +61,19 @@ namespace LobsterConnect.VM
             SignUp(false, "jrc14", s2);
             SignUp(false, "steve", s2);
             SignUp(false, "mike", s2);
-
+            
             string s3 = CreateSession(false, "steve", "Chess", this.CurrentEvent, new SessionTime(2));
             SignUp(false, "jrc14", s3);
             SignUp(false, "steve", s3);
             SignUp(false, "mike", s3);
+
+            string s4 = CreateSession(false, "steve", "Bridge", this.CurrentEvent, new SessionTime(2));
+
+            string s5 = CreateSession(false, "steve", "Whist", this.CurrentEvent, new SessionTime(2));
+
+            string s6 = CreateSession(false, "steve", "Dominoes", this.CurrentEvent, new SessionTime(2));
+            
+
         }
         /// <summary>
         /// Create a game.  The only information needed is game name.  There also an optional BoardGameGeek link.
@@ -147,7 +160,7 @@ namespace LobsterConnect.VM
             }
             if (password == null)
             {
-                password = "*";
+                password = "";
             }
 
             lock (_personsLock)
@@ -185,7 +198,7 @@ namespace LobsterConnect.VM
             if (email != null)
                 person.Email = email;
             if (password != null)
-                person.PhoneNumber = password;
+                person.Password = password;
             if (isActive != null)
                 person.IsActive = (bool)isActive;
         }
@@ -427,6 +440,25 @@ namespace LobsterConnect.VM
         }
         private string _currentEvent = "LoBsterCon XXVIII";
 
+
+        /// <summary>
+        /// The currently logged on person, or null if no person is logged on
+        /// </summary>
+        public Person LoggedOnUser
+        {
+            get
+            {
+                return this._loggedOnUser;
+            }
+            set
+            {
+                this._loggedOnUser = value;
+
+                this.OnPropertyChanged("LoggedOnUser");
+            }
+        }
+        private Person _loggedOnUser = null;
+
         /// <summary>
         /// Retrieve a list of events that we can manage signups for.  Right now, the functionality is stubbed
         /// out, and we only manage one possible event, LoBsterCon XXVIII.
@@ -475,7 +507,7 @@ namespace LobsterConnect.VM
                         // starting at 0, advance insertAt until we find an element that is greater than s, or we run
                         // out of elements in the existing list
                         int insertAt = 0;
-                        while(existing[insertAt].CompareTo(s) <= 0 && insertAt<existing.Count)
+                        while(insertAt < existing.Count && existing[insertAt].CompareTo(s) <= 0)
                         {
                             insertAt++;
                         }
@@ -608,6 +640,35 @@ namespace LobsterConnect.VM
             }
             return null;
         }
+
+        public void LogUserMessage(Logger.Level level, string message)
+        {
+            string l = "";
+            switch(level)
+            {
+                case Logger.Level.DEBUG:   l = "DEBUG:"; break;
+                case Logger.Level.INFO:    l = "INFO:"; break;
+                case Logger.Level.WARNING: l = "ALERT:";  break;
+                case Logger.Level.ERROR:   l = "ERROR:"; break;
+                default:break;
+            }
+
+            DateTime d = DateTime.Now;
+            int hh = d.Hour;
+            int mm = d.Minute;
+
+            string t = string.Format("{0:D2}:{1:D2}: ", hh, mm);
+
+            if (UserMessages == null)
+                UserMessages = new System.Collections.ObjectModel.ObservableCollection<Tuple<string, string, string>>();
+
+            UserMessages.Insert(0, new Tuple<string, string, string>(t,l,message));
+
+            Logger.LogMessage(level, "MainViewModel.LogUserMessage", message);
+
+        }
+
+        public System.Collections.ObjectModel.ObservableCollection<Tuple<string, string, string>> UserMessages { get; set; }
 
         /// <summary>
         /// The games collection.  It's private; add games using the CreateGame method, retrieve them (by name) using
