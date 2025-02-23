@@ -7,34 +7,12 @@ public partial class PopupLogIn : Popup
 	{
 		InitializeComponent();
 
-#if ANDROID
-        this.btnOk.BackgroundColor = Colors.Transparent;
-        this.btnCancel.BackgroundColor = Colors.Transparent;
-        this.btnOk.TextColor = Colors.Black;
-        this.btnCancel.TextColor = Colors.Black;
-        this.btnCancel.HorizontalOptions = LayoutOptions.Start;
-        this.btnOk.HorizontalOptions = LayoutOptions.End;
-        this.btnCancel.VerticalOptions = LayoutOptions.End;
-        this.btnOk.VerticalOptions = LayoutOptions.End;
-        this.btnCancel.FontAttributes = FontAttributes.Bold;
-        this.btnOk.FontAttributes = FontAttributes.Bold;
-#elif WINDOWS
-        this.btnOk.BackgroundColor = Colors.LightGrey;
-        this.btnCancel.BackgroundColor = Colors.LightGrey;
-        this.btnOk.TextColor = Colors.Black;
-        this.btnCancel.TextColor = Colors.Black;
-        this.rdefButtons.Height = new GridLength(80);
-        this.btnCancel.HorizontalOptions = LayoutOptions.Center;
-        this.btnOk.HorizontalOptions = LayoutOptions.Center;
-        this.btnCancel.VerticalOptions = LayoutOptions.Center;
-        this.btnOk.VerticalOptions = LayoutOptions.Center;
-
-#endif
+        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
 
         string defaultUserName = "";
-        if (Microsoft.Maui.Storage.Preferences.ContainsKey("userhandle"))
+        if (Microsoft.Maui.Storage.Preferences.ContainsKey("UserHandle"))
         {
-            defaultUserName = Microsoft.Maui.Storage.Preferences.Get("userhandle", "");
+            defaultUserName = Microsoft.Maui.Storage.Preferences.Get("UserHandle", "");
             if(!string.IsNullOrEmpty(defaultUserName))
             {
                 this.entryUserHandle.Text = defaultUserName;
@@ -44,7 +22,7 @@ public partial class PopupLogIn : Popup
 
     async void OnOkClicked(object sender, EventArgs e)
     {
-        Tuple<string, string> t = new Tuple<string, string>(this.entryUserHandle.Text, this.entryPassword.Text);
+        Tuple<string, string, bool> t = new Tuple<string, string,bool>(this.entryUserHandle.Text, this.entryPassword.Text, this.chkRememberMe.IsChecked);
 
         await CloseAsync(t, CancellationToken.None);
     }

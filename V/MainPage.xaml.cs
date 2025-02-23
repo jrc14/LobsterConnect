@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui.Views;
 using LobsterConnect.VM;
 using LobsterConnect.Model;
+
 namespace LobsterConnect.V;
 
 public partial class MainPage : ContentPage
@@ -13,6 +14,19 @@ public partial class MainPage : ContentPage
 		this.BindingContext = MainViewModel.Instance;
 
         MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Data has been loaded");
+
+        if (Microsoft.Maui.Storage.Preferences.ContainsKey("UserHandle"))
+        {
+            string defaultUserName = Microsoft.Maui.Storage.Preferences.Get("UserHandle", "");
+            if (!string.IsNullOrEmpty(defaultUserName))
+            {
+				MainViewModel.Instance.LoggedOnUser = MainViewModel.Instance.GetPerson(defaultUserName);
+                if(MainViewModel.Instance.LoggedOnUser!=null)
+				{
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+ defaultUserName+"' has been logged in automatically");
+                }
+            }
+        }
 
         // As long as this page is loaded, we need to respond to a 'sessions must be refreshed' event raised
         // by the view model, by refreshing the main UI grid that shows all the sessions
@@ -151,19 +165,6 @@ public partial class MainPage : ContentPage
 					{
 					};
 					slSession.GestureRecognizers.Add(tr);
-
-                    /*
-                    DataTemplate dt = new DataTemplate(() =>
-                    {
-                        var lbl = new Label
-                        {
-                            TextColor = FgColour
-                        };
-                        lbl.SetBinding(Label.TextProperty, "Item1");
-
-                        return new ViewCell { View = lbl };
-                    });
-					*/
                 }
 			}
 		}
@@ -175,9 +176,6 @@ public partial class MainPage : ContentPage
 		{
 			if (MainViewModel.Instance.LoggedOnUser == null)
 			{
-
-
-
                 const string createNewUser = "Set up a new user";
                 const string logIn = "Log in";
 
@@ -185,13 +183,73 @@ public partial class MainPage : ContentPage
 
 				if(a == createNewUser)
 				{
-                    var popup = new PopupNewUserDetails();
-                    var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+                    var popup1 = new PopupLogIn();
+                    var popupResult1 = await this.ShowPopupAsync(popup1, CancellationToken.None);
+
+                    if (popupResult1 != null && popupResult1 is Tuple<string, string,bool>)
+                    {
+                        Tuple<string, string,bool> userAndPassword = (Tuple<string, string,bool>)popupResult1;
+
+                        Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+
+                        if (user != null)
+                        {
+                            await DisplayAlert("Login", "There is an existing user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
+                            return;
+                        }
+
+						MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
+
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + userAndPassword.Item1 + "' has been created");
+
+						user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+
+                        MainViewModel.Instance.LoggedOnUser = user;
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + user.Handle + "' has been logged in");
+
+                        if (userAndPassword.Item3)
+                        {
+                            Microsoft.Maui.Storage.Preferences.Set("UserHandle", user.Handle);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + user.Handle + "' has been remembered, and will remain logged in");
+                        }
+
+                        var popup2 = new PopupPersonDetails();
+						popup2.SetPerson(user);
+                        var popupResult2 = await this.ShowPopupAsync(popup2, CancellationToken.None);
+                    }
+                    
                 }
 				else if (a== logIn)
 				{
                     var popup = new PopupLogIn();
                     var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+
+					if(popupResult!=null && popupResult is Tuple<string,string, bool>)
+					{
+						Tuple<string, string, bool> userAndPassword = (Tuple<string, string, bool>)popupResult;
+
+						Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+
+						if (user == null)
+						{
+							await DisplayAlert("Login", "There isn't any user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
+							return;
+						}
+						else if (user.Password != Model.Utilities.PasswordHash(userAndPassword.Item2))
+						{
+                            await DisplayAlert("Login", "That is the wrong password for user '" + userAndPassword.Item1 + "'", "Dismiss");
+                            return;
+                        }
+
+						MainViewModel.Instance.LoggedOnUser = user;
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+user.Handle+"' has been logged in");
+
+                        if (userAndPassword.Item3)
+                        {
+                            Microsoft.Maui.Storage.Preferences.Set("UserHandle", user.Handle);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + user.Handle + "' has been remembered, and will remain logged in");
+                        }
+                    }
                 }
             }
 			else
@@ -204,15 +262,17 @@ public partial class MainPage : ContentPage
 
 				if (a == editUser)
 				{
-
-				}
+                    var popup = new PopupPersonDetails();
+                    popup.SetPerson(MainViewModel.Instance.LoggedOnUser);
+                    var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+                }
 				else if (a == changePassword)
 				{
 					if (!string.IsNullOrEmpty(MainViewModel.Instance.LoggedOnUser.Password))
 					{
 						string existing = await DisplayPromptAsync("Password", "Enter the current password for " + MainViewModel.Instance.LoggedOnUser.Handle, keyboard: Keyboard.Password);
 
-						if (existing != MainViewModel.Instance.LoggedOnUser.Password)
+						if (Model.Utilities.PasswordHash(existing) != MainViewModel.Instance.LoggedOnUser.Password)
 						{
 							await DisplayAlert("Password", "That is not the right password for " + MainViewModel.Instance.LoggedOnUser.Password, "Dismiss");
 							return;
@@ -229,19 +289,22 @@ public partial class MainPage : ContentPage
 						await DisplayAlert("Password", "Passwords did not match.  The password has not been changed", "Dismiss");
 						return;
 					}
-					MainViewModel.Instance.UpdatePerson(true, MainViewModel.Instance.LoggedOnUser, password: newPassword2);
+
+					MainViewModel.Instance.UpdatePerson(true, MainViewModel.Instance.LoggedOnUser, password: Model.Utilities.PasswordHash(newPassword2));
                     MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Password has been updated for " + MainViewModel.Instance.LoggedOnUser.Handle);
                 }
 				else if (a == logOut)
 				{
 					MainViewModel.Instance.LoggedOnUser = null;
-					MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User has been logged out");
+                    Microsoft.Maui.Storage.Preferences.Set("UserHandle", "");
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User has been logged out");
 				}
 			}
 		}
 		catch(Exception ex)
 		{
             Logger.LogMessage(Logger.Level.ERROR, "MainPage.btnUserClicked", ex);
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, ex.Message);
         }
 
 	}

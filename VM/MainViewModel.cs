@@ -44,13 +44,11 @@ namespace LobsterConnect.VM
             CreateGame(false, "Whist", "https://www.whatever.com/whist");
             CreateGame(false, "Dominoes", "https://www.whatever.com/dominoes");
 
-            CreatePerson(false, "bobby");
-            CreatePerson(false, "susan");
-            CreatePerson(false, "jrc14");
-            CreatePerson(false, "steve");
-            CreatePerson(false, "mike");
-
-            LoggedOnUser = GetPerson("jrc14");
+            CreatePerson(false, "bobby", password: Model.Utilities.PasswordHash("password"));
+            CreatePerson(false, "susan", password: Model.Utilities.PasswordHash("password"));
+            CreatePerson(false, "jrc14", password: Model.Utilities.PasswordHash("password"));
+            CreatePerson(false, "steve", password: Model.Utilities.PasswordHash("password"));
+            CreatePerson(false, "mike", password: Model.Utilities.PasswordHash("password"));
 
             string s1 = CreateSession(false, "bobby", "Ludo", this.CurrentEvent, new SessionTime(0));
             SignUp(false, "bobby", s1);

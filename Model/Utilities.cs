@@ -8,6 +8,45 @@ namespace LobsterConnect.Model
 {
     static public class Utilities
     {
+        public static string InstallationId
+        {
+            get
+            {
+                if (_installationId != null)
+                    return _installationId;
+                else
+                {
+                    if (Microsoft.Maui.Storage.Preferences.ContainsKey("InstallationId"))
+                    {
+                        _installationId = Microsoft.Maui.Storage.Preferences.Get("InstallationId", "");
+                    }
+
+                    if(string.IsNullOrEmpty(_installationId))
+                    {
+                        int r = System.Random.Shared.Next();
+                        _installationId = String.Format("{0:X8}", r);
+
+                        Microsoft.Maui.Storage.Preferences.Set("InstallationId", _installationId);
+                    }
+
+                    return _installationId;
+                }
+            }
+        }
+        private static string _installationId = null;
+
+        public static string PasswordHash(string p)
+        {
+            string h = "";
+
+            for(int i=0; i<p.Length;i++)
+            {
+                if (i % 2 == 0)
+                    h = h + p[i];
+            }
+
+            return h.GetHashCode().ToString("{0:X8}");
+        }
 
         public static bool FileExists(string path)
         {
