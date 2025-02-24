@@ -274,7 +274,7 @@ public partial class MainPage : ContentPage
 
 						if (Model.Utilities.PasswordHash(existing) != MainViewModel.Instance.LoggedOnUser.Password)
 						{
-							await DisplayAlert("Password", "That is not the right password for " + MainViewModel.Instance.LoggedOnUser.Password, "Dismiss");
+							await DisplayAlert("Password", "That is not the right password for " + MainViewModel.Instance.LoggedOnUser.Handle, "Dismiss");
 							return;
 						}
 					}
@@ -308,9 +308,17 @@ public partial class MainPage : ContentPage
         }
 
 	}
-    void btnAddSessionClicked(Object o, EventArgs e)
+    async void btnAddSessionClicked(Object o, EventArgs e)
     {
+		if (MainViewModel.Instance.LoggedOnUser == null)
+		{
 
+		}
+		else
+		{
+			var popup = new PopupAddSession();
+			var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+		}
     }
     void btnFilterClicked(Object o, EventArgs e)
     {

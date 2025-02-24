@@ -623,6 +623,22 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
+        /// Retrieve a list of the games that we can manage signups for.
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetAvailableGames()
+        {
+            List<string> gameNames = new List<string>();
+            lock (_gamesLock)
+            {
+                foreach (Game g in _games)
+                    gameNames.Add(g.Name);
+            }
+
+            return gameNames;
+        }
+
+        /// <summary>
         /// Returns the Game object for the game having the name provided, or null if there is no such game in the
         /// games collection.
         /// </summary>

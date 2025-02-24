@@ -45,7 +45,9 @@ namespace LobsterConnect.Model
                     h = h + p[i];
             }
 
-            return h.GetHashCode().ToString("{0:X8}");
+            string hashed= h.GetHashCode().ToString("X8");
+
+            return hashed;
         }
 
         public static bool FileExists(string path)

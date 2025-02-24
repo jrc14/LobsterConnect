@@ -55,6 +55,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="V\PopupAddSession.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="V\PopupLogIn.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
