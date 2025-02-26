@@ -176,7 +176,7 @@ namespace LobsterConnect.VM
         private string _password;
     
 
-            /// <summary>
+        /// <summary>
         /// True if this person is active (we don't ever delete a person, we just deactivate them, if we
         /// want them to no longer be capable of doing things)
         /// </summary>
@@ -203,7 +203,7 @@ namespace LobsterConnect.VM
         private bool _isActive;
 
         /// <summary>
-        /// Lock this if doing something state-changing to this person
+        /// Lock this if doing something state-changing involving this person
         /// </summary>
         public LobsterLock instanceLock = new LobsterLock();
     }

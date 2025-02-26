@@ -9,6 +9,8 @@ public partial class MainPage : ContentPage
 {
 	public MainPage()
 	{
+		MainPage.Instance = this;
+
 		MainViewModel.Instance.Load();
 
 		this.BindingContext = MainViewModel.Instance;
@@ -20,10 +22,11 @@ public partial class MainPage : ContentPage
             string defaultUserName = Microsoft.Maui.Storage.Preferences.Get("UserHandle", "");
             if (!string.IsNullOrEmpty(defaultUserName))
             {
-				MainViewModel.Instance.LoggedOnUser = MainViewModel.Instance.GetPerson(defaultUserName);
-                if(MainViewModel.Instance.LoggedOnUser!=null)
+				Person defaultUser= MainViewModel.Instance.GetPerson(defaultUserName);
+                if(defaultUser != null)
 				{
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+ defaultUserName+"' has been logged in automatically");
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+ defaultUserName+"' will been logged in automatically");
+					MainViewModel.Instance.SetLoggedOnUser(defaultUser, true);
                 }
             }
         }
@@ -204,14 +207,7 @@ public partial class MainPage : ContentPage
 
 						user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
 
-                        MainViewModel.Instance.LoggedOnUser = user;
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + user.Handle + "' has been logged in");
-
-                        if (userAndPassword.Item3)
-                        {
-                            Microsoft.Maui.Storage.Preferences.Set("UserHandle", user.Handle);
-                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + user.Handle + "' has been remembered, and will remain logged in");
-                        }
+                        MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
 
                         var popup2 = new PopupPersonDetails();
 						popup2.SetPerson(user);
@@ -241,14 +237,7 @@ public partial class MainPage : ContentPage
                             return;
                         }
 
-						MainViewModel.Instance.LoggedOnUser = user;
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+user.Handle+"' has been logged in");
-
-                        if (userAndPassword.Item3)
-                        {
-                            Microsoft.Maui.Storage.Preferences.Set("UserHandle", user.Handle);
-                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + user.Handle + "' has been remembered, and will remain logged in");
-                        }
+						MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
                     }
                 }
             }
@@ -295,9 +284,7 @@ public partial class MainPage : ContentPage
                 }
 				else if (a == logOut)
 				{
-					MainViewModel.Instance.LoggedOnUser = null;
-                    Microsoft.Maui.Storage.Preferences.Set("UserHandle", "");
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User has been logged out");
+                    MainViewModel.Instance.SetLoggedOnUser(null);
 				}
 			}
 		}
@@ -312,8 +299,9 @@ public partial class MainPage : ContentPage
     {
 		if (MainViewModel.Instance.LoggedOnUser == null)
 		{
-
-		}
+            await DisplayAlert("Propose a Gaming Session", "Log in first please, before proposing a gaming session", "Dismiss");
+            return;
+        }
 		else
 		{
 			var popup = new PopupAddSession();
@@ -324,5 +312,7 @@ public partial class MainPage : ContentPage
     {
 
     }
+
+	public static MainPage Instance = null;
 }
 

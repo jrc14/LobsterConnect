@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LobsterConnect.Model;
 
 namespace LobsterConnect.VM
 {
@@ -74,5 +75,33 @@ namespace LobsterConnect.VM
             }
         }
         private string _bggLink;
+
+        /// <summary>
+        /// True if this game is active (we don't ever delete a game, we just deactivate it, if we
+        /// want them to no longer available for sign-up)
+        /// </summary>
+        public bool IsActive
+        {
+            get
+            {
+                return this._isActive;
+            }
+            set
+            {
+                if (this._isActive != value)
+                {
+                    this._isActive = value;
+
+                    this.OnPropertyChanged("IsActive");
+
+                }
+            }
+        }
+        private bool _isActive=true;
+
+        /// <summary>
+        /// Lock this if doing something state-changing involving this game
+        /// </summary>
+        public LobsterLock instanceLock = new LobsterLock();
     }
 }

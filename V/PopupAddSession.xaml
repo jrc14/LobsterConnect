@@ -7,7 +7,8 @@
     <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="250"/>
             <RowDefinition Height="50"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,19 +16,37 @@
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Propose a Gaming Session" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
-        <Label Grid.Row="1" Grid.Column="0" Text="Game:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Picker Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" Margin="5" VerticalOptions="Center" x:Name="pickerGame" SelectedIndexChanged="pickerGame_SelectedIndexChanged"></Picker>
-        <Label Grid.Row="2" Grid.Column="0" Text="Start Time:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Picker Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" x:Name="pickerStartTime" Margin="5" VerticalOptions="Center"></Picker>
-        <Label Grid.Row="3" Grid.Column="0" Text="Sits Minimum: 2" HorizontalOptions="Start" x:Name="lblMinimum" Margin="5" VerticalOptions="Center"></Label>
-        <Stepper Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMinimum" Margin="5" VerticalOptions="Center"></Stepper>
-        <Label Grid.Row="4" Grid.Column="0" Text="Sits Maximum: 2" HorizontalOptions="Start" x:Name="lblMaximum" Margin="5" VerticalOptions="Center"></Label>
-        <Stepper Grid.Row="4" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMaximum" Margin="5" VerticalOptions="Center"></Stepper>
-        <Button Grid.Row="5" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
-        <Button Grid.Row="5" Grid.Column="1" Text="OK" Clicked="OnOkClicked" Margin="5" x:Name="btnOk" ></Button>
+        <Label Grid.Row="1" Grid.Column="0" Text="Game to play:" HorizontalOptions="Start" Margin="5" VerticalOptions="Start"></Label>
+        <Border Grid.Row="2" Grid.Column="0" WidthRequest="250" VerticalOptions="Start" Stroke="Gray">               
+            <CollectionView HorizontalOptions="Start" Margin="5" WidthRequest="235" VerticalOptions="Start" x:Name="lvGame" SelectionChanged="lvGame_SelectionChanged" SelectionMode="Single">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Label Text="{Binding}" LineBreakMode="TailTruncation" WidthRequest="235"></Label>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+        <Border Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" Margin="5,0,5,0" WidthRequest="90" VerticalOptions="Start" Stroke="Gray">
+            <StackLayout Orientation="Horizontal"  WidthRequest="80">
+                <Label Text="&#xf407;" FontFamily="FluentSystemIcons-Regular" FontSize="20" VerticalOptions="Center" WidthRequest="25"></Label>
+                <Entry HorizontalOptions="Start" WidthRequest="40" VerticalOptions="Center" x:Name="entryGameFilter" TextChanged="entryGameFilter_TextChanged"></Entry>
+            </StackLayout>
+        </Border>
+        
+        <Label Grid.Row="3" Grid.Column="0" Text="Start Time:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Picker Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="pickerStartTime" Margin="5" WidthRequest="100" VerticalOptions="Center"></Picker>
+        <Label Grid.Row="4" Grid.Column="0" Text="Sits Minimum: 2" HorizontalOptions="Start" x:Name="lblMinimum" Margin="5" VerticalOptions="Center"></Label>
+        <Stepper Grid.Row="4" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMinimum" Margin="5" VerticalOptions="Center"></Stepper>
+        <Label Grid.Row="5" Grid.Column="0" Text="Sits Maximum: 2" HorizontalOptions="Start" x:Name="lblMaximum" Margin="5" VerticalOptions="Center"></Label>
+        <Stepper Grid.Row="5" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMaximum" Margin="5" VerticalOptions="Center"></Stepper>
+        <Button Grid.Row="6" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
+        <Button Grid.Row="6" Grid.Column="1" Text="OK" Clicked="OnOkClicked" Margin="5" x:Name="btnOk" ></Button>
     </Grid>
 </toolkit:Popup>

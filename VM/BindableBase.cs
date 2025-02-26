@@ -43,6 +43,12 @@ namespace LobsterConnect.VM
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
+            if(!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "BindableBase.OnPropertyChanged", "Coding bug: the property '" + propertyName + "' can only be changed on the UI thread");
+                return;
+            }
+
             var eventHandler = this.PropertyChanged;
             if (eventHandler != null)
             {

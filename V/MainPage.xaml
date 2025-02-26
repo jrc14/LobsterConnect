@@ -60,30 +60,31 @@
 
 			</Grid>
 		</ScrollView>
-		<ListView Grid.Row="2" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog">
-			<ListView.ItemTemplate>
-				<DataTemplate>
-					<ViewCell>
-						<Grid Margin="0,0,0,0" Padding="4,0,4,0" Background="Black">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="80"/>
-								<ColumnDefinition Width="80" />
-								<ColumnDefinition Width="*" />
-							</Grid.ColumnDefinitions>
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto"/>
-							</Grid.RowDefinitions>
-							<Label Text="{Binding Item1}" FontFamily="FiraMonoRegular"  TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
+		<CollectionView Grid.Row="2" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,0,0,0" Padding="4,0,4,0" Background="Black">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Label Text="{Binding Item1}" FontFamily="FiraMonoRegular"  TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
 									Grid.Row="0" Grid.Column="0"/>
-							<Label Text="{Binding Item2}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
+                        <Label Text="{Binding Item2}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
 									Grid.Row="0" Grid.Column="1"/>
-							<Label Text="{Binding Item3}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
+                        <Label Text="{Binding Item3}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
 									LineBreakMode="CharacterWrap"
 									Grid.Row="0" Grid.Column="2"/>
-						</Grid>
-					</ViewCell>
-				</DataTemplate>
-			</ListView.ItemTemplate>
-		</ListView>
+                    </Grid>
+                </DataTemplate>
+			</CollectionView.ItemTemplate>
+		</CollectionView>
 	</Grid>
 </ContentPage>
