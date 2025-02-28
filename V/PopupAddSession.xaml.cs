@@ -1,3 +1,4 @@
+
 using CommunityToolkit.Maui.Views;
 using LobsterConnect.VM;
 using System.Collections.ObjectModel;
@@ -20,10 +21,12 @@ public partial class PopupAddSession : Popup
         for(int s=0;s<SessionTime.NumberOfTimeSlots; s++)
         {
             SessionTime t = new SessionTime(s);
-            timeSlotLabels.Add(t.DayLabel + " " + t.TimeLabel);
+            timeSlotLabels.Add(t.ToString());
         }
 
         this.pickerStartTime.ItemsSource = timeSlotLabels;
+
+        
 
         // Do this later because it takes a while
         Model.DispatcherHelper.RunAsyncOnUI(() => this.lvGame.ItemsSource = new ObservableCollection<string>(allGames));
@@ -33,12 +36,60 @@ public partial class PopupAddSession : Popup
     {
         //Tuple<string, string, bool> t = new Tuple<string, string, bool>(this.entryUserHandle.Text, this.entryPassword.Text, this.chkRememberMe.IsChecked);
 
-        await CloseAsync(true, CancellationToken.None);
+        List<string> timeSlotLabels = this.pickerStartTime.ItemsSource as List<string>;
+        string selectedTimeSlotLabel = this.pickerStartTime.SelectedItem as string;
+        int selectedTimeIndex = timeSlotLabels.IndexOf(selectedTimeSlotLabel);
+        if(selectedTimeIndex==-1)
+        {
+            await MainPage.Instance.DisplayAlert("Add Gaming Session", "Please select a time for this session", "Dismiss");
+        }    
+        else if (this.lvGame.SelectedItem ==null && this.addedGameName == null)
+        {
+            await MainPage.Instance.DisplayAlert("Add Gaming Session", "Please select a game to be played in this session", "Dismiss");
+        }
+        else
+        {
+            try
+            {
+                string gameName;
+
+                if (this.lvGame.SelectedItem as string ==null)
+                    gameName = this.addedGameName;
+                else
+                    gameName = this.lvGame.SelectedItem as string;
+
+                string notes = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "Please add any note that you want to display on this session");
+
+                string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "If you want to associate a WhatsApp chat with this game, please get an 'invite to group' link for the chat, and paste it here");
+
+                if (string.IsNullOrEmpty(notes)) notes = "NO NOTES";
+                if (string.IsNullOrEmpty(whatsAppLink)) whatsAppLink = "NO WHATSAPP LINK";
+
+                int sitsMinimum = (int)Double.Round(this.stpMinimum.Value);
+                int sitsMaximum = (int)Double.Round(this.stpMaximum.Value);
+
+                string proposer = MainViewModel.Instance.LoggedOnUser.Handle;
+                string eventName = MainViewModel.Instance.CurrentEvent;
+
+                SessionTime startTime = new SessionTime(selectedTimeIndex);
+
+                MainViewModel.Instance.CreateSession(true, proposer, gameName, eventName, startTime, notes, whatsAppLink, sitsMinimum, sitsMaximum);
+
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "You (user '"+proposer+"') have created a session to play '"+gameName+"' at "+startTime.ToString());
+
+            }
+            catch(Exception ex)
+            {
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, ex.Message);
+            }
+
+            await CloseAsync(true, CancellationToken.None);         
+        }
     }
 
     async void OnCancelClicked(object sender, EventArgs e)
     {
-        await CloseAsync(null, CancellationToken.None);
+        await CloseAsync(false, CancellationToken.None);
     }
 
     private void SetGameNameFilter(string newFilter)
@@ -121,13 +172,64 @@ public partial class PopupAddSession : Popup
     }
 
     private const string ADD_GAME_TEXT = "[Add a game not in the list below]";
+    private string addedGameName = null;
 
     private async void lvGame_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.Count==1 && e.CurrentSelection[0] as string == ADD_GAME_TEXT) // Selected the entry with the "[add a game ..." label
         {
+            ObservableCollection<string> lvStrings = this.lvGame.ItemsSource as ObservableCollection<string>;
+
+            if (lvStrings == null)
+                return;
+
             string newGameName = await MainPage.Instance.DisplayPromptAsync("New Game", "Enter the name of the game you want to add");
+
+            if (string.IsNullOrEmpty(newGameName))
+                return;
+
+            if(lvStrings.Contains(newGameName))
+            {
+                await MainPage.Instance.DisplayAlert("New Game", "There is already a game called '" + newGameName + "'", "Dismiss");
+                return;
+            }
+
+
+            string newGameBggLink = await MainPage.Instance.DisplayPromptAsync("New Game", "Please enter a BGG URL link for '" + newGameName + "'");
+            if (string.IsNullOrEmpty(newGameBggLink))
+            {
+                await MainPage.Instance.DisplayAlert("New Game", "The BGG URL Link can't be left blank'", "Dismiss");
+                return;
+            }
+
+            try
+            {
+                MainViewModel.Instance.CreateGame(true, newGameName, newGameBggLink);
+
+                lvStrings[0] = newGameName;
+
+                this.addedGameName = newGameName;
+            }
+            catch(Exception ex)
+            {
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, ex.Message);
+            }
+
         }
-    
+
+    }
+
+    private void stpMaximum_ValueChanged(object sender, ValueChangedEventArgs e)
+    {
+        int v = (int)Double.Round(e.NewValue);
+
+        this.lblMaximum.Text = "Sits Maximum: " + v.ToString();
+    }
+
+    private void stpMinimum_ValueChanged(object sender, ValueChangedEventArgs e)
+    {
+        int v = (int)Double.Round(e.NewValue);
+
+        this.lblMinimum.Text = "Sits Minimum: " + v.ToString();
     }
 }

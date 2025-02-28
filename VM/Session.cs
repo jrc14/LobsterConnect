@@ -1,4 +1,6 @@
-﻿using LobsterConnect.Model;
+﻿using CommunityToolkit.Maui.Markup;
+using LobsterConnect.Model;
+using Microsoft.Maui.Layouts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -402,6 +404,9 @@ namespace LobsterConnect.VM
                     this._signUps += ", " + personHandle;
                     this._numSignUps = hh+1;
                 }
+
+                this.OnPropertyChanged("SignUps");
+                this.OnPropertyChanged("NumSignUps");
             }
         }
 
@@ -472,9 +477,32 @@ namespace LobsterConnect.VM
                     }
                     existing.RemoveAt(toRemove);
 
-                    this._signUps += string.Join(", ",existing);
-                    this._numSignUps = existing.Count-1;
+                    this._signUps = string.Join(", ",existing);
+                    this._numSignUps = existing.Count;
                 }
+
+                this.OnPropertyChanged("SignUps");
+                this.OnPropertyChanged("NumSignUps");
+            }
+        }
+
+        public bool IsSignedUp(string userHandle)
+        {
+            if (string.IsNullOrEmpty(this._signUps))
+                return false;
+            else if (!this.SignUps.Contains(','))
+            {
+                return this.SignUps == userHandle;
+            }
+            else
+            {
+                List<string> existing = new List<string>(this._signUps.Split(','));
+                foreach(string e in existing)
+                {
+                    if (e.Trim() == userHandle)
+                        return true;
+                }
+                return false;
             }
         }
 

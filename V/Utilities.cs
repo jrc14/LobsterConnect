@@ -11,16 +11,24 @@ namespace LobsterConnect.V
         public static void StylePopupButtons(Button btnOk, Button btnCancel, RowDefinition rdefButtons, params Button[] buttons)
         {
 #if ANDROID
-            btnOk.BackgroundColor = Colors.Transparent;
-            btnCancel.BackgroundColor = Colors.Transparent;
-            btnOk.TextColor = Colors.Black;
-            btnCancel.TextColor = Colors.Black;
-            btnCancel.HorizontalOptions = LayoutOptions.Start;
-            btnOk.HorizontalOptions = LayoutOptions.End;
-            btnCancel.VerticalOptions = LayoutOptions.End;
-            btnOk.VerticalOptions = LayoutOptions.End;
-            btnCancel.FontAttributes = FontAttributes.Bold;
-            btnOk.FontAttributes = FontAttributes.Bold;
+            if (btnOk != null)
+            {
+                btnOk.BackgroundColor = Colors.Transparent;
+                btnOk.TextColor = Colors.Black;
+                btnOk.HorizontalOptions = LayoutOptions.End;
+                btnOk.VerticalOptions = LayoutOptions.End;
+                btnOk.FontAttributes = FontAttributes.Bold;
+            }
+
+            if (btnCancel != null)
+            {
+                btnCancel.BackgroundColor = Colors.Transparent;
+                btnCancel.TextColor = Colors.Black;
+                btnCancel.HorizontalOptions = LayoutOptions.Start;
+                btnCancel.VerticalOptions = LayoutOptions.End;
+                btnCancel.FontAttributes = FontAttributes.Bold;
+            }
+            
 
             if(buttons!=null)
             {
@@ -31,17 +39,28 @@ namespace LobsterConnect.V
                 }
             }
 #elif WINDOWS
-            btnOk.BackgroundColor = Colors.LightGrey;
-            btnCancel.BackgroundColor = Colors.LightGrey;
-            btnOk.TextColor = Colors.Black;
-            btnCancel.TextColor = Colors.Black;
-            rdefButtons.Height = new GridLength(80);
-            btnCancel.HorizontalOptions = LayoutOptions.Center;
-            btnOk.HorizontalOptions = LayoutOptions.Center;
-            btnCancel.VerticalOptions = LayoutOptions.Center;
-            btnOk.VerticalOptions = LayoutOptions.Center;
 
-            if(buttons!=null)
+            if (btnOk != null)
+            {
+                btnOk.BackgroundColor = Colors.LightGrey;
+                btnOk.TextColor = Colors.Black;
+                btnOk.HorizontalOptions = LayoutOptions.Center;
+                btnOk.VerticalOptions = LayoutOptions.Start;
+            }
+
+            if (btnCancel != null)
+            {
+                btnCancel.BackgroundColor = Colors.LightGrey;
+                btnCancel.TextColor = Colors.Black;
+                btnCancel.HorizontalOptions = LayoutOptions.Center;
+                btnCancel.VerticalOptions = LayoutOptions.End;
+            }
+            
+
+            if(rdefButtons!=null)
+                rdefButtons.Height = new GridLength(80);
+
+            if (buttons!=null)
             {
                 foreach(Button b in buttons)
                 {

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="LobsterConnect.V.PopupManageSession">
+    <Grid RowSpacing="0" ColumnSpacing="0" Padding="10" MaximumWidthRequest="300">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60" x:Name="rdefButtons"/>
+            <RowDefinition Height="5"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="80"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Gaming Session Details" x:Name="lbSessionDetails" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="{Binding Proposer}" x:Name="lbProposer" Margin="0" HorizontalOptions="End" VerticalOptions="Center"></Label>
+        <Label Grid.Row="1" Grid.Column="0"  HeightRequest="50" Text="{Binding ToPlay}" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Label Grid.Row="1" Grid.Column="1"  HeightRequest="50" Text="{Binding StartAt}" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"  HeightRequest="60" Text="{Binding BggLink}" HorizontalOptions="Start" x:Name="lblBggLink" Margin="5" VerticalOptions="Center" TextColor="DarkBlue">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer 
+                Tapped="BggLink_Tapped"/>
+            </Label.GestureRecognizers>
+        </Label>
+        <Label Grid.Row="3" Grid.Column="0" x:Name="lblWhatsAppLink" HeightRequest="60" Text="{Binding WhatsAppLink}" HorizontalOptions="Start" Margin="5" VerticalOptions="Center" TextColor="DarkBlue">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer 
+                Tapped="WhatsAppLink_Tapped"/>
+            </Label.GestureRecognizers>
+        </Label>
+        <Button Grid.Row="3" Grid.Column="1" x:Name="btnWhatsAppLink"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" CornerRadius="5"
+							  Clicked="btnWhatsAppClicked">
+            <Button.ImageSource>
+                <FontImageSource Glyph="&#xf3de;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </Button.ImageSource>
+        </Button>
+        <Label Grid.Row="4" Grid.Column="0" x:Name="lblNotes" HeightRequest="60" Text="{Binding Notes}" HorizontalOptions="Start" Margin="5" VerticalOptions="Center">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer 
+                Tapped="Notes_Tapped"/>
+            </Label.GestureRecognizers>
+        </Label>
+        <Button Grid.Row="4" Grid.Column="1" x:Name="btnNotes"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" CornerRadius="5"
+							  Clicked="btnNotesClicked">
+            <Button.ImageSource>
+                <FontImageSource Glyph="&#xf3de;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </Button.ImageSource>
+        </Button>
+        <StackLayout Grid.Row="5" Grid.Column="0" x:Name="slState" HeightRequest="60"  Orientation="Vertical">
+            <Label Text="{Binding State}" VerticalOptions="Center" HorizontalOptions="Center"></Label>
+            <StackLayout Orientation="Horizontal">
+                <Label Text="{Binding NumSignUps}" VerticalOptions="Center"></Label>
+                <Label Text="out of (min) "  Margin="5" VerticalOptions="Center"></Label>
+                <Label Text="{Binding SitsMinimum}" VerticalOptions="Center"></Label>
+                <Label Text="to (max)"  Margin="5" VerticalOptions="Center"></Label>
+                <Label Text="{Binding SitsMaximum}" VerticalOptions="Center"></Label>
+            </StackLayout>
+        </StackLayout>
+        <Button Grid.Row="5" Grid.Column="1" x:Name="btnState" VerticalOptions="Start" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Black" BackgroundColor="Transparent" BorderWidth="1" CornerRadius="5" 
+							  Clicked="btnStateClicked">
+            <Button.ImageSource>
+                <FontImageSource Glyph="&#xf3de;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </Button.ImageSource>
+        </Button>
+
+        <Button Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding SignUps}" TextColor="Black" x:Name="btnSignUp" Margin="5" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" VerticalOptions="Center" Clicked="btnSignUpClicked" >
+            <Button.ImageSource>
+                <FontImageSource Glyph="&#xe906;" Color="Black" FontFamily="FluentSystemIcons-Regular"/>
+            </Button.ImageSource>
+        </Button>
+        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Text="Dismiss" TextColor="Black" Clicked="OnDismissClicked" Margin="5" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" VerticalOptions="Center" x:Name="btnDismiss" HorizontalOptions="End"></Button>
+    </Grid>
+</toolkit:Popup>

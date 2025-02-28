@@ -13,6 +13,13 @@ namespace LobsterConnect.VM
         {
             this._timeSlotNumber = timeSlotNumber;
         }
+
+
+        public override string ToString()
+        {
+            return this.DayLabel + " " + this.TimeLabel;
+        }
+
         public string DayLabel
         {
             get

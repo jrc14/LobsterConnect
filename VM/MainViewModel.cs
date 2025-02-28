@@ -244,7 +244,7 @@ namespace LobsterConnect.VM
 
             if(notes==null)
             {
-                notes = "";
+                notes = "NO NOTES";
             }
 
             if (whatsAppLink == null)
@@ -408,7 +408,7 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Update attributes of a session, informing the journal if necessary.  Any attributes you don't want to update should be
-        /// set to null.  The state att4ribute should be one of OPEN, CLOSED or ABANDONED; if it is not then an exception will be thrown.
+        /// set to null.  The state attribute should be one of OPEN, FULL or ABANDONED; if it is not then an exception will be thrown.
         /// This method is the correct way to amend a session object in response to UI actions, because it will inform the journal, meaning
         /// that updates will be saved locally and passed on to the cloud store.
         /// </summary>
@@ -442,7 +442,7 @@ namespace LobsterConnect.VM
                         session.SitsMinimum = (int)sitsMaximum;
                     if (state != null)
                     {
-                        if (state == "OPEN" || state == "CLOSED" || state == "ABANDONED")
+                        if (state == "OPEN" || state == "FULL" || state == "ABANDONED")
                         {
                             session.State = state;
                         }

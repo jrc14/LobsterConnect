@@ -43,9 +43,9 @@
         <Label Grid.Row="3" Grid.Column="0" Text="Start Time:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
         <Picker Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="pickerStartTime" Margin="5" WidthRequest="100" VerticalOptions="Center"></Picker>
         <Label Grid.Row="4" Grid.Column="0" Text="Sits Minimum: 2" HorizontalOptions="Start" x:Name="lblMinimum" Margin="5" VerticalOptions="Center"></Label>
-        <Stepper Grid.Row="4" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMinimum" Margin="5" VerticalOptions="Center"></Stepper>
+        <Stepper Grid.Row="4" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMinimum" Margin="5" VerticalOptions="Center" Maximum="20" Minimum="2" Value="2" ValueChanged="stpMinimum_ValueChanged"></Stepper>
         <Label Grid.Row="5" Grid.Column="0" Text="Sits Maximum: 2" HorizontalOptions="Start" x:Name="lblMaximum" Margin="5" VerticalOptions="Center"></Label>
-        <Stepper Grid.Row="5" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMaximum" Margin="5" VerticalOptions="Center"></Stepper>
+        <Stepper Grid.Row="5" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMaximum" Margin="5" VerticalOptions="Center" Maximum="20" Minimum="2" Value="2" ValueChanged="stpMaximum_ValueChanged"></Stepper>
         <Button Grid.Row="6" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
         <Button Grid.Row="6" Grid.Column="1" Text="OK" Clicked="OnOkClicked" Margin="5" x:Name="btnOk" ></Button>
     </Grid>

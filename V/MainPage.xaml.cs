@@ -25,7 +25,7 @@ public partial class MainPage : ContentPage
 				Person defaultUser= MainViewModel.Instance.GetPerson(defaultUserName);
                 if(defaultUser != null)
 				{
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+ defaultUserName+"' will been logged in automatically");
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+ defaultUserName+"' has been logged in automatically");
 					MainViewModel.Instance.SetLoggedOnUser(defaultUser, true);
                 }
             }
@@ -76,7 +76,7 @@ public partial class MainPage : ContentPage
 				new Label() {
 					WidthRequest = 100,
 					HeightRequest = 75,
-					Text = t.DayLabel + " " + t.TimeLabel });
+					Text = t.ToString() });
 
 			this.gdSessions.RowDefinitions.Add(new RowDefinition() { Height = 75 });
 			if (sessions[s]!=null)
@@ -164,10 +164,15 @@ public partial class MainPage : ContentPage
                     lbSitsMaximum.Bind(Label.TextProperty, "SitsMaximum");
 
 					TapGestureRecognizer tr = new TapGestureRecognizer();
+					tr.BindingContext = session;
                     tr.Tapped += (object sender, TappedEventArgs e)=>
 					{
+						Session s = ((StackLayout) sender ).BindingContext as Session;
+
+						ShowSessionManagementPopup(s);
 					};
 					slSession.GestureRecognizers.Add(tr);
+					slSession.BindingContext = session;
                 }
 			}
 		}
@@ -201,7 +206,19 @@ public partial class MainPage : ContentPage
                             return;
                         }
 
-						MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
+                        if (string.IsNullOrEmpty(userAndPassword.Item1))
+                        {
+                            await DisplayAlert("Login", "You have to provide a user handle", "Dismiss");
+                            return;
+                        }
+
+                        if (userAndPassword.Item1.Contains(','))
+                        {
+                            await DisplayAlert("Login", "A user handle must not contain any commas", "Dismiss");
+                            return;
+                        }
+
+                        MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
 
                         MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + userAndPassword.Item1 + "' has been created");
 
@@ -312,6 +329,21 @@ public partial class MainPage : ContentPage
     {
 
     }
+
+	async Task<bool> ShowSessionManagementPopup(Session s)
+	{
+		if(MainViewModel.Instance.LoggedOnUser!=null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer)
+		{
+			// If the logged on user is the proposer of this session, they're allowed to make changes to it
+
+		}
+        var popup = new PopupManageSession();
+		popup.SetSession(s);
+        var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+
+
+        return true;
+	}
 
 	public static MainPage Instance = null;
 }
