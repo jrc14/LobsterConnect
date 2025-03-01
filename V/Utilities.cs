@@ -53,7 +53,7 @@ namespace LobsterConnect.V
                 btnCancel.BackgroundColor = Colors.LightGrey;
                 btnCancel.TextColor = Colors.Black;
                 btnCancel.HorizontalOptions = LayoutOptions.Center;
-                btnCancel.VerticalOptions = LayoutOptions.End;
+                btnCancel.VerticalOptions = LayoutOptions.Start;
             }
             
 

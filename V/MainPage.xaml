@@ -5,6 +5,7 @@
 	<Grid RowSpacing="0" ColumnSpacing="0">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
+            <RowDefinition Height="40"/>
 			<RowDefinition Height="*"/>
 			<RowDefinition Height="100"/>
 		</Grid.RowDefinitions>
@@ -28,7 +29,9 @@
 					</ImageButton.Source>
 
 				</ImageButton>
-			</StackLayout>
+                <Label Text="{Binding CurrentFilter.Description}" TextColor="White" VerticalOptions="Center" Margin="5,5,5,5">
+                </Label>
+            </StackLayout>
 
 			<StackLayout  Orientation="Horizontal" HorizontalOptions="End" >
 				<Label Text="{Binding LoggedOnUser.Handle}" TextColor="White" VerticalOptions="Center" Margin="0,5,5,5">					
@@ -44,23 +47,19 @@
 			
 		</Grid>
 
-		<ScrollView Grid.Row="1" Grid.Column="0" Orientation="Vertical" VerticalOptions="Fill" HorizontalOptions="Fill" BackgroundColor="Green">
-			<Grid RowSpacing="0" ColumnSpacing="0" VerticalOptions="Fill" HorizontalOptions="Fill">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="100"/>
-					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
-				<Grid x:Name="gdSlotLabels" RowSpacing="0" ColumnSpacing="0" Width="100" Grid.Column="0" BackgroundColor="LightGray">
-				</Grid>
-				<ScrollView Grid.Column="1" Orientation="Horizontal" VerticalOptions="Fill" HorizontalOptions="Fill" BackgroundColor="DarkGray">
-					<Grid x:Name="gdSessions" RowSpacing="0" ColumnSpacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
-					</Grid>
+        <AbsoluteLayout x:Name="alSlotLabels" Grid.Row="1" Grid.Column="0" HeightRequest="40" BackgroundColor="Azure">
+            <Grid  x:Name="gdSlotLabels" RowSpacing="0" ColumnSpacing="0" HeightRequest="40"  BackgroundColor="Black"
+                   AbsoluteLayout.LayoutBounds="0,0">
+            </Grid>
+        </AbsoluteLayout>
 
-				</ScrollView>
-
-			</Grid>
-		</ScrollView>
-		<CollectionView Grid.Row="2" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog">
+        
+        <ScrollView  Grid.Row="2" Grid.Column="0" x:Name="svSessions" Orientation="Both" VerticalOptions="Fill" HorizontalOptions="Fill" Scrolled="svSessions_Scrolled">
+            <Grid x:Name="gdSessions" RowSpacing="0" ColumnSpacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
+            </Grid>
+        </ScrollView>
+	
+		<CollectionView Grid.Row="3" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
             </CollectionView.ItemsLayout>

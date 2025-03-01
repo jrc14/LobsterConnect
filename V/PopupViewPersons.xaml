@@ -9,6 +9,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" x:Name="rdefButtons"/>
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
@@ -16,8 +19,26 @@
             <ColumnDefinition Width="150"/>
             <ColumnDefinition Width="150"/>
         </Grid.ColumnDefinitions>
-        <Label  Grid.Row="1" Grid.Column="0"  x:Name="lbPickerPersons" Text="Choose a person"></Label>
-        <Picker Grid.Row="1" Grid.Column="1"  x:Name="pickerPersons"></Picker>
-        <Button Grid.Row="4" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Person Details" FontAttributes="Bold"></Label>
+        <Label Grid.Row="1" Grid.Column="0" HeightRequest="50" x:Name="lbPickerPersons" Text="Choose a person"></Label>
+        <Picker Grid.Row="1" Grid.Column="1" HeightRequest="50" x:Name="pickerPersons" SelectedIndexChanged="pickerPersons_SelectedIndexChanged"></Picker>
+        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" x:Name="lblHandle" Text="{Binding Handle}" HorizontalOptions="Start"></Label>
+        <Label Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" x:Name="lblFullName" Text="{Binding FullName}" HorizontalOptions="Start"></Label>
+        <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"  HeightRequest="60" x:Name="lblEmail" Text="{Binding Email}" HorizontalOptions="Start"></Label>
+        <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnCopyEmail" HorizontalOptions="End"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" CornerRadius="5"
+							  Clicked="btnCopyEmail_Clicked">
+            <Button.ImageSource>
+                <FontImageSource Glyph="&#xf381;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </Button.ImageSource>
+        </Button>
+        <Label Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="60" x:Name="lblPhoneNumber" Text="{Binding PhoneNumber}" HorizontalOptions="Start"></Label>
+        <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" x:Name="btnCopyPhoneNumber" HorizontalOptions="End"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" CornerRadius="5"
+							  Clicked="btnCopyPhoneNumber_Clicked">
+            <Button.ImageSource>
+                <FontImageSource Glyph="&#xf381;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </Button.ImageSource>
+        </Button>
+
+        <Button Grid.Row="7" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
     </Grid>
 </toolkit:Popup>

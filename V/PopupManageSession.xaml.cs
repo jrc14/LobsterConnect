@@ -83,11 +83,24 @@ public partial class PopupManageSession : Popup
             }
 
             List<string> signUps = new List<string>();
-            foreach (string h in s.SignUps.Split(','))
+            if (string.IsNullOrEmpty(s.SignUps))
             {
-                string handle = h.Trim();
-                if (handle != MainViewModel.Instance.LoggedOnUser.Handle)
+                // no sign-ups
+            }
+            else if (!s.SignUps.Contains(','))
+            {
+                // one sign-up
+                string handle = s.SignUps.Trim();
+                signUps.Add(handle);
+            }
+            else
+            {
+                foreach (string h in s.SignUps.Split(','))
+                {
+                    // multiple sign-ups, separated by commas and trailing spaces
+                    string handle = h.Trim();
                     signUps.Add(handle);
+                }
             }
 
             string a;

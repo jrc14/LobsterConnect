@@ -488,11 +488,31 @@ namespace LobsterConnect.VM
 
         public bool IsSignedUp(string userHandle)
         {
+            /* consider - should I use this test instead?
+            if (string.IsNullOrEmpty(userHandle)) // no signups - the criterion can't be met
+                return false;
+            if (!SignUps.Contains(',')) // just one signup - check whether it matches the crierion
+            {
+                if (SignUps != userHandle)
+                    return false;
+
+            }
+            else // session has multiple signups, in a comma separated list; the check is more intricate
+            {
+                bool matchedLast = SignUps.EndsWith(", " + userHandle);
+                bool matchedFirst = SignUps.StartsWith(userHandle + ", ");
+                bool matchedOther = SignUps.Contains(", " + userHandle + ", ");
+                if (!matchedFirst && !matchedLast && !matchedOther)
+                    return false;
+            }
+            return true;
+            */
+
             if (string.IsNullOrEmpty(this._signUps))
                 return false;
             else if (!this.SignUps.Contains(','))
             {
-                return this.SignUps == userHandle;
+                return this.SignUps.Trim() == userHandle;
             }
             else
             {

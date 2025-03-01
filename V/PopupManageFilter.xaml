@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="LobsterConnect.V.PopupManageFilter">
+    <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50" x:Name="rdefButtons"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Set Filter" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        <Label Grid.Row="1" Grid.Column="0" Text="Proposer:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <StackLayout Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+            <Picker HorizontalOptions="Start" x:Name="pickerProposer" Margin="5" VerticalOptions="Center" MaximumWidthRequest="150"></Picker>
+            <Entry HorizontalOptions="Start" x:Name="entryProposer" Margin="5" VerticalOptions="Center" MaximumWidthRequest="50" TextChanged="entryProposer_TextChanged"></Entry>
+        </StackLayout>
+        
+        <Label Grid.Row="2" Grid.Column="0" Text="Game Name contains:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Entry Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" x:Name="entryGameName" Margin="5" VerticalOptions="Center"></Entry>
+        <Label Grid.Row="3" Grid.Column="0" Text="Signups include:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        
+        <StackLayout Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+            <Picker HorizontalOptions="Start" x:Name="pickerSignUps" Margin="5" VerticalOptions="Center" MaximumWidthRequest="150"></Picker>
+            <Entry HorizontalOptions="Start" x:Name="entrySignUps" Margin="5" VerticalOptions="Center" MaximumWidthRequest="50" TextChanged="entrySignUps_TextChanged"></Entry>
+        </StackLayout>
+
+        <Label Grid.Row="4" Grid.Column="0" Text="State:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Picker Grid.Row="4" Grid.Column="1" HorizontalOptions="Start" x:Name="pickerState" Margin="5" VerticalOptions="Center"></Picker>
+        <Button Grid.Row="5" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
+        <Button Grid.Row="5" Grid.Column="1" Text="Save" Clicked="OnSaveClicked" Margin="5" x:Name="btnSave" ></Button>
+    </Grid>
+</toolkit:Popup>

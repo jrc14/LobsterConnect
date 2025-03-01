@@ -53,18 +53,20 @@ public partial class MainPage : ContentPage
 
 	public void RefreshSessionsGrid(object o, EventArgs a)
 	{
-		List<Session>[] sessions = MainViewModel.Instance.GetAllSessions(MainViewModel.Instance.CurrentEvent);
+		List<Session>[] sessions = MainViewModel.Instance.GetAllSessions(MainViewModel.Instance.CurrentEvent, MainViewModel.Instance.CurrentFilter);
 
 		this.gdSlotLabels.Children.Clear();
+		this.gdSlotLabels.WidthRequest = sessions.Length * 100;
 
-		this.gdSessions.Children.Clear();
-		this.gdSessions.RowDefinitions.Clear();
+
+        this.gdSessions.Children.Clear();
+		this.gdSessions.ColumnDefinitions.Clear();
 
 		this.gdSlotLabels.Children.Add(
 			new StackLayout() {
-				Orientation = StackOrientation.Vertical,
-				WidthRequest=100,
-				HeightRequest=sessions.Length*75,
+				Orientation = StackOrientation.Horizontal,
+				WidthRequest= sessions.Length * 100,
+				HeightRequest=40,
 				Spacing=0
 			}
 			.Assign(out StackLayout slSlotLabels));
@@ -75,22 +77,24 @@ public partial class MainPage : ContentPage
 			slSlotLabels.Children.Add(
 				new Label() {
 					WidthRequest = 100,
-					HeightRequest = 75,
+					HeightRequest = 40,
+					TextColor=Colors.LightGray,
+					HorizontalTextAlignment= TextAlignment.Center,
 					Text = t.ToString() });
 
-			this.gdSessions.RowDefinitions.Add(new RowDefinition() { Height = 75 });
+			this.gdSessions.ColumnDefinitions.Add(new ColumnDefinition() { Width = 100 });
 			if (sessions[s]!=null)
 			{
 				this.gdSessions.Add(
 					new StackLayout() {
-						HeightRequest = 75,
-						WidthRequest = 100 * sessions[s].Count(),
-						Orientation = StackOrientation.Horizontal,
+						HeightRequest = 75 * sessions[s].Count(),
+						WidthRequest = 100,
+						Orientation = StackOrientation.Vertical,
 						Spacing = 0,
-						HorizontalOptions=LayoutOptions.Start
+						VerticalOptions=LayoutOptions.Start
 					}
 					.Assign(out StackLayout slSessions)
-					.Invoke(sl => Grid.SetRow(sl,s)));
+					.Invoke(sl => Grid.SetColumn(sl,s)));
 				foreach (Session session in sessions[s])
 				{
 					slSessions.Children.Add(
@@ -116,7 +120,7 @@ public partial class MainPage : ContentPage
 										HeightRequest = 22,
 										WidthRequest = 92,
 										LineBreakMode = LineBreakMode.NoWrap,
-                                        Text = session.ToPlay + ": " + session.Proposer },
+                                        Text = session.ToPlay },
                                     new Label() {
                                         HeightRequest = 22,
                                         WidthRequest = 92,
@@ -145,6 +149,7 @@ public partial class MainPage : ContentPage
                                                 HeightRequest = 22,
                                             }
                                             .Assign(out Label lbSitsMaximum),
+                                            new Label(){ HeightRequest = 22, Text=": "+session.Proposer},
                                         }
                                     }
                                 }
@@ -325,9 +330,16 @@ public partial class MainPage : ContentPage
 			var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
 		}
     }
-    void btnFilterClicked(Object o, EventArgs e)
+    async void btnFilterClicked(Object o, EventArgs e)
     {
+        var popup = new PopupManageFilter();
+        popup.SetFilter(new SessionFilter(MainViewModel.Instance.CurrentFilter));
+        var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
 
+		if(popupResult as SessionFilter!=null)
+		{
+			MainViewModel.Instance.CurrentFilter = popupResult as SessionFilter;
+		}
     }
 
 	async Task<bool> ShowSessionManagementPopup(Session s)
@@ -346,5 +358,12 @@ public partial class MainPage : ContentPage
 	}
 
 	public static MainPage Instance = null;
+
+    private void svSessions_Scrolled(object sender, ScrolledEventArgs e)
+    {
+		//this.gdSlotLabels.Margin = new Thickness(-e.ScrollX, 0, 0, 0);
+        this.alSlotLabels.WidthRequest = this.Width;
+        this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(-e.ScrollX, 0, gdSlotLabels.WidthRequest, 40));
+	}
 }
 

@@ -34,6 +34,8 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Initialise the main view model by loading Persons, Games and Sessions (in due course this will come from
         /// the local journal store and the cloud; initially I'm just creating some test data.
+        /// This method also sets up the event handler for PropertyChanged events, to detect situations when the UI
+        /// needs to refresh its session list, and to fire SessionsMustBeRefreshed in those situations
         /// </summary>
         public void Load()
         {
@@ -67,8 +69,30 @@ namespace LobsterConnect.VM
             string s5 = CreateSession(false, "steve", "Dune: Imperium (2020)", this.CurrentEvent, new SessionTime(2));
 
             string s6 = CreateSession(false, "steve", "Terraforming Mars (2016)", this.CurrentEvent, new SessionTime(2));
-            
 
+            string s7 = CreateSession(false, "jrc14", "Terraforming Mars (2016)", this.CurrentEvent, new SessionTime(2));
+
+            string s8 = CreateSession(false, "mike", "Terraforming Mars (2016)", this.CurrentEvent, new SessionTime(2));
+
+            string s9 = CreateSession(false, "susan", "Brass: Birmingham (2018)", this.CurrentEvent, new SessionTime(47));
+            string s10 = CreateSession(false, "mike", "Ark Nova (2021)", this.CurrentEvent, new SessionTime(47));
+
+            this.PropertyChanged += MainViewModel_PropertyChanged;
+        }
+
+        private void MainViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName=="CurrentEvent")
+            {
+                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                return;
+            }    
+
+            if(e.PropertyName=="CurrentFilter")
+            {
+                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                return;
+            }
         }
 
 
@@ -302,6 +326,7 @@ namespace LobsterConnect.VM
                 }
             }
 
+            // Adding a new session always means that the UI display of sessions must be refreshed
             Model.DispatcherHelper.CheckBeginInvokeOnUI(() => {
                 this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
             });
@@ -457,6 +482,24 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
+        /// The filter that is currently applied to restrict the set of sessions that will be displayed in the UI
+        /// </summary>
+        public SessionFilter CurrentFilter
+        {
+            get
+            {
+                return this._currentFilter;
+            }
+            set
+            {
+                this._currentFilter = value;
+
+                this.OnPropertyChanged("CurrentFilter");
+            }
+        }
+        private SessionFilter _currentFilter = new SessionFilter();
+
+        /// <summary>
         /// The gaming event that the app is currently managing sign-ups for. 
         /// </summary>
         public string CurrentEvent
@@ -557,14 +600,16 @@ namespace LobsterConnect.VM
         private static List<string> _AvailableEvents = new List<string> {"LoBsterCon XXVIII" };
 
         /// <summary>
-        /// Constructs an array of all sessions for the given event.  The index into the array is session time (turned into
-        /// an ordinal number) so the number of entries in the array will be equal to the number of possible time slots for
+        /// Constructs an array of all sessions for the given event, filtered by some criteria.
+        /// The index into the array is session time (turned into an ordinal number) so the number of entries in th
+        /// array will be equal to the number of possible time slots for
         /// that event.  Each entry in the array is a list of sessions, sorted (first by proposer name then by id).
-        /// If there are no sessions for a specifed time slot, the corresponding array entry will be null.
+        /// If there are no sessions for a specified time slot, the corresponding array entry will be null.
         /// </summary>
-        /// <param name="eventName"></param>
+        /// <param name="eventName">only sessions for this event will be included</param>
+        /// <param name="filter">only sessions matching this filter will be included</param>
         /// <returns></returns>
-        public List<Session>[] GetAllSessions(string eventName)
+        public List<Session>[] GetAllSessions(string eventName, SessionFilter filter)
         {
             int numSlots = GetNumberOfTimeSlots(eventName);
 
@@ -575,6 +620,9 @@ namespace LobsterConnect.VM
                 foreach(Session s in this._sessions)
                 {
                     if (s.EventName != eventName)
+                        continue;
+
+                    if (!filter.Matches(s))
                         continue;
 
                     // The sessions we already found for the same time slot as s.  We need to insert s
@@ -616,9 +664,11 @@ namespace LobsterConnect.VM
         /// Fire this event when you do something that would necessitate refreshing the table of sessions in the UI.
         /// That means a change the sessions collection (i.e. when you add or remove elements
         /// to the collection, having Session.EventName==MainViewModel.CurrentEvent), or changing the value of 
-        /// MainViewModel.CurrentEvent.  Note that merely changing an attribute of a session doesn't require
-        /// a refresh of the sessions table in the UI, because we expect the UI to bind to the relevant session
-        /// attributes, so it will see such changes anyway.
+        /// MainViewModel.CurrentEvent, or changing MainView.CurrentFilter.  Note that merely changing an attribute
+        /// of a session doesn't necessarily require a refresh of the sessions table in the UI, because we expect
+        /// the UI to bind to the relevant session attributes, so it will see such changes anyway.
+        /// The MainViewModel.Loaded method includes logic to decide when to fire this event, in response to
+        /// the firing of its PropertyChanged event
         /// </summary>
         public event EventHandler SessionsMustBeRefreshed;
 
@@ -664,6 +714,12 @@ namespace LobsterConnect.VM
         /// </summary>
         private readonly LobsterLock _sessionsLock = new LobsterLock();
 
+        /// <summary>
+        /// Fetch a Person object from the persons collection, given a person handle.  If the handleis not valid the method
+        /// returns null.
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <returns></returns>
         public Person GetPerson(string handle)
         {
             lock(_personsLock)
@@ -674,12 +730,40 @@ namespace LobsterConnect.VM
             }
             return null;
         }
+
+        /// <summary>
+        /// Check that a person handle corresponds to a person in the persons collection
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <returns></returns>
         public bool CheckPersonHandleExists(string handle)
         {
             if (this.GetPerson(handle) == null)
                 return false;
             else
                 return true;
+        }
+
+        /// <summary>
+        /// Retrieve a list of persons that we can manage signups for.
+        /// </summary>
+        /// <param name="includeInactive">if true, then inactive persons will be included in the list returned</param>
+        /// <returns></returns>
+        public List<string> GetAvailablePersons(bool includeInactive=false)
+        {
+            List<string> personNames = new List<string>();
+            lock (_personsLock)
+            {
+                foreach (Person p in _persons)
+                {
+                    if (p.IsActive || includeInactive)
+                    {
+                        personNames.Add(p.Handle);
+                    }
+                }
+            }
+
+            return personNames;
         }
 
         /// <summary>

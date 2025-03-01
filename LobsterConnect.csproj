@@ -61,6 +61,9 @@
 	  <MauiXaml Update="V\PopupLogIn.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="V\PopupManageFilter.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="V\PopupManageSession.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
