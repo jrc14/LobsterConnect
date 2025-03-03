@@ -2,10 +2,11 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="LobsterConnect.V.MainPage">
-	<Grid RowSpacing="0" ColumnSpacing="0">
+	<Grid RowSpacing="0" ColumnSpacing="0" Background="Black">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
 			<RowDefinition Height="*"/>
 			<RowDefinition Height="100"/>
 		</Grid.RowDefinitions>
@@ -47,19 +48,29 @@
 			
 		</Grid>
 
-        <AbsoluteLayout x:Name="alSlotLabels" Grid.Row="1" Grid.Column="0" HeightRequest="40" BackgroundColor="Azure">
+        <Grid Grid.Row="1" Grid.Column="0" Background="Black">
+            <Label  HorizontalOptions="Center" x:Name="lblEvent" Text="{Binding CurrentEvent.Name}" TextColor="White">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer 
+                Tapped="lblEventTapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+        </Grid>
+        
+
+        <AbsoluteLayout x:Name="alSlotLabels" Grid.Row="2" Grid.Column="0" HeightRequest="40" BackgroundColor="Black" HorizontalOptions="Start">
             <Grid  x:Name="gdSlotLabels" RowSpacing="0" ColumnSpacing="0" HeightRequest="40"  BackgroundColor="Black"
                    AbsoluteLayout.LayoutBounds="0,0">
             </Grid>
         </AbsoluteLayout>
 
         
-        <ScrollView  Grid.Row="2" Grid.Column="0" x:Name="svSessions" Orientation="Both" VerticalOptions="Fill" HorizontalOptions="Fill" Scrolled="svSessions_Scrolled">
+        <ScrollView  Grid.Row="3" Grid.Column="0" x:Name="svSessions" Orientation="Both" VerticalOptions="Fill" HorizontalOptions="Fill" Scrolled="svSessions_Scrolled">
             <Grid x:Name="gdSessions" RowSpacing="0" ColumnSpacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
             </Grid>
         </ScrollView>
 	
-		<CollectionView Grid.Row="3" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog">
+		<CollectionView Grid.Row="4" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog" ItemsUpdatingScrollMode="KeepScrollOffset">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
             </CollectionView.ItemsLayout>

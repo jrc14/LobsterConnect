@@ -202,6 +202,32 @@ namespace LobsterConnect.VM
         }
         private bool _isActive;
 
+
+        /// <summary>
+        /// True if this person is grated admin rights, meaning the UI will let them change things belonging to other people
+        /// </summary>
+        public bool IsAdmin
+        {
+            get
+            {
+                return this._isAdmin;
+            }
+            set
+            {
+                lock (this.instanceLock)
+                {
+                    if (this._isAdmin != value)
+                    {
+                        this._isAdmin = value;
+
+                        this.OnPropertyChanged("IsAdmin");
+
+                    }
+                }
+            }
+        }
+        private bool _isAdmin;
+
         /// <summary>
         /// Lock this if doing something state-changing involving this person
         /// </summary>

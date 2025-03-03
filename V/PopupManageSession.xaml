@@ -2,7 +2,11 @@
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:local="clr-namespace:LobsterConnect.V"
                x:Class="LobsterConnect.V.PopupManageSession">
+    <toolkit:Popup.Resources>
+        <local:StateToColorConverter x:Key="stateToColor"/>
+        </toolkit:Popup.Resources>
     <Grid RowSpacing="0" ColumnSpacing="0" Padding="10" MaximumWidthRequest="300">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -54,7 +58,7 @@
             </Button.ImageSource>
         </Button>
         <StackLayout Grid.Row="5" Grid.Column="0" x:Name="slState" HeightRequest="60"  Orientation="Vertical">
-            <Label Text="{Binding State}" VerticalOptions="Center" HorizontalOptions="Center"></Label>
+            <Label Text="{Binding State}" TextColor="{Binding Path=State,Converter={StaticResource stateToColor}}" VerticalOptions="Center" HorizontalOptions="Center"></Label>
             <StackLayout Orientation="Horizontal">
                 <Label Text="{Binding NumSignUps}" VerticalOptions="Center"></Label>
                 <Label Text="out of (min) "  Margin="5" VerticalOptions="Center"></Label>
@@ -75,6 +79,6 @@
                 <FontImageSource Glyph="&#xe906;" Color="Black" FontFamily="FluentSystemIcons-Regular"/>
             </Button.ImageSource>
         </Button>
-        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Text="Dismiss" TextColor="Black" Clicked="OnDismissClicked" Margin="5" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" VerticalOptions="Center" x:Name="btnDismiss" HorizontalOptions="End"></Button>
+        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Text="Dismiss" TextColor="Black" Clicked="OnDismissClicked" Margin="5" VerticalOptions="Center" x:Name="btnDismiss" HorizontalOptions="End"></Button>
     </Grid>
 </toolkit:Popup>

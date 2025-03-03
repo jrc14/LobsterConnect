@@ -7,7 +7,7 @@
     Shell.FlyoutBehavior="Disabled">
 
     <ShellContent
-        Title="LOBsterConnect"
+        Title="LobsterConnect"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

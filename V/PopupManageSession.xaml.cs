@@ -15,7 +15,7 @@ public partial class PopupManageSession : Popup
         this.BindingContext = s;
         if (s != null)
         {
-            if (MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer)
+            if (MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer && MainViewModel.Instance.CurrentEvent.IsActive)
             {
                 this.btnNotes.IsVisible = true;
                 this.btnState.IsVisible = true;
@@ -32,6 +32,8 @@ public partial class PopupManageSession : Popup
                 Grid.SetColumnSpan(this.lblWhatsAppLink, 2);
             }
         }
+
+        V.Utilities.StylePopupButtons(this.btnDismiss, null, this.rdefButtons);
     }
 
     async void btnWhatsAppClicked(object sender, EventArgs e)
@@ -67,21 +69,8 @@ public partial class PopupManageSession : Popup
     async void btnSignUpClicked(object sender, EventArgs e)
     {
         Session s = this.BindingContext as Session;
-        if (s != null && MainViewModel.Instance.LoggedOnUser != null)
+        if (s != null && MainViewModel.Instance.LoggedOnUser != null )
         {
-            string signUp = "Sign up to play";
-            string cancelSignUp = "Cancel my sign up";
-            string option;
-            string user = "View user details";
-            if (s.IsSignedUp(MainViewModel.Instance.LoggedOnUser.Handle))
-            {
-                option = cancelSignUp;
-            }
-            else
-            {
-                option = signUp;
-            }
-
             List<string> signUps = new List<string>();
             if (string.IsNullOrEmpty(s.SignUps))
             {
@@ -103,29 +92,50 @@ public partial class PopupManageSession : Popup
                 }
             }
 
-            string a;
-            if(signUps.Count>0)
-                a = await MainPage.Instance.DisplayActionSheet("Sign up", "Cancel", null, option, user);
-            else
-                a = await MainPage.Instance.DisplayActionSheet("Sign up", "Cancel", null, option);
+            if (MainViewModel.Instance.CurrentEvent.IsActive)
+            {
+                string signUp = "Sign up to play";
+                string cancelSignUp = "Cancel my sign up";
+                string option;
+                string user = "View user details";
+                if (s.IsSignedUp(MainViewModel.Instance.LoggedOnUser.Handle))
+                {
+                    option = cancelSignUp;
+                }
+                else
+                {
+                    option = signUp;
+                }
 
-            if (a==signUp)
-            {
-                s.AddSignUp(MainViewModel.Instance.LoggedOnUser.Handle);
-                MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'"+ MainViewModel.Instance.LoggedOnUser.Handle+"' has signed up to play '" + s.ToPlay + "'");
+                string a;
+                if (signUps.Count > 0)
+                    a = await MainPage.Instance.DisplayActionSheet("Sign up", "Cancel", null, option, user);
+                else
+                    a = await MainPage.Instance.DisplayActionSheet("Sign up", "Cancel", null, option);
+
+                if (a == signUp)
+                {
+                    s.AddSignUp(MainViewModel.Instance.LoggedOnUser.Handle);
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has signed up to play '" + s.ToPlay + "'");
+                }
+                else if (a == cancelSignUp)
+                {
+                    s.RemoveSignUp(MainViewModel.Instance.LoggedOnUser.Handle);
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has cancelled their sign-up for '" + s.ToPlay + "'");
+                }
+                else if (a == user)
+                {
+                    PopupViewPersons personsViewer = new PopupViewPersons();
+                    personsViewer.SetPersons(signUps);
+                    var popupResult = await MainPage.Instance.ShowPopupAsync(personsViewer, CancellationToken.None);
+                }
             }
-            else if (a== cancelSignUp)
-            {
-                s.RemoveSignUp(MainViewModel.Instance.LoggedOnUser.Handle);
-                MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has cancelled their sign-up for '" + s.ToPlay + "'");
-            }
-            else if (a==user)
+            else // if the gaming event isn't active, you can only view sign-ups, not change them
             {
                 PopupViewPersons personsViewer = new PopupViewPersons();
                 personsViewer.SetPersons(signUps);
                 var popupResult = await MainPage.Instance.ShowPopupAsync(personsViewer, CancellationToken.None);
             }
-
         }
     }
 

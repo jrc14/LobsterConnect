@@ -74,6 +74,8 @@ public partial class PopupManageFilter : Popup
         if (this.pickerState.SelectedIndex > 0)
             f.State = this.pickerState.SelectedItem as string;
 
+        MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "Filter has been set ("+f.Proposer+"/"+f.ToPlay+"/"+f.SignUpsInclude+"/"+f.State+")");
+
         await CloseAsync(f, CancellationToken.None);
     }
 

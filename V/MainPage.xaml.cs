@@ -53,7 +53,15 @@ public partial class MainPage : ContentPage
 
 	public void RefreshSessionsGrid(object o, EventArgs a)
 	{
-		List<Session>[] sessions = MainViewModel.Instance.GetAllSessions(MainViewModel.Instance.CurrentEvent, MainViewModel.Instance.CurrentFilter);
+        this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(0, 0, gdSlotLabels.WidthRequest, 30));
+		this.svSessions.ScrollToAsync(0, 0, false);
+
+        List<Session>[] sessions;
+
+		if (MainViewModel.Instance.CurrentEvent == null)
+			sessions = new List<Session>[0];
+		else
+			sessions = MainViewModel.Instance.GetAllSessions(MainViewModel.Instance.CurrentEvent.Name, MainViewModel.Instance.CurrentFilter);
 
 		this.gdSlotLabels.Children.Clear();
 		this.gdSlotLabels.WidthRequest = sessions.Length * 100;
@@ -107,7 +115,7 @@ public partial class MainPage : ContentPage
 							Padding=1,
 							Content = new StackLayout()
 							{
-								Background = Colors.Gray,
+								Background = Colors.LightGray,
 								HeightRequest = 69,
 								WidthRequest = 94,
 								Orientation = StackOrientation.Vertical,
@@ -158,6 +166,8 @@ public partial class MainPage : ContentPage
 
                     lbState.BindingContext = session;
                     lbState.Bind(Label.TextProperty, "State");
+                    lbState.BindingContext = session;
+                    lbState.Bind(Label.TextColorProperty, "State", converter: new StateToColorConverter());
 
                     lbNumSignUps.BindingContext = session;
                     lbNumSignUps.Bind(Label.TextProperty, "NumSignUps");
@@ -321,7 +331,12 @@ public partial class MainPage : ContentPage
     {
 		if (MainViewModel.Instance.LoggedOnUser == null)
 		{
-            await DisplayAlert("Propose a Gaming Session", "Log in first please, before proposing a gaming session", "Dismiss");
+			await DisplayAlert("Propose a Gaming Session", "Log in first please, before proposing a gaming session", "Dismiss");
+			return;
+		}
+		else if (!MainViewModel.Instance.CurrentEvent.IsActive)
+		{
+			await DisplayAlert("Propose a Gaming Session", "The current gaming event '" + MainViewModel.Instance.CurrentEvent.Name + "' is not active so new sessions can't be proposed", "Dismiss");
             return;
         }
 		else
@@ -344,15 +359,9 @@ public partial class MainPage : ContentPage
 
 	async Task<bool> ShowSessionManagementPopup(Session s)
 	{
-		if(MainViewModel.Instance.LoggedOnUser!=null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer)
-		{
-			// If the logged on user is the proposer of this session, they're allowed to make changes to it
-
-		}
         var popup = new PopupManageSession();
 		popup.SetSession(s);
         var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
-
 
         return true;
 	}
@@ -361,9 +370,25 @@ public partial class MainPage : ContentPage
 
     private void svSessions_Scrolled(object sender, ScrolledEventArgs e)
     {
-		//this.gdSlotLabels.Margin = new Thickness(-e.ScrollX, 0, 0, 0);
-        this.alSlotLabels.WidthRequest = this.Width;
-        this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(-e.ScrollX, 0, gdSlotLabels.WidthRequest, 40));
+        //this.alSlotLabels.WidthRequest = this.Width;
+        this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(-e.ScrollX, 0, gdSlotLabels.WidthRequest, 30));
 	}
+
+    private async void lblEventTapped(object sender, TappedEventArgs e)
+    {
+        var popup = new PopupChooseEvent();
+
+		popup.SetEventList(MainViewModel.Instance.GetAvailableEventNames(), MainViewModel.Instance.CurrentEvent.Name);
+
+        var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+
+		string eventName = popupResult as string;
+
+		if(!string.IsNullOrEmpty(eventName) && eventName!=MainViewModel.Instance.CurrentEvent.Name)
+		{
+			MainViewModel.Instance.SetCurrentEvent(eventName);
+
+        }
+    }
 }
 

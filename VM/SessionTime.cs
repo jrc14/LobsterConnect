@@ -17,16 +17,16 @@ namespace LobsterConnect.VM
 
         public override string ToString()
         {
-            return this.DayLabel + " " + this.TimeLabel;
+            if (string.IsNullOrEmpty(this.DayLabel))
+                return this.TimeLabel;
+            else
+                return this.DayLabel + " " + this.TimeLabel;
         }
 
         public string DayLabel
         {
             get
             {
-                if (_DayLabels == null)
-                    SetUpLabels();
-
                 if (_timeSlotNumber < 0 || _timeSlotNumber >= _DayLabels.Length)
                     return "ERR";
                 else
@@ -37,9 +37,6 @@ namespace LobsterConnect.VM
         {
             get
             {
-                if (_TimeLabels == null)
-                    SetUpLabels();
-
                 if (_timeSlotNumber < 0 || _timeSlotNumber >= _TimeLabels.Length)
                     return "ERROR";
                 else
@@ -121,63 +118,100 @@ namespace LobsterConnect.VM
             return this._timeSlotNumber.CompareTo((that as SessionTime)._timeSlotNumber);
         }
 
-        public static void SetNewEvent(string eventName)
+        public static void SetEventType(string eventType)
         {
-            // This is just placeholder code.  Some day we will want to support more than one event,
-            // and then we will need to have different days/times for each event.
-
-            SetUpLabels();
+            SetUpLabelsAndTimeSlots(eventType);
         }
 
         public static int NumberOfTimeSlots
         {
             get
             {
-                return 13 + 16 + 16 + 4; // 13 slots on Fri, 16 slots on Sat, 16 slots on Sun, 4 slots on Mon
+                return _NumberOfTimeSlots;
             }
         }
+        private static int _NumberOfTimeSlots = 0;
 
-        private static void SetUpLabels()
+        private static void SetUpLabelsAndTimeSlots(string eventType)
         {
-            _DayLabels = new string[13 + 16 + 16 + 4]; // 13 slots on Fri, 16 slots on Sat, 16 slots on Sun, 4 slots on Mon
-            _TimeLabels = new string[13 + 16 + 16 + 4 ]; 
-            int l = 0;
-
-            for(int h=12; h<=24; h++) // Friday's hours
+            if (eventType == "CONVENTION")
             {
-                _DayLabels[l]="Fri";
-                _TimeLabels[l] = string.Format("{0:D2}h00", h);
+                _NumberOfTimeSlots = 13 + 16 + 16 + 4; // 13 slots on Fri, 16 slots on Sat, 16 slots on Sun, 4 slots on Mon
+                _DayLabels = new string[_NumberOfTimeSlots];
+                _TimeLabels = new string[_NumberOfTimeSlots];
+                int l = 0;
 
-                l++;
+                for (int h = 12; h <= 24; h++) // Friday's hours
+                {
+                    _DayLabels[l] = "Fri";
+                    _TimeLabels[l] = string.Format("{0:D2}h00", h);
+
+                    l++;
+                }
+                Debug.Assert(l == 13);
+
+                for (int h = 9; h <= 24; h++) // Saturday's hours
+                {
+                    _DayLabels[l] = "Sat";
+                    _TimeLabels[l] = string.Format("{0:D2}h00", h);
+
+                    l++;
+                }
+                Debug.Assert(l == 13 + 16);
+
+                for (int h = 9; h <= 24; h++) // Sunday's hours
+                {
+                    _DayLabels[l] = "Sun";
+                    _TimeLabels[l] = string.Format("{0:D2}h00", h);
+
+                    l++;
+                }
+                Debug.Assert(l == 13 + 16 + 16);
+
+                for (int h = 9; h <= 12; h++) // Monday's hours
+                {
+                    _DayLabels[l] = "Mon";
+                    _TimeLabels[l] = string.Format("{0:D2}h00", h);
+
+                    l++;
+                }
+                Debug.Assert(l == 13 + 16 + 16 + 4);
             }
-            Debug.Assert(l == 13);
-
-            for (int h = 9; h <= 24; h++) // Saturday's hours
+            else if (eventType == "EVENING")
             {
-                _DayLabels[l] = "Sat";
-                _TimeLabels[l] =string.Format("{0:D2}h00", h);
+                _NumberOfTimeSlots = 3;
+                _DayLabels = new string[3];
+                _TimeLabels = new string[3];
+                int l = 0;
 
-                l++;
+
+                for (int h = 18; h <= 20; h++) //s
+                {
+                    _DayLabels[l] = "";
+                    _TimeLabels[l] = string.Format("{0:D2}h00", h);
+
+                    l++;
+                }
+                Debug.Assert(l == 3);
             }
-            Debug.Assert(l == 13 + 16 );
-
-            for (int h = 9; h <= 24; h++) // Sunday's hours
+            else if (eventType == "DAY")
             {
-                _DayLabels[l] = "Sun";
-                _TimeLabels[l] = string.Format("{0:D2}h00", h);
+                _NumberOfTimeSlots = 12;
+                _DayLabels = new string[12];
+                _TimeLabels = new string[12];
+                int l = 0;
 
-                l++;
+
+                for (int h = 9; h <= 20; h++) //s
+                {
+                    _DayLabels[l] = "";
+                    _TimeLabels[l] = string.Format("{0:D2}h00", h);
+
+                    l++;
+                }
+                Debug.Assert(l == 12);
+
             }
-            Debug.Assert(l == 13 + 16 + 16);
-
-            for (int h = 9; h <= 12; h++) // Monday's hours
-            {
-                _DayLabels[l] = "Mon";
-                _TimeLabels[l] = string.Format("{0:D2}h00", h);
-
-                l++;
-            }
-            Debug.Assert(l == 13 + 16 + 16 + 4);
         }
 
         private static string[] _DayLabels = null;

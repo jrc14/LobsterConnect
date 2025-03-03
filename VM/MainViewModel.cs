@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using LobsterConnect.Model;
 
 namespace LobsterConnect.VM
@@ -39,52 +32,122 @@ namespace LobsterConnect.VM
         /// </summary>
         public void Load()
         {
+            LoadEventsGamesAndPersons();
+
+            SetCurrentEvent("LoBsterCon XXVIII");
+
+            LoadSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name);
+
+            this.PropertyChanged += MainViewModel_PropertyChanged; // set this handler after calling SetCuurentEvent above, to avoid a redundant call to LoadSessionsAndSignUps and firing of SessionsMustBeRefreshed
+        }
+
+        private void LoadEventsGamesAndPersons()
+        {
             // Load 500 top games into the local store (without writing them to the journal or the cloud store, which
             // would be pointless being as every time the app starts these games get loaded).
             CreateDefaultGames();
+
+            CreateGamingEvent(false, "LoBsterCon XXVIII", "CONVENTION");
+            CreateGamingEvent(false, "2025-03-02 Sun", "DAY");
+            CreateGamingEvent(false, "2025-03-03 Mon", "EVENING");
+            CreateGamingEvent(false, "2025-03-04 Tue", "EVENING");
+
 
             CreatePerson(false, "bobby", password: Model.Utilities.PasswordHash("password"));
             CreatePerson(false, "susan", password: Model.Utilities.PasswordHash("password"));
             CreatePerson(false, "jrc14", password: Model.Utilities.PasswordHash("password"));
             CreatePerson(false, "steve", password: Model.Utilities.PasswordHash("password"));
             CreatePerson(false, "mike", password: Model.Utilities.PasswordHash("password"));
-
-            string s1 = CreateSession(false, "bobby", "Chess (1475)", this.CurrentEvent, new SessionTime(0));
-            SignUp(false, "bobby", s1);
-            SignUp(false, "jrc14", s1);
-
-            string s2 = CreateSession(false, "jrc14", "Chess (1475)", this.CurrentEvent, new SessionTime(2));
-            SignUp(false, "bobby", s2);
-            SignUp(false, "jrc14", s2);
-            SignUp(false, "steve", s2);
-            SignUp(false, "mike", s2);
-            
-            string s3 = CreateSession(false, "steve", "Brass: Birmingham (2018)", this.CurrentEvent, new SessionTime(2));
-            SignUp(false, "jrc14", s3);
-            SignUp(false, "steve", s3);
-            SignUp(false, "mike", s3);
-
-            string s4 = CreateSession(false, "steve", "Ark Nova (2021)", this.CurrentEvent, new SessionTime(2));
-
-            string s5 = CreateSession(false, "steve", "Dune: Imperium (2020)", this.CurrentEvent, new SessionTime(2));
-
-            string s6 = CreateSession(false, "steve", "Terraforming Mars (2016)", this.CurrentEvent, new SessionTime(2));
-
-            string s7 = CreateSession(false, "jrc14", "Terraforming Mars (2016)", this.CurrentEvent, new SessionTime(2));
-
-            string s8 = CreateSession(false, "mike", "Terraforming Mars (2016)", this.CurrentEvent, new SessionTime(2));
-
-            string s9 = CreateSession(false, "susan", "Brass: Birmingham (2018)", this.CurrentEvent, new SessionTime(47));
-            string s10 = CreateSession(false, "mike", "Ark Nova (2021)", this.CurrentEvent, new SessionTime(47));
-
-            this.PropertyChanged += MainViewModel_PropertyChanged;
         }
+
+        private void LoadSessionsAndSignUps(string eventName)
+        {
+            this._sessions.Clear();
+
+            if (eventName == "LoBsterCon XXVIII")
+            {
+                string s1 = CreateSession(false, "bobby", "Chess (1475)", eventName, new SessionTime(0));
+                SignUp(false, "bobby", s1);
+                SignUp(false, "jrc14", s1);
+
+                string s2 = CreateSession(false, "jrc14", "Chess (1475)", eventName, new SessionTime(2));
+                SignUp(false, "bobby", s2);
+                SignUp(false, "jrc14", s2);
+                SignUp(false, "steve", s2);
+                SignUp(false, "mike", s2);
+
+                string s3 = CreateSession(false, "steve", "Brass: Birmingham (2018)", eventName, new SessionTime(2));
+                SignUp(false, "jrc14", s3);
+                SignUp(false, "steve", s3);
+                SignUp(false, "mike", s3);
+
+                string s4 = CreateSession(false, "steve", "Ark Nova (2021)", eventName, new SessionTime(2));
+
+                string s5 = CreateSession(false, "steve", "Dune: Imperium (2020)", eventName, new SessionTime(2));
+
+                string s6 = CreateSession(false, "steve", "Terraforming Mars (2016)", eventName, new SessionTime(2));
+
+                string s7 = CreateSession(false, "jrc14", "Terraforming Mars (2016)", eventName, new SessionTime(2));
+
+                string s8 = CreateSession(false, "mike", "Terraforming Mars (2016)", eventName, new SessionTime(2));
+
+                string s9 = CreateSession(false, "susan", "Brass: Birmingham (2018)", eventName, new SessionTime(47));
+                string s10 = CreateSession(false, "mike", "Ark Nova (2021)", eventName, new SessionTime(47));
+            }
+            else if (eventName == "2025-03-02 Sun")
+            {
+                string s1 = CreateSession(false, "bobby", "Chess (1475)", eventName, new SessionTime(0));
+                SignUp(false, "bobby", s1);
+                SignUp(false, "jrc14", s1);
+
+                string s2 = CreateSession(false, "jrc14", "Chess (1475)", eventName, new SessionTime(2));
+                SignUp(false, "bobby", s2);
+                SignUp(false, "jrc14", s2);
+                SignUp(false, "steve", s2);
+                SignUp(false, "mike", s2);
+
+                string s3 = CreateSession(false, "steve", "Brass: Birmingham (2018)", eventName, new SessionTime(2));
+                SignUp(false, "jrc14", s3);
+                SignUp(false, "steve", s3);
+                SignUp(false, "mike", s3);
+
+                string s7 = CreateSession(false, "jrc14", "Terraforming Mars (2016)", eventName, new SessionTime(2));
+
+                string s8 = CreateSession(false, "mike", "Terraforming Mars (2016)", eventName, new SessionTime(7));
+
+                string s9 = CreateSession(false, "susan", "Brass: Birmingham (2018)", eventName, new SessionTime(7));
+            }
+            else if (eventName == "2025-03-03 Mon")
+            {
+                string s1 = CreateSession(false, "bobby", "Chess (1475)", eventName, new SessionTime(0));
+                SignUp(false, "bobby", s1);
+                SignUp(false, "jrc14", s1);
+
+                string s2 = CreateSession(false, "jrc14", "Chess (1475)", eventName, new SessionTime(1));
+                SignUp(false, "bobby", s2);
+                SignUp(false, "jrc14", s2);
+                SignUp(false, "steve", s2);
+                SignUp(false, "mike", s2);
+
+                string s3 = CreateSession(false, "steve", "Brass: Birmingham (2018)", eventName, new SessionTime(2));
+                SignUp(false, "jrc14", s3);
+                SignUp(false, "steve", s3);
+                SignUp(false, "mike", s3);
+
+                string s7 = CreateSession(false, "jrc14", "Terraforming Mars (2016)", eventName, new SessionTime(2));
+            }
+        }
+
 
         private void MainViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if(e.PropertyName=="CurrentEvent")
             {
-                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                if (this._currentEvent != null && !string.IsNullOrEmpty(this._currentEvent.Name))
+                {
+                    LoadSessionsAndSignUps(this._currentEvent.Name);
+                    this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                }
                 return;
             }    
 
@@ -108,24 +171,39 @@ namespace LobsterConnect.VM
         /// <exception cref="ArgumentException"></exception>
         public void CreateGame(bool informJournal, string name, string bggLink = null)
         {
-            if (name == null)
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
-                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "game name cannot be null'");
-                throw new ArgumentException("MainViewModel.CreateGame: null name");
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => CreateGame(informJournal, name, bggLink));
             }
-            if (bggLink == null)
+            else
             {
-                bggLink = "NO LINK";
-            }
-
-            lock (_gamesLock)
-            {
-                if (CheckGameNameExists(name))
+                if (name == null)
                 {
-                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "game with that name already exists:'" + name + "'");
-                    throw new ArgumentException("MainViewModel.CreateGame: duplicate name:'" + name + "'");
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "game name cannot be null");
+                    throw new ArgumentException("MainViewModel.CreateGame: null name");
                 }
-                _games.Add(new Game() { Name = name, BggLink = bggLink, IsActive = true });
+                if (bggLink == null)
+                {
+                    bggLink = "NO LINK";
+                }
+
+                lock (_gamesLock)
+                {
+                    if (CheckGameNameExists(name))
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "game with that name already exists:'" + name + "'");
+                        throw new ArgumentException("MainViewModel.CreateGame: duplicate name:'" + name + "'");
+                    }
+                    _games.Add(new Game() { Name = name, BggLink = bggLink, IsActive = true });
+                }
+
+                if (informJournal)
+                {
+                    Journal.AddJournalEntry(Journal.EntityType.Game, Journal.OperationType.Create, name,
+                        "ISACTIVE", "True",
+                        "BGGLINK", bggLink);
+                }
             }
         }
 
@@ -150,7 +228,15 @@ namespace LobsterConnect.VM
             else
             {
                 if (bggLink != null)
+                {
                     game.BggLink = bggLink;
+
+                    if (informJournal)
+                    {
+                        Journal.AddJournalEntry(Journal.EntityType.Game, Journal.OperationType.Update, game.Name,
+                            "BGGLINK", bggLink);
+                    }
+                }
             }
         }
 
@@ -170,38 +256,55 @@ namespace LobsterConnect.VM
         /// <exception cref="ArgumentException"></exception>
         public void CreatePerson(bool informJournal, string handle, string fullName = null, string phoneNumber = null, string email = null, string password = null)
         {
-            if (handle == null)
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
-                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "person handle cannot be null'");
-                throw new ArgumentException("MainViewModel.CreatePerson: null handle");
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => CreatePerson(informJournal, handle, fullName, phoneNumber, email, password));
             }
-            else
             {
-                if (fullName == null)
+                if (handle == null)
                 {
-                    fullName = "NO NAME";
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "person handle cannot be null'");
+                    throw new ArgumentException("MainViewModel.CreatePerson: null handle");
                 }
-                if (phoneNumber == null)
+                else
                 {
-                    phoneNumber = "NO PHONE NUMBER";
-                }
-                if (email == null)
-                {
-                    email = "NO EMAIL";
-                }
-                if (password == null)
-                {
-                    password = "";
-                }
-
-                lock (_personsLock)
-                {
-                    if (CheckPersonHandleExists(handle))
+                    if (fullName == null)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "person with that handle already exists:'" + handle + "'");
-                        throw new ArgumentException("MainViewModel.CreatePerson: duplicate handle:'" + handle + "'");
+                        fullName = "NO NAME";
                     }
-                    _persons.Add(new Person() { Handle = handle, FullName = fullName, PhoneNumber = phoneNumber, Email = email, Password = password, IsActive = true });
+                    if (phoneNumber == null)
+                    {
+                        phoneNumber = "NO PHONE NUMBER";
+                    }
+                    if (email == null)
+                    {
+                        email = "NO EMAIL";
+                    }
+                    if (password == null)
+                    {
+                        password = "";
+                    }
+
+                    lock (_personsLock)
+                    {
+                        if (CheckPersonHandleExists(handle))
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "person with that handle already exists:'" + handle + "'");
+                            throw new ArgumentException("MainViewModel.CreatePerson: duplicate handle:'" + handle + "'");
+                        }
+                        _persons.Add(new Person() { Handle = handle, FullName = fullName, PhoneNumber = phoneNumber, Email = email, Password = password, IsActive = true });
+                    }
+
+                    if (informJournal)
+                    {
+                        Journal.AddJournalEntry(Journal.EntityType.Person, Journal.OperationType.Create, handle,
+                            "FULLNAME", fullName,
+                            "PHONENUMBER", phoneNumber,
+                            "EMAIL", email,
+                            "PASSWORD", password,
+                            "ISACTIVE", "True");
+                    }
                 }
             }
         }
@@ -237,6 +340,30 @@ namespace LobsterConnect.VM
                     person.Email = email;
                 if (password != null)
                     person.Password = password;
+
+                if(informJournal)
+                {
+                    List<string> journalParameters = new List<string>();
+
+                    if (fullName != null)
+                    {
+                        journalParameters.Add("FULLNAME"); journalParameters.Add(fullName);
+                    }
+                    if (phoneNumber != null)
+                    {
+                        journalParameters.Add("PHONENUMBER"); journalParameters.Add(phoneNumber);
+                    }
+                    if (email != null)
+                    {
+                        journalParameters.Add("EMAIL"); journalParameters.Add(email);
+                    }
+                    if (password != null)
+                    {
+                        journalParameters.Add("PASSWORD"); journalParameters.Add(password);
+                    }
+
+                    Journal.AddJournalEntry(Journal.EntityType.Person, Journal.OperationType.Update, person.Handle, journalParameters);
+                }
             }
         }
 
@@ -263,75 +390,99 @@ namespace LobsterConnect.VM
         /// <exception cref="ArgumentException"></exception>
         public string CreateSession(bool informJournal, string proposerHandle, string gameNameToPlay, string eventName, SessionTime startAt, string notes=null, string whatsAppLink=null, int sitsMinimum=0, int sitsMaximum=0)
         {
-            Person proposer = null;
-            Game game = null;
-
-            if(notes==null)
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
-                notes = "NO NOTES";
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "Coding bug: Should be called on the UI thread");
+                throw new Exception("MainViewModel.CreateSession: Coding bug: Should be called on the UI thread");
             }
-
-            if (whatsAppLink == null)
+            else
             {
-                whatsAppLink = "NO WHATSAPP CHAT";
-            }
+                Person proposer = null;
+                Game game = null;
 
-            string id = Guid.NewGuid().ToString();
-
-            proposer = GetPerson(proposerHandle);
-            if (proposer == null)
-            {
-                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "no such person:'" + proposerHandle + "'");
-                throw new ArgumentException("MainViewModel.CreateSession: no such person:'" + proposerHandle + "'");
-            }
-
-            game = GetGame(gameNameToPlay);
-            if (game == null)
-            {
-                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "no such game:'" + gameNameToPlay + "'");
-                throw new ArgumentException("MainViewModel.CreateSession: no such game:'" + gameNameToPlay + "'");
-            }
-
-            lock (game.instanceLock) // guard against the race condition 'game gets made inactive while session is being created'
-            {
-                if (!game.IsActive)
+                if (notes == null)
                 {
-                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "game is not active:'" + gameNameToPlay + "'");
-                    throw new ArgumentException("MainViewModel.CreateSession: game is not active:'" + gameNameToPlay + "'");
+                    notes = "NO NOTES";
                 }
 
-                lock (proposer.instanceLock) // guard against the race condition 'proposer gets made inactive while session is being created'
+                if (whatsAppLink == null)
                 {
-                    if (!proposer.IsActive)
+                    whatsAppLink = "NO WHATSAPP CHAT";
+                }
+
+                string id = Guid.NewGuid().ToString();
+
+                proposer = GetPerson(proposerHandle);
+                if (proposer == null)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "no such person:'" + proposerHandle + "'");
+                    throw new ArgumentException("MainViewModel.CreateSession: no such person:'" + proposerHandle + "'");
+                }
+
+                game = GetGame(gameNameToPlay);
+                if (game == null)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "no such game:'" + gameNameToPlay + "'");
+                    throw new ArgumentException("MainViewModel.CreateSession: no such game:'" + gameNameToPlay + "'");
+                }
+
+                lock (game.instanceLock) // guard against the race condition 'game gets made inactive while session is being created'
+                {
+                    if (!game.IsActive)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "proposer is not active:'" + proposerHandle + "'");
-                        throw new ArgumentException("MainViewModel.CreateSession: proposer is not active:'" + proposerHandle + "'");
+                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "game is not active:'" + gameNameToPlay + "'");
+                        throw new ArgumentException("MainViewModel.CreateSession: game is not active:'" + gameNameToPlay + "'");
                     }
 
-                    _sessions.Add(new Session()
+                    lock (proposer.instanceLock) // guard against the race condition 'proposer gets made inactive while session is being created'
                     {
-                        Id = id,
-                        Proposer = proposerHandle,
-                        ToPlay = gameNameToPlay,
-                        EventName = eventName,
-                        StartAt = startAt,
-                        Notes = notes,
-                        WhatsAppLink = whatsAppLink,
-                        BggLink = game.BggLink,
-                        SignUps = "",// will by side-effect set NumSignUps to 0
-                        SitsMinimum = sitsMinimum,
-                        SitsMaximum = sitsMaximum,
-                        State = "OPEN"
-                    });
+                        if (!proposer.IsActive)
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "proposer is not active:'" + proposerHandle + "'");
+                            throw new ArgumentException("MainViewModel.CreateSession: proposer is not active:'" + proposerHandle + "'");
+                        }
+
+                        _sessions.Add(new Session()
+                        {
+                            Id = id,
+                            Proposer = proposerHandle,
+                            ToPlay = gameNameToPlay,
+                            EventName = eventName,
+                            StartAt = startAt,
+                            Notes = notes,
+                            WhatsAppLink = whatsAppLink,
+                            BggLink = game.BggLink,
+                            SignUps = "",// will by side-effect set NumSignUps to 0
+                            SitsMinimum = sitsMinimum,
+                            SitsMaximum = sitsMaximum,
+                            State = "OPEN"
+                        });
+                    }
                 }
+
+                // Adding a new session always means that the UI display of sessions must be refreshed
+                Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+                    this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                });
+
+                if(informJournal)
+                {
+                    Journal.AddJournalEntry(Journal.EntityType.Session, Journal.OperationType.Create, id,
+                        "EVENTNAME", eventName,
+                        "PROPOSER", proposerHandle,
+                        "TOPLAY", gameNameToPlay,
+                        "STARTAT", startAt.ToString()+":"+startAt.Ordinal.ToString(),
+                        "NOTES", notes,
+                        "WHATSAPPLINK", whatsAppLink,
+                        "BGGLINK", game.BggLink,
+                        "SITSMINIMUM", sitsMinimum.ToString(),
+                        "SITSMAXIMUM", sitsMaximum.ToString(),
+                        "STATE","OPEN");
+                }
+
+                return id;
             }
-
-            // Adding a new session always means that the UI display of sessions must be refreshed
-            Model.DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
-            });
-
-            return id;
         }
 
         /// <summary>
@@ -344,13 +495,14 @@ namespace LobsterConnect.VM
         /// replaying the journal.</param>
         /// <param name="personHandle"></param>
         /// <param name="sessionId"></param>
+        /// <param name="modifiedBy">the handle of the person who's adding the sign-up, if it isn't the person playing</param>
         /// <exception cref="ArgumentException"></exception>
-        public void SignUp(bool informJournal, string personHandle, string sessionId)
+        public void SignUp(bool informJournal, string personHandle, string sessionId, string modifiedBy=null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.SignUp", "Coding bug: Should be called on the UI thread");
-                Model.DispatcherHelper.RunAsyncOnUI(() => SignUp(informJournal, personHandle, sessionId));
+                Model.DispatcherHelper.RunAsyncOnUI(() => SignUp(informJournal, personHandle, sessionId, modifiedBy));
             }
             else
             {
@@ -387,6 +539,16 @@ namespace LobsterConnect.VM
                         session.AddSignUp(person.Handle);
                     }
                 }
+
+                if(informJournal)
+                {
+                    if (modifiedBy == null)
+                        modifiedBy = personHandle;
+
+                    Journal.AddJournalEntry(Journal.EntityType.SignUp, Journal.OperationType.Create, personHandle + "," + sessionId,
+                        "EVENTNAME", session.EventName,
+                        "MODIFIEDBY", modifiedBy);
+                }
             }
         }
 
@@ -399,13 +561,14 @@ namespace LobsterConnect.VM
         /// replaying the journal.</param>
         /// <param name="personHandle"></param>
         /// <param name="sessionId"></param>
+        /// <param name="modifiedBy">the handle of the person who's removing the sign-up, if it isn't the person playing</param>
         /// <exception cref="ArgumentException"></exception>
-        public void CancelSignUp(bool informJournal, string personHandle, string sessionId)
+        public void CancelSignUp(bool informJournal, string personHandle, string sessionId, string modifiedBy = null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CancelSignUp", "Coding bug: Should be called on the UI thread");
-                Model.DispatcherHelper.RunAsyncOnUI(() => CancelSignUp(informJournal, personHandle, sessionId));
+                Model.DispatcherHelper.RunAsyncOnUI(() => CancelSignUp(informJournal, personHandle, sessionId, modifiedBy));
             }
             else
             {
@@ -427,6 +590,17 @@ namespace LobsterConnect.VM
                 lock (session.instanceLock)
                 {
                     session.RemoveSignUp(person.Handle);
+                }
+
+
+                if (informJournal)
+                {
+                    if (modifiedBy == null)
+                        modifiedBy = personHandle;
+
+                    Journal.AddJournalEntry(Journal.EntityType.SignUp, Journal.OperationType.Delete, personHandle + "," + sessionId,
+                        "EVENTNAME", session.EventName,
+                        "MODIFIEDBY", modifiedBy);
                 }
             }
         }
@@ -478,6 +652,37 @@ namespace LobsterConnect.VM
                         }
                     }
                 }
+
+                if(informJournal)
+                {
+                    List<string> journalParameters = new List<string>();
+
+                    journalParameters.Add("EVENTNAME");
+                    journalParameters.Add(session.EventName);
+
+                    if (notes != null)
+                    {
+                        journalParameters.Add("NOTES"); journalParameters.Add(notes);
+                    }
+                    if (whatsAppLink != null)
+                    {
+                        journalParameters.Add("WHATSAPPLINK"); journalParameters.Add(whatsAppLink);
+                    }
+                    if (sitsMinimum != null)
+                    {
+                        journalParameters.Add("SITSMINIMUM"); journalParameters.Add(((int)sitsMinimum).ToString());
+                    }
+                    if (sitsMinimum != null)
+                    {
+                        journalParameters.Add("SITSMAXIMUM"); journalParameters.Add(((int)sitsMaximum).ToString());
+                    }
+                    if (state != null)
+                    {
+                        journalParameters.Add("STATE"); journalParameters.Add(state);
+                    }
+
+                    Journal.AddJournalEntry(Journal.EntityType.Session, Journal.OperationType.Update, session.Id, journalParameters);
+                }
             }
         }
 
@@ -500,9 +705,114 @@ namespace LobsterConnect.VM
         private SessionFilter _currentFilter = new SessionFilter();
 
         /// <summary>
+        /// Sets the current event to a new event.  The name must correspond to an event in the list returned by GetAvailableEventNames()
+        /// </summary>
+        /// <param name="eventName"></param>
+        public void SetCurrentEvent(string eventName)
+        {
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.SetCurrentEvent", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => SetCurrentEvent(eventName));
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(eventName))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.SetCurrentEvent", "event name cannot be null");
+                    throw new ArgumentException("MainViewModel.SetCurrentEvent: null name");
+                }
+
+                GamingEvent g = null;
+                foreach(GamingEvent gg in _availableEvents)
+                {
+                    if(gg.Name==eventName)
+                    {
+                        g = gg;
+                        break;
+                    }
+                }
+
+                if (g==null)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.SetCurrentEvent", "there is no event having name '"+eventName+"'");
+                    throw new ArgumentException("MainViewModel.SetCurrentEvent: invalid name");
+                }
+
+                LogUserMessage(Logger.Level.INFO, "Current gaming event has been set to '" + eventName + "'");
+
+                SessionTime.SetEventType(g.EventType); // set the number of gaming slots and their labels, according to the type of gaming event
+                this.CurrentEvent = g;
+            }
+        }
+
+        /// <summary>
+        /// Create a new gaming event, at which sessions can be set up
+        /// </summary>
+        /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
+        /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
+        /// replaying the journal.</param>
+        /// <param name="name"></param>
+        /// <param name="eventType">DAY, EVENING or CONVENTION - depending on this value, different sign-up slot times will be set up</param>
+        public void CreateGamingEvent(bool informJournal, string name, string eventType)
+        {
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => CreateGamingEvent(informJournal, name, eventType));
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "event name cannot be null");
+                    throw new ArgumentException("MainViewModel.CreateGamingEvent: null name");
+                }
+
+                if(GetAvailableEventNames().Contains(name))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "event name is the same as one already in the list");
+                    throw new ArgumentException("MainViewModel.CreateGamingEvent: duplicate name");
+                }
+
+                if (eventType != "EVENING" && eventType != "DAY" && eventType != "CONVENTION")
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "invalid type: '" + eventType + "'");
+                    throw new ArgumentException("MainViewModel.CreateGamingEvent: invalid event type");
+                }
+
+                GamingEvent g = new GamingEvent() { Name = name, EventType = eventType, IsActive = true };
+                this._availableEvents.Add(g);
+
+                if (informJournal)
+                {
+                    Journal.AddJournalEntry(Journal.EntityType.GamingEvent, Journal.OperationType.Create, name,
+                        "ISACTIVE", "True",
+                        "EVENTTYPE", eventType);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Retrieve a list of events that we can manage signups for.
+        /// </summary>
+        /// <returns>The names of the events</returns>
+        public List<string> GetAvailableEventNames()
+        {
+            List<string> names = new List<string>();
+
+            foreach(GamingEvent e in _availableEvents)
+            {
+                names.Add(e.Name);
+            }
+            return names;
+        }
+        private List<GamingEvent> _availableEvents = new List<GamingEvent>();
+
+        /// <summary>
         /// The gaming event that the app is currently managing sign-ups for. 
         /// </summary>
-        public string CurrentEvent
+        public GamingEvent CurrentEvent
         {
             get
             {
@@ -512,22 +822,13 @@ namespace LobsterConnect.VM
             {
                 if (this._currentEvent != value)
                 {
-                    bool dontNotify = false;
-                    if (value == null && this._currentEvent == "")
-                        dontNotify = true;
-                    if (value == "" && this._currentEvent == null)
-                        dontNotify = true;
-
                     this._currentEvent = value;
 
-                    if (!dontNotify)
-                    {
-                        this.OnPropertyChanged("CurrentEvent");
-                    }
+                    this.OnPropertyChanged("CurrentEvent");
                 }
             }
         }
-        private string _currentEvent = "LoBsterCon XXVIII";
+        private GamingEvent _currentEvent = null;
 
 
         /// <summary>
@@ -588,18 +889,6 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Retrieve a list of events that we can manage signups for.  Right now, the functionality is stubbed
-        /// out, and we only manage one possible event, LoBsterCon XXVIII.
-        /// </summary>
-        /// <returns></returns>
-        public List<string> GetAvailableEvents()
-        {
-            // This is just placeholder code.  Some day we will want to support more than one event.
-            return _AvailableEvents;
-        }
-        private static List<string> _AvailableEvents = new List<string> {"LoBsterCon XXVIII" };
-
-        /// <summary>
         /// Constructs an array of all sessions for the given event, filtered by some criteria.
         /// The index into the array is session time (turned into an ordinal number) so the number of entries in th
         /// array will be equal to the number of possible time slots for
@@ -611,7 +900,12 @@ namespace LobsterConnect.VM
         /// <returns></returns>
         public List<Session>[] GetAllSessions(string eventName, SessionFilter filter)
         {
-            int numSlots = GetNumberOfTimeSlots(eventName);
+            int numSlots = SessionTime.NumberOfTimeSlots;
+
+            if(numSlots==0)
+            {
+                return new List<Session>[0];
+            }
 
             List<Session>[] allSessions = new List<Session>[numSlots];
 
@@ -663,26 +957,14 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Fire this event when you do something that would necessitate refreshing the table of sessions in the UI.
         /// That means a change the sessions collection (i.e. when you add or remove elements
-        /// to the collection, having Session.EventName==MainViewModel.CurrentEvent), or changing the value of 
-        /// MainViewModel.CurrentEvent, or changing MainView.CurrentFilter.  Note that merely changing an attribute
+        /// to the collection, having Session.EventName==MainViewModel.CurrentEvent), or calling  
+        /// MainViewModel.SetCurrentEvent, or changing MainView.CurrentFilter.  Note that merely changing an attribute
         /// of a session doesn't necessarily require a refresh of the sessions table in the UI, because we expect
         /// the UI to bind to the relevant session attributes, so it will see such changes anyway.
         /// The MainViewModel.Loaded method includes logic to decide when to fire this event, in response to
         /// the firing of its PropertyChanged event
         /// </summary>
         public event EventHandler SessionsMustBeRefreshed;
-
-        /// <summary>
-        /// Get the number of time slots that exist for the given event.
-        /// </summary>
-        /// <param name="eventName"></param>
-        /// <returns></returns>
-        public int GetNumberOfTimeSlots(string eventName)
-        {
-            // when we actually implement more than one possible event, this will work differently.
-            return SessionTime.NumberOfTimeSlots;
-
-        }
 
         /// <summary>
         /// Fetch a Session object from the game sessions collection, given an id.  If the id is not valid the method

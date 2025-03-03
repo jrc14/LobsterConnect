@@ -69,7 +69,7 @@ public partial class PopupAddSession : Popup
                 int sitsMaximum = (int)Double.Round(this.stpMaximum.Value);
 
                 string proposer = MainViewModel.Instance.LoggedOnUser.Handle;
-                string eventName = MainViewModel.Instance.CurrentEvent;
+                string eventName = MainViewModel.Instance.CurrentEvent.Name;
 
                 SessionTime startTime = new SessionTime(selectedTimeIndex);
 

@@ -45,9 +45,33 @@ namespace LobsterConnect.Model
                     h = h + p[i];
             }
 
-            string hashed= h.GetHashCode().ToString("X8");
+            string hashed= GetHashCodeForString(h).ToString("X8");
 
             return hashed;
+        }
+
+
+        public static Int32 GetHashCodeForString(string s)
+        {
+            try
+            {
+                // generate a hash code for strings that is consistent between instances and launches of the app (because lately String.GetHashCode() does not seem 
+                // to be doing that for me.
+                int h = 0;
+                if (!string.IsNullOrEmpty(s))
+                {
+                    for (int i = 0; i < s.Length; i++)
+                    {
+                        h = 31 * h + s[i];
+                    }
+                }
+                return h;
+            }
+            catch (Exception e)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "Utilities.GetHashCodeForString: Exception: ", e);
+                return 0;
+            }
         }
 
         public static bool FileExists(string path)
