@@ -3,6 +3,12 @@ using LobsterConnect.Model;
 using LobsterConnect.VM;
 namespace LobsterConnect.V;
 
+/// <summary>
+/// Popup for managing a gaming session.  Before showing it, call SetSession to associate the popup with a gaming session.  Use a
+/// session from the sessions collection, not a copy of one.
+/// Changes to fields on the screen are applied immediately to the session (by means of calls to the appropriate MainViewModel ,
+/// methods: UpdateSession, SignUp, CancelSignUp).
+/// </summary>
 public partial class PopupManageSession : Popup
 {
     public PopupManageSession()
@@ -115,12 +121,12 @@ public partial class PopupManageSession : Popup
 
                 if (a == signUp)
                 {
-                    s.AddSignUp(MainViewModel.Instance.LoggedOnUser.Handle);
+                    MainViewModel.Instance.SignUp(true, MainViewModel.Instance.LoggedOnUser.Handle, s.Id, true, MainViewModel.Instance.LoggedOnUser.Handle);
                     MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has signed up to play '" + s.ToPlay + "'");
                 }
                 else if (a == cancelSignUp)
                 {
-                    s.RemoveSignUp(MainViewModel.Instance.LoggedOnUser.Handle);
+                    MainViewModel.Instance.CancelSignUp(true, MainViewModel.Instance.LoggedOnUser.Handle, s.Id, true, MainViewModel.Instance.LoggedOnUser.Handle);
                     MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has cancelled their sign-up for '" + s.ToPlay + "'");
                 }
                 else if (a == user)

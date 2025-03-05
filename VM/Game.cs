@@ -12,7 +12,7 @@ namespace LobsterConnect.VM
     /// Note that its member variables have public set accessors and are bindable
     /// but UI code should not use those accessors to change their values, because doing so will
     /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
-    /// cloud storage).
+    /// cloud storage).  Instead, use the appropriate CreateGame/UpdateGame methods on the main view model.
     /// </summary>
     public class Game : LobsterConnect.VM.BindableBase
     {

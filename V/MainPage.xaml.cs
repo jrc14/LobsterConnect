@@ -184,7 +184,9 @@ public partial class MainPage : ContentPage
 					{
 						Session s = ((StackLayout) sender ).BindingContext as Session;
 
-						ShowSessionManagementPopup(s);
+#pragma warning disable 4014 // the method below will run asynchronously, but I am fine to let the tapped handler exit in the meantime
+                        ShowSessionManagementPopup(s);
+#pragma warning restore 4014
 					};
 					slSession.GestureRecognizers.Add(tr);
 					slSession.BindingContext = session;

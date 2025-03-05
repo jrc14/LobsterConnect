@@ -12,7 +12,7 @@ namespace LobsterConnect.Model
         {
         }
 
-        public void CancelAsync()
+        public void Cancel()
         {
             if (!WorkerSupportsCancellation)
                 throw new NotSupportedException();

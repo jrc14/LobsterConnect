@@ -15,6 +15,9 @@ namespace LobsterConnect.VM
     /// so you can bind it to a UI.  Warning: since it raises PropertyChanged events every time any criterion is changed, you
     /// probably want to be a bit careful about triggering a complete UI refresh in response to every such event, because you
     /// will end up doing that refresh operation a lot, if the filter is bound to XAML elements that the user is typing into.
+    /// At present, the code doesn't pay any attention to these events at all, and handles changing the current filter
+    /// by always just re-assigning MainViewModel.Instance.CurrentFilter to a whole new filter object, and handling the
+    /// OnPropertyChanged event for MainViewModel.CurrentFilter to kick off the UI refresh. 
     /// </summary>
     public class SessionFilter : LobsterConnect.VM.BindableBase
     {

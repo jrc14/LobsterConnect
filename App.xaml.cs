@@ -20,8 +20,10 @@ public partial class App : Application
 
         Logger.LogMessage(Logger.Level.DEBUG, "App ctor", "about to create main page");
 
+#pragma warning disable 0618 // this call provokes a deprecated warning, but the code was produced by the 'new project' wizard so I don't imagine it's really wrong
         MainPage = new AppShell();
-	}
+#pragma warning restore 0618
+    }
 
     public static bool ApplicationSuspended = false; // used to tell our various timers to shut themselves down.
 

@@ -35,6 +35,15 @@ namespace LobsterConnect.Model
         }
         private static string _installationId = null;
 
+        /// <summary>
+        /// Turn a password into a very irreversible hash.  The method makes a string using only the even
+        /// numbered characters of the password, then makes a hash value by doing 
+        /// for (int i = 0; i &lt; s.Length; i++) { h = 31 * h + s[i];}, then formatting the resultant Int32
+        /// as a hex string.  It's a crappy hash, but it does mean there isn't much chance of some black-hatted
+        /// person using entries in the password database to figure out the original passwords.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
         public static string PasswordHash(string p)
         {
             string h = "";
@@ -50,13 +59,17 @@ namespace LobsterConnect.Model
             return hashed;
         }
 
-
+        /// <summary>
+        /// Generate a hash code for strings that is consistent between instances and launches of the app (because lately String.GetHashCode() does not seem 
+        /// to be doing that for me.
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         public static Int32 GetHashCodeForString(string s)
         {
             try
             {
-                // generate a hash code for strings that is consistent between instances and launches of the app (because lately String.GetHashCode() does not seem 
-                // to be doing that for me.
+                // 
                 int h = 0;
                 if (!string.IsNullOrEmpty(s))
                 {

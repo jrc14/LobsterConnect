@@ -348,7 +348,10 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Adds a signup to self.  The method doesn't check that the person handle is a valid, active person, but it does
         /// reject attempts to add a duplicate sign up.  It also rejects person handles containing a comma, because of the trouble this
-        /// can cause
+        /// can cause.
+        /// Warning: though this method is public you probably don't want to call it.  Rather, you should add sign-ups by
+        /// calling MainViewModel.Instance.ignUp because that method will take care of updating the UI and writing to
+        /// the journal, so that changes get saved properly.
         /// </summary>
         /// <param name="personHandle"></param>
         /// <exception cref="ArgumentException"></exception>
@@ -414,6 +417,9 @@ namespace LobsterConnect.VM
         /// Removes a signup from self.  The method doesn't check that the person handle is a valid, active person, but it does
         /// reject person handles containing a comma, because of the trouble this can cause.
         /// It will throw an exception if the person isn't signed up.
+        /// Warning: though this method is public you probably don't want to call it.  Rather, you should remove sign-ups by
+        /// calling MainViewModel.Instance.CancelSignUp because that method will take care of updating the UI and writing to
+        /// the journal, so that changes get saved properly.
         /// </summary>
         /// <param name="personHandle"></param>
         /// <exception cref="ArgumentException"></exception>

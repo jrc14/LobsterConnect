@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:LobsterConnect.V"
+             xmlns:vm="clr-namespace:LobsterConnect.VM"
+             x:DataType="vm:MainViewModel"
              x:Class="LobsterConnect.V.MainPage">
 	<Grid RowSpacing="0" ColumnSpacing="0" Background="Black">
 		<Grid.RowDefinitions>
@@ -75,23 +78,16 @@
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="x:String">
                     <Grid Margin="0,0,0,0" Padding="4,0,4,0" Background="Black">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Label Text="{Binding Item1}" FontFamily="FiraMonoRegular"  TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
+                        <Label Text="{Binding}" FontFamily="FiraMonoRegular"  TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
 									Grid.Row="0" Grid.Column="0"/>
-                        <Label Text="{Binding Item2}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
-									Grid.Row="0" Grid.Column="1"/>
-                        <Label Text="{Binding Item3}" FontFamily="FiraMonoRegular" TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
-									LineBreakMode="CharacterWrap"
-									Grid.Row="0" Grid.Column="2"/>
                     </Grid>
                 </DataTemplate>
 			</CollectionView.ItemTemplate>

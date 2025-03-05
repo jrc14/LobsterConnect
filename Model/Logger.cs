@@ -1,12 +1,32 @@
 ﻿
 namespace LobsterConnect.Model
 {
+    /// <summary>
+    /// Methods for writing to the app log file, which is logfile.txt in the app's working directyory.
+    /// The log file is maintained by a background worker thread, so log operations
+    /// don't block the UI thread.  It is not allowed to grow beyond 10MB in size; when it does,
+    /// a new log file is started and the old one is renamed (to a name incoporating a GUID).
+    /// </summary>
     public static class Logger
     {
+        /// <summary>
+        /// Log a message to the app log file
+        /// </summary>
+        /// <param name="l">severity</param>
+        /// <param name="context">what you were doing when the error happened (for instance, class name and methond name)</param>
+        /// <param name="details">what went wrong</param>
         static public void LogMessage(Level l, string context, string details="")
         {
             LogMessage(l, context, null, details);
         }
+            
+        /// <summary>
+        /// Log a message to the app log file, for cases when an exception has been caught
+        /// </summary>
+        /// <param name="l">severity</param>
+        /// <param name="context">what you were doing when the error happened (for instance, class name and methond name)</param>
+        /// <param name="ex">the exception that was thrown</param>
+        /// <param name="details">what went wrong</param>
 
         static public void LogMessage(Level l, string context, Exception ex, string details = "")
         {
