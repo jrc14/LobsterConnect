@@ -42,11 +42,19 @@ namespace LobsterConnect.VM
             }
             this._isLoaded = true;
 
-            LoadEventsGamesAndPersons();
+            // Load 500 top games into the local store (without writing them to the journal or the cloud store, which
+            // would be pointless being as every time the app starts these games get loaded).
+            CreateDefaultGames();
 
+            //
+            // Uncomment the lines below, to generate a load of test entries in the viewmodel
+            //LoadTestEventsGamesAndPersons(true);
+            //SetCurrentEvent("LoBsterCon XXVIII");
+            //LoadTestSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name,true);
+
+
+            Journal.LoadJournal(this);
             SetCurrentEvent("LoBsterCon XXVIII");
-
-            LoadSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name);
 
             // We set this handler after calling SetCurrentEvent above, to avoid a redundant call to
             // LoadSessionsAndSignUps and the firing of SessionsMustBeRefreshed
@@ -54,18 +62,24 @@ namespace LobsterConnect.VM
         }
         private bool _isLoaded = false;
 
-        private void LoadEventsGamesAndPersons()
+        /// <summary>
+        /// Call this to load just the sessions and signups that relate to a certain gaming event.  This method isn't doing anything
+        /// at the moment, because the Load method is loading all journal entries anyway - but at some point in the future we 
+        /// might change this behaviour, for the sake of efficiency, and load these things only for the current gaming event.
+        /// </summary>
+        public void LoadSessionsAndSignUps(string gamingEvent)
         {
-            // Load 500 top games into the local store (without writing them to the journal or the cloud store, which
-            // would be pointless being as every time the app starts these games get loaded).
-            CreateDefaultGames();
 
-            CreateGamingEvent(false, "LoBsterCon XXVIII", "CONVENTION");
-            CreateGamingEvent(false, "2025-03-02 Sun", "DAY");
-            CreateGamingEvent(false, "2025-03-03 Mon", "EVENING");
-            CreateGamingEvent(false, "2025-03-04 Tue", "EVENING");
+        }
 
-            CreatePerson(false, "jrc14", password: Model.Utilities.PasswordHash("jrc14"));
+        private void LoadTestEventsGamesAndPersons(bool informJournal)
+        {
+            CreateGamingEvent(informJournal, "LoBsterCon XXVIII", "CONVENTION",true);
+            CreateGamingEvent(informJournal, "2025-03-02 Sun", "DAY", true);
+            CreateGamingEvent(informJournal, "2025-03-03 Mon", "EVENING", true);
+            CreateGamingEvent(informJournal, "2025-03-04 Tue", "EVENING", true);
+
+            CreatePerson(informJournal, "jrc14", password: Model.Utilities.PasswordHash("jrc14"));
 
             // Create 500 random pixies
             for (int i=0; i<500; i++)
@@ -73,31 +87,31 @@ namespace LobsterConnect.VM
                 switch (i%5)
                 {
                     case 0:
-                        CreatePerson(false, "bobby" + i.ToString(), "Bobby the Magic Pixie number " + i.ToString(),
+                        CreatePerson(informJournal, "bobby" + i.ToString(), "Bobby the Magic Pixie number " + i.ToString(),
                             "+44-20-555-" + i.ToString("D4"),
                             "bobby" + i.ToString() + "@pixienet.com",
                             Model.Utilities.PasswordHash("bobby" + i.ToString()));
                         break;
                     case 1:
-                        CreatePerson(false, "susan" + i.ToString(), "Susan the Magic Pixie number " + i.ToString(),
+                        CreatePerson(informJournal, "susan" + i.ToString(), "Susan the Magic Pixie number " + i.ToString(),
                             "+44-20-7555-" + i.ToString("D4"),
                             "susan" + i.ToString() + "@pixienet.com",
                             Model.Utilities.PasswordHash("susan" + i.ToString()));
                         break;
                     case 2:
-                        CreatePerson(false, "steve" + i.ToString(), "Steve the Magic Pixie number " + i.ToString(),
+                        CreatePerson(informJournal, "steve" + i.ToString(), "Steve the Magic Pixie number " + i.ToString(),
                             "+44-20-7555-" + i.ToString("D4"),
                             "steve" + i.ToString() + "@pixienet.com",
                             Model.Utilities.PasswordHash("steve" + i.ToString()));
                         break;
                     case 3:
-                        CreatePerson(false, "jack" + i.ToString(), "Jack the Magic Pixie number " + i.ToString(),
+                        CreatePerson(informJournal, "jack" + i.ToString(), "Jack the Magic Pixie number " + i.ToString(),
                             "+44-20-7555-" + i.ToString("D4"),
                             "jack" + i.ToString() + "@pixienet.com",
                             Model.Utilities.PasswordHash("jack" + i.ToString()));
                         break;
                     default:
-                        CreatePerson(false, "mick" + i.ToString(), "Mick the Magic Pixie number " + i.ToString(),
+                        CreatePerson(informJournal, "mick" + i.ToString(), "Mick the Magic Pixie number " + i.ToString(),
                             "+44-20-7555-" + i.ToString("D4"),
                             "mick" + i.ToString() + "@pixienet.com",
                             Model.Utilities.PasswordHash("mick" + i.ToString()));
@@ -106,7 +120,7 @@ namespace LobsterConnect.VM
             }    
         }
 
-        private void LoadSessionsAndSignUps(string eventName)
+        private void LoadTestSessionsAndSignUps(string eventName, bool informJournal)
         {
             this._sessions.Clear();
 
@@ -122,7 +136,8 @@ namespace LobsterConnect.VM
                 int sitsMaximum = sitsMinimum+ System.Random.Shared.Next(0, 4);
                 int sessionTime = System.Random.Shared.Next(0, SessionTime.NumberOfTimeSlots);
 
-                string sessionId = CreateSession(false, proposer, toPlay, eventName, new SessionTime(sessionTime), false, "Here are some notes for session number " + s.ToString(),
+                string sessionId = Guid.NewGuid().ToString();
+                CreateSession(informJournal, sessionId, proposer, toPlay, eventName, new SessionTime(sessionTime), false, "Here are some notes for session number " + s.ToString(),
                     sitsMinimum: sitsMinimum, sitsMaximum: sitsMaximum);
 
                 Session session = GetSession(sessionId);
@@ -133,7 +148,7 @@ namespace LobsterConnect.VM
                         string person = this._persons[System.Random.Shared.Next(0, this._persons.Count)].Handle;
                         if(!session.IsSignedUp(person))
                         {
-                            SignUp(false, person, sessionId, false);
+                            SignUp(informJournal, person, sessionId, false);
                         }
                     }
                 }
@@ -291,13 +306,14 @@ namespace LobsterConnect.VM
         /// <param name="password">password hash string, if there is a password, or "" if there isn't.  It's optional, and
         /// defaulted to ""</param>
         /// <param name="isActive">active flag defaulted to true</param>
+        /// <param name="isAdmin">administrator privilege flag defaulted to false</param>
         /// <exception cref="ArgumentException"></exception>
-        public void CreatePerson(bool informJournal, string handle, string fullName = null, string phoneNumber = null, string email = null, string password = null, bool? isActive=null)
+        public void CreatePerson(bool informJournal, string handle, string fullName = null, string phoneNumber = null, string email = null, string password = null, bool? isActive=null, bool? isAdmin=null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "Coding bug: Should be called on the UI thread");
-                Model.DispatcherHelper.RunAsyncOnUI(() => CreatePerson(informJournal, handle, fullName, phoneNumber, email, password, isActive));
+                Model.DispatcherHelper.RunAsyncOnUI(() => CreatePerson(informJournal, handle, fullName, phoneNumber, email, password, isActive, isAdmin));
             }
             {
                 if (handle == null)
@@ -327,6 +343,10 @@ namespace LobsterConnect.VM
                     {
                         isActive = true;
                     }
+                    if (isAdmin == null)
+                    {
+                        isAdmin = false;
+                    }
 
                     lock (_personsLock)
                     {
@@ -335,7 +355,7 @@ namespace LobsterConnect.VM
                             Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreatePerson", "person with that handle already exists:'" + handle + "'");
                             throw new ArgumentException("MainViewModel.CreatePerson: duplicate handle:'" + handle + "'");
                         }
-                        _persons.Add(new Person() { Handle = handle, FullName = fullName, PhoneNumber = phoneNumber, Email = email, Password = password, IsActive = (bool)isActive });
+                        _persons.Add(new Person() { Handle = handle, FullName = fullName, PhoneNumber = phoneNumber, Email = email, Password = password, IsActive = (bool)isActive, IsAdmin=(bool)isAdmin });
                     }
 
                     if (informJournal)
@@ -345,7 +365,8 @@ namespace LobsterConnect.VM
                             "PHONENUMBER", phoneNumber,
                             "EMAIL", email,
                             "PASSWORD", password,
-                            "ISACTIVE", ((bool)isActive).ToString());
+                            "ISACTIVE", ((bool)isActive).ToString(),
+                            "ISADMIN", ((bool)isAdmin).ToString());
                     }
                 }
             }
@@ -366,12 +387,13 @@ namespace LobsterConnect.VM
         /// <param name="email"></param>
         /// <param name="password"></param>
         /// <param name="isActive"></param>
-        public void UpdatePerson(bool informJournal, Person person, string fullName = null, string phoneNumber = null, string email = null, string password = null, bool? isActive=null)
+        /// <param name="isAdmin"></param>
+        public void UpdatePerson(bool informJournal, Person person, string fullName = null, string phoneNumber = null, string email = null, string password = null, bool? isActive=null, bool? isAdmin = null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdatePerson", "Coding bug: Should be called on the UI thread");
-                Model.DispatcherHelper.RunAsyncOnUI(() => UpdatePerson(informJournal, person, fullName, phoneNumber, email, password, isActive));
+                Model.DispatcherHelper.RunAsyncOnUI(() => UpdatePerson(informJournal, person, fullName, phoneNumber, email, password, isActive, isAdmin));
             }
             else
             {
@@ -383,8 +405,12 @@ namespace LobsterConnect.VM
                     person.Email = email;
                 if (password != null)
                     person.Password = password;
+                if (isActive != null)
+                    person.IsActive = (bool)isActive;
+                if (isAdmin != null)
+                    person.IsAdmin = (bool)isAdmin;
 
-                if(informJournal)
+                if (informJournal)
                 {
                     List<string> journalParameters = new List<string>();
 
@@ -410,6 +436,11 @@ namespace LobsterConnect.VM
                         journalParameters.Add("ISACTIVE"); journalParameters.Add(((bool)isActive).ToString());
                     }
 
+                    if (isAdmin != null)
+                    {
+                        journalParameters.Add("ISADMIN"); journalParameters.Add(((bool)isAdmin).ToString());
+                    }
+
                     Journal.AddJournalEntry(Journal.EntityType.Person, Journal.OperationType.Update, person.Handle, journalParameters);
                 }
             }
@@ -423,25 +454,28 @@ namespace LobsterConnect.VM
         /// The method will throw an exception if the proposer handle isn't found in the persons collection or if it
         /// corresponds to an inactive person, or if the game name is not found in the games collection, or if the gaming
         /// event is not recognised.
+        /// Once the session has been created, you cannot modify the proposer, game, event or start time.
         /// </summary>
         /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
         /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
         /// replaying the journal.</param>
-        /// <param name="proposerHandle">mandatory, handle of an existing person</param>
-        /// <param name="gameNameToPlay">mandatory, name of an existing game</param>
-        /// <param name="eventName">mandatory, name of an existing gaming event</param>
-        /// <param name="startAt">mandatory, the time when the session starts</param>
+        /// <param name="sessionId">the id for the session to be used</param>
+        /// <param name="proposerHandle">mandatory and immutable, handle of an existing person</param>
+        /// <param name="gameNameToPlay">mandatory and immutable, name of an existing game</param>
+        /// <param name="eventName">mandatory and immutable, name of an existing gaming event</param>
+        /// <param name="startAt">mandatory and immutable, the time when the session starts</param>
         /// <param name="checkActive">mandatory, whether to throw an exception or just log a user warning in the case of an
         /// inactive game or inactive person. If calling this method from the UI, 'true' is appropriate; if you're replaying a
         /// journal from the cloud store, 'false' might be a better choice.</param>
         /// <param name="notes">optional, defaulted to "NO NOTES"</param>
         /// <param name="whatsAppLink">optional, defaulted to "NO WHATSAPP CHAT"</param>
+        /// <param name="bggLink">optional, defaulted to the BGG text for the game"</param>
         /// <param name="sitsMinimum">optional, defaulted to 0</param>
         /// <param name="sitsMaximum">optional, defaulted to 0</param>
         /// <param name="state">optional, defaulted to "OPEN"</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public string CreateSession(bool informJournal, string proposerHandle, string gameNameToPlay, string eventName, SessionTime startAt, bool checkActive, string notes=null, string whatsAppLink=null, int sitsMinimum=0, int sitsMaximum=0, string state=null)
+        public void CreateSession(bool informJournal, string sessionId, string proposerHandle, string gameNameToPlay, string eventName, SessionTime startAt, bool checkActive, string notes=null, string whatsAppLink=null, string bggLink=null, int sitsMinimum=0, int sitsMaximum=0, string state=null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
@@ -468,7 +502,7 @@ namespace LobsterConnect.VM
                     state = "OPEN";
                 }
 
-                string id = Guid.NewGuid().ToString();
+                
 
                 proposer = GetPerson(proposerHandle);
                 if (proposer == null)
@@ -484,7 +518,12 @@ namespace LobsterConnect.VM
                     throw new ArgumentException("MainViewModel.CreateSession: no such game:'" + gameNameToPlay + "'");
                 }
 
-                if(!CheckEventName(eventName))
+                if (bggLink == null)
+                {
+                    bggLink = game.BggLink;
+                }
+
+                if (!CheckEventName(eventName))
                 {
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateSession", "no such gaming event:'" + eventName + "'");
                     throw new ArgumentException("MainViewModel.CreateSession: no such gaming event:'" + eventName + "'");
@@ -522,14 +561,14 @@ namespace LobsterConnect.VM
 
                         _sessions.Add(new Session()
                         {
-                            Id = id,
+                            Id = sessionId,
                             Proposer = proposerHandle,
                             ToPlay = gameNameToPlay,
                             EventName = eventName,
                             StartAt = startAt,
                             Notes = notes,
                             WhatsAppLink = whatsAppLink,
-                            BggLink = game.BggLink,
+                            BggLink = bggLink,
                             SignUps = "",// will by side-effect set NumSignUps to 0
                             SitsMinimum = sitsMinimum,
                             SitsMaximum = sitsMaximum,
@@ -548,20 +587,18 @@ namespace LobsterConnect.VM
 
                 if(informJournal)
                 {
-                    Journal.AddJournalEntry(Journal.EntityType.Session, Journal.OperationType.Create, id,
+                    Journal.AddJournalEntry(Journal.EntityType.Session, Journal.OperationType.Create, sessionId,
                         "EVENTNAME", eventName,
                         "PROPOSER", proposerHandle,
                         "TOPLAY", gameNameToPlay,
                         "STARTAT", startAt.ToString()+":"+startAt.Ordinal.ToString(),
                         "NOTES", notes,
                         "WHATSAPPLINK", whatsAppLink,
-                        "BGGLINK", game.BggLink,
+                        "BGGLINK", bggLink,
                         "SITSMINIMUM", sitsMinimum.ToString(),
                         "SITSMAXIMUM", sitsMaximum.ToString(),
                         "STATE", state);
                 }
-
-                return id;
             }
         }
 
@@ -771,15 +808,16 @@ namespace LobsterConnect.VM
         /// <param name="session">mandatory, the id of an existing session</param>
         /// <param name="notes"></param>
         /// <param name="whatsAppLink"></param>
+        /// <param name="bggLink"></param>
         /// <param name="sitsMinimum"></param>
         /// <param name="sitsMaximum"></param>
         /// <param name="state">must be OPEN, FULL or ABANDONED</param>
-        public void UpdateSession(bool informJournal, Session session, string notes = null, string whatsAppLink = null, int? sitsMinimum = null, int? sitsMaximum = null, string state=null)
+        public void UpdateSession(bool informJournal, Session session, string notes = null, string whatsAppLink = null, string bggLink = null, int? sitsMinimum = null, int? sitsMaximum = null, string state=null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateSession", "Coding bug: Should be called on the UI thread");
-                Model.DispatcherHelper.RunAsyncOnUI(() => UpdateSession(informJournal, session, notes, whatsAppLink, sitsMinimum, sitsMaximum, state));
+                Model.DispatcherHelper.RunAsyncOnUI(() => UpdateSession(informJournal, session, notes, whatsAppLink, bggLink, sitsMinimum, sitsMaximum, state));
             }
             else
             {
@@ -789,6 +827,8 @@ namespace LobsterConnect.VM
                         session.Notes = notes;
                     if (whatsAppLink != null)
                         session.WhatsAppLink = whatsAppLink;
+                    if (bggLink != null)
+                        session.BggLink = bggLink;
                     if (sitsMinimum != null)
                         session.SitsMinimum = (int)sitsMinimum;
                     if (sitsMaximum != null)
@@ -834,6 +874,10 @@ namespace LobsterConnect.VM
                     if (whatsAppLink != null)
                     {
                         journalParameters.Add("WHATSAPPLINK"); journalParameters.Add(whatsAppLink);
+                    }
+                    if (bggLink != null)
+                    {
+                        journalParameters.Add("BGGLINK"); journalParameters.Add(bggLink);
                     }
                     if (sitsMinimum != null)
                     {
@@ -922,13 +966,15 @@ namespace LobsterConnect.VM
         /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
         /// replaying the journal.</param>
         /// <param name="name"></param>
-        /// <param name="eventType">DAY, EVENING or CONVENTION - depending on this value, different sign-up slot times will be set up</param>
-        public void CreateGamingEvent(bool informJournal, string name, string eventType)
+        /// <param name="eventType">DAY, EVENING or CONVENTION - depending on this value, different sign-up slot times will be set up
+        /// This value is immutable - once you've set it you can't update it</param>
+        /// <param name="isActive">active flag defaulted to true</param>
+        public void CreateGamingEvent(bool informJournal, string name, string eventType, bool? isActive=null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "Coding bug: Should be called on the UI thread");
-                Model.DispatcherHelper.RunAsyncOnUI(() => CreateGamingEvent(informJournal, name, eventType));
+                Model.DispatcherHelper.RunAsyncOnUI(() => CreateGamingEvent(informJournal, name, eventType, isActive));
             }
             else
             {
@@ -950,23 +996,88 @@ namespace LobsterConnect.VM
                     throw new ArgumentException("MainViewModel.CreateGamingEvent: invalid event type");
                 }
 
-                GamingEvent g = new GamingEvent() { Name = name, EventType = eventType, IsActive = true };
+                if (isActive == null)
+                {
+                    isActive = true;
+                }
+
+                GamingEvent g = new GamingEvent() { Name = name, EventType = eventType, IsActive = (bool)isActive };
                 this._availableEvents.Add(g);
 
                 if (informJournal)
                 {
                     Journal.AddJournalEntry(Journal.EntityType.GamingEvent, Journal.OperationType.Create, name,
-                        "ISACTIVE", "True",
+                        "ISACTIVE", isActive.ToString(),
                         "EVENTTYPE", eventType);
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Update attributes of a gaming event, informing the journal if necessary.  Any attributes you don't want to update should be
+        /// set to null.  Note that the only attribute you can change is GamingEvent.isActive.  The GamingEvent.EventType attribute is
+        /// immutable (because if it weren't you'd be able to create sessions with invalid slot times).
+        /// This method is the correct way to amend a gaming object in response to UI actions, because it will inform the journal, meaning
+        /// that updates will be saved locally and passed on to the cloud store.
+        /// </summary>
+        /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
+        /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
+        /// replaying the journal.</param>
+        /// <param name="gamingEvent">mandatory, full name of an existing gaming event to be updated</param>
+        /// <param name="isActive"></param>
+        public void UpdateGamingEvent(bool informJournal, GamingEvent gamingEvent, bool? isActive = null)
+        {
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateGamingEvent", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => UpdateGamingEvent(informJournal, gamingEvent, isActive));
+            }
+            else
+            {
+                if (isActive != null)
+                {
+                    gamingEvent.IsActive = (bool)isActive;
+                }
+
+                if (informJournal)
+                {
+                    List<string> journalParameters = new List<string>();
+
+                    if (isActive != null)
+                    {
+                        journalParameters.Add("ISACTIVE"); journalParameters.Add(((bool)isActive).ToString());
+                    }
+
+                    if (journalParameters.Count > 0)
+                    {
+                        Journal.AddJournalEntry(Journal.EntityType.GamingEvent, Journal.OperationType.Update, gamingEvent.Name, journalParameters);
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Get a gaming event by name, from the list of gaming events we know about
+        /// </summary>
+        /// <param name="eventName"></param>
+        /// <returns>true if the gaming event is know, false if it is not</returns>
+        public GamingEvent GetGamingEvent(string eventName)
+        {
+            foreach (GamingEvent e in _availableEvents)
+            {
+                if (eventName == e.Name)
+                    return e;
+            }
+            return null;
         }
 
         /// <summary>
         /// Check that the parameter corresponds to a gaming event that we know about
         /// </summary>
         /// <param name="eventName"></param>
-        /// <returns>true if the gaming event is know, false if it is not</returns>
+        /// <returns>true if the gaming event is known, false if it is not</returns>
         public bool CheckEventName(string eventName)
         {
             foreach (GamingEvent e in _availableEvents)
@@ -1314,6 +1425,86 @@ namespace LobsterConnect.VM
                         return g;
             }
             return null;
+        }
+
+        public void SyncCheckPersonUpdate(string personHandle, bool? toIsActive)
+        {
+            if (LoggedOnUser != null)
+            {
+                if (personHandle == LoggedOnUser.Handle && toIsActive == false)
+                {
+                    LogUserMessage(Logger.Level.WARNING, "Sync: the current user '" + personHandle + "' has been DEACTIVATED");
+                }
+            }
+        }
+
+        public void SyncCheckSessionUpdate(Session session, string toState)
+        {
+            if (LoggedOnUser != null)
+            {
+                if (session.Proposer == LoggedOnUser.Handle)
+                {
+                    if (toState == "ABANDONED")
+                    {
+                        LogUserMessage(Logger.Level.WARNING, "Sync: a game of '" + session.ToPlay + "' organised by you has been ABANDONED");
+                    }
+                    else if (toState == "FULL")
+                    {
+                        LogUserMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' organised by you has been declared FULL");
+                    }
+                }
+                else if (session.IsSignedUp(LoggedOnUser.Handle))
+                {
+                    if (toState == "ABANDONED")
+                    {
+                        LogUserMessage(Logger.Level.WARNING, "Sync: a game of '" + session.ToPlay + "' involving you has been ABANDONED");
+                    }
+                    else if (toState == "FULL")
+                    {
+                        LogUserMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' involving you has been declared FULL");
+                    }
+                }
+            }
+        }
+
+        public void SyncCheckSignUp(string sessionId, string personHandle, string modifiedBy)
+        {
+            Session session = GetSession(sessionId);
+            if (session.Proposer == personHandle)
+            {
+                if (session.State == "OPEN")
+                {
+                    LogUserMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has signed up to play your game of '" + session.ToPlay + "'");
+
+                    if (session.NumSignUps > session.SitsMaximum)
+                    {
+                        LogUserMessage(Logger.Level.WARNING, "Sync: your game of '" + session.ToPlay + "' is OVERSUBSCRIBED");
+                    }
+                }
+                else
+                {
+                    LogUserMessage(Logger.Level.WARNING, "Sync: '" + personHandle + "' has signed up to play your " + session.State + " game of '" + session.ToPlay + "'");
+                }
+            }
+
+            if (modifiedBy!=personHandle)
+            {
+                LogUserMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has signed you up to play a game of '" + session.ToPlay + "'");
+            }
+        }
+
+        public void SyncCheckCancelSignUp(string sessionId, string personHandle, string modifiedBy)
+        {
+            Session session = GetSession(sessionId);
+            if (session.Proposer == personHandle)
+            {
+                LogUserMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has cancelled their sign-up to play your game of '" + session.ToPlay + "'");
+            }
+
+            if (modifiedBy != personHandle)
+            {
+                LogUserMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has cancelled your sign-up up to play a game of '" + session.ToPlay + "'");
+            }
         }
 
         /// <summary>

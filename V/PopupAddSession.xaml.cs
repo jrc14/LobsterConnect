@@ -73,7 +73,9 @@ public partial class PopupAddSession : Popup
 
                 SessionTime startTime = new SessionTime(selectedTimeIndex);
 
-                MainViewModel.Instance.CreateSession(true, proposer, gameName, eventName, startTime, true, notes, whatsAppLink, sitsMinimum, sitsMaximum);
+                string sessionId = Guid.NewGuid().ToString();
+
+                MainViewModel.Instance.CreateSession(true, sessionId, proposer, gameName, eventName, startTime, true, notes, whatsAppLink, null /*default to BGG link for the game*/ , sitsMinimum, sitsMaximum);
 
                 MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "You (user '"+proposer+"') have created a session to play '"+gameName+"' at "+startTime.ToString());
 
