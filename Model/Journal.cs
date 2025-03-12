@@ -1,4 +1,5 @@
 ﻿using LobsterConnect.VM;
+using System.Runtime.InteropServices;
 
 
 namespace LobsterConnect.Model
@@ -83,10 +84,13 @@ namespace LobsterConnect.Model
                 Logger.LogMessage(Logger.Level.ERROR, "Journal.AddJournalEntry", "The number of parameters is odd - it must be even");
                 return;
             }
-            
-            JournalEntry e = new JournalEntry(0, _LocalJournalNextSeq++, Model.Utilities.InstallationId, entityType, operationType, entityId, journalParameters);
 
-            _LocalJournal.Add(e);
+            JournalEntry e;
+            lock (_LocalJournalLock)
+            {
+                e = new JournalEntry(0, _LocalJournalNextSeq++, Model.Utilities.InstallationId, entityType, operationType, entityId, journalParameters);
+                _LocalJournal.Add(e);
+            }
 
             Journal.AddEntryToQueue(e);
         }
@@ -103,6 +107,7 @@ namespace LobsterConnect.Model
 
         private static List<JournalEntry> _LocalJournal = new List<JournalEntry>();
         private static Int64 _LocalJournalNextSeq = 1;
+        private static LobsterLock _LocalJournalLock = new LobsterLock(); // lock while changing or viewing the two items above
 
         public class JournalEntry()
         {
@@ -336,6 +341,8 @@ namespace LobsterConnect.Model
                         GetParameterValue("EVENTTYPE", this._parameters),
                         GetParameterValueBool("ISACTIVE", this._parameters));
 
+                    vm.SyncCheckGamingEvent(this._entityId, GetParameterValueBool("ISACTIVE", this._parameters));
+
                 }
                 else if (this._operationType == OperationType.Update)
                 {
@@ -348,6 +355,8 @@ namespace LobsterConnect.Model
                     // Note: EVENTTYPE is immutable; attempts to update it are ignored.
                     vm.UpdateGamingEvent(false, gamingEvent,
                         GetParameterValueBool("ISACTIVE", this._parameters));
+
+                    vm.SyncCheckGamingEvent(this._entityId, GetParameterValueBool("ISACTIVE", this._parameters));
                 }
                 else
                 {
@@ -362,7 +371,6 @@ namespace LobsterConnect.Model
                     vm.CreateGame(false, this._entityId,
                         GetParameterValue("BGGLINK", this._parameters),
                         GetParameterValueBool("ISACTIVE", this._parameters));
-
                 }
                 else if (this._operationType == OperationType.Update)
                 {
@@ -682,7 +690,8 @@ namespace LobsterConnect.Model
                 return;
             }
 
-            lock (QLock)
+            List<JournalEntry> toReplay = new List<JournalEntry>();
+            lock (_LocalJournalLock)
             {
                 _LocalJournal.Clear();
                 _LocalJournalNextSeq = 0;
@@ -702,7 +711,15 @@ namespace LobsterConnect.Model
                                 {
                                     JournalEntry entry = new JournalEntry(line);
                                     _LocalJournal.Add(entry);
-                                    _LocalJournalNextSeq = entry.LocalSeq;
+                                    if (entry.InstallationId == Utilities.InstallationId)
+                                    {
+                                        if(entry.LocalSeq> _LocalJournalNextSeq)
+                                            _LocalJournalNextSeq = entry.LocalSeq;
+                                        else
+                                        {
+                                            Logger.LogMessage(Logger.Level.WARNING, "Journal.LoadJournal", "local sequence number is out of order ("+ entry.LocalSeq.ToString()+ "<" + _LocalJournalNextSeq.ToString()+ ") reading line: " + line);
+                                        }
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -712,17 +729,27 @@ namespace LobsterConnect.Model
                         }
                     }
                 }
+                _LocalJournalNextSeq++;
+
+                Logger.LogMessage(Logger.Level.INFO, "Journal.LoadJournal: loaded " + _LocalJournal.Count.ToString() + " entries");
+                Logger.LogMessage(Logger.Level.INFO, "Journal.LoadJournal: next entry to be created will be given sequence number " + _LocalJournalNextSeq.ToString());
+
 
                 foreach (JournalEntry entry in _LocalJournal)
+                    toReplay.Add(entry);
+            }
+
+            // having released the lock on the journal, now replay all the entries we fetched from it
+
+            foreach (JournalEntry entry in _LocalJournal)
+            {
+                try
                 {
-                    try
-                    {
-                        entry.Replay(vm);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogMessage(Logger.Level.ERROR, "Journal.LoadJournal", ex, "while replaying: " + entry.ToString());
-                    }
+                    entry.Replay(vm);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "Journal.LoadJournal", ex, "while replaying: " + entry.ToString());
                 }
             }
         }
@@ -750,7 +777,7 @@ namespace LobsterConnect.Model
         private static LobsterLock QLock = new LobsterLock();
 
         public static bool DoingJournalWork = false;
-        public static async Task<bool> DoJournalWork(LobsterWorker w, int iteration)
+        public static bool DoJournalWork(LobsterWorker w, int iteration)
         {
             if (DoingJournalWork)
             {
@@ -772,27 +799,35 @@ namespace LobsterConnect.Model
                 {
                     if (System.Threading.Monitor.TryEnter(JournalFileLock, 10000))
                     {
-                        string journalFilePath = Path.Combine(App.ProgramFolder, "localjournal.txt");
-
-                        using (Stream fs = System.IO.File.Open(journalFilePath, FileMode.OpenOrCreate, FileAccess.Write))
+                        try
                         {
-                            fs.Seek(0, SeekOrigin.End);
+                            string journalFilePath = Path.Combine(App.ProgramFolder, "localjournal.txt");
 
-                            using (StreamWriter journalFileWriter = new StreamWriter(fs))
+                            using (Stream fs = System.IO.File.Open(journalFilePath, FileMode.OpenOrCreate, FileAccess.Write))
                             {
-                                foreach (JournalEntry e in toDo)
+                                fs.Seek(0, SeekOrigin.End);
+
+                                using (StreamWriter journalFileWriter = new StreamWriter(fs))
                                 {
-                                    try
+                                    foreach (JournalEntry e in toDo)
                                     {
-                                        journalFileWriter.WriteLine(e.ToString());
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Logger.LogMessage(Logger.Level.ERROR, "Journal.DoJournalWork", ex, "while writing line to incremental journal file");
+                                        try
+                                        {
+                                            journalFileWriter.WriteLine(e.ToString());
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.LogMessage(Logger.Level.ERROR, "Journal.DoJournalWork", ex, "while writing line to incremental journal file");
+                                        }
                                     }
                                 }
                             }
                         }
+                        finally
+                        {
+                            Monitor.Exit(JournalFileLock);
+                        }
+
                     }
                     else
                     {
@@ -811,27 +846,43 @@ namespace LobsterConnect.Model
                 {
                     Logger.LogMessage(Logger.Level.INFO,"Journal.DoJournalWork","iteration number " + iteration.ToString() + ": journal sync starting...");
 
-                    // syncFrom will end up being set to the last non-zero cloud seq number in the local journal;
+                    // syncFrom will end up being set to the highest non-zero cloud seq number in our journal enties;
                     // contentString will be all the journal entries that need sending to the cloud sync service, because
-                    // their cloud seq numbers are zero.
-                    string contentString = "";
-                    Int64 syncFrom = 0;
+                    // their cloud seq numbers are zero and they originated from this device.
+                    List<string> toBeSent = new List<string>();
                     foreach(JournalEntry e in _LocalJournal)
                     {
-                        if (e.CloudSeq != 0 && e.CloudSeq>syncFrom)
+                        if (e.InstallationId != Utilities.InstallationId) // skip entries that didn't come from this device
+                            continue;
+
+                        if (e.CloudSeq != 0) // skip entries that already have cloud seq numbers
+                            continue;
+
+                        toBeSent.Add(e.ToString());
+                    }
+                    string contentString = "";
+                    if (toBeSent.Count == 1)
+                        contentString = toBeSent[0];
+                    else if(toBeSent.Count > 1)
+                        contentString= string.Join('\n', toBeSent);
+
+                    Int64 syncFrom = 0;
+                    foreach (JournalEntry e in _LocalJournal)
+                    {
+                        if (e.CloudSeq > syncFrom)
                         {
                             syncFrom = e.CloudSeq;
-                            continue;
                         }
-                        contentString += e.ToString();
-                        contentString += "\n";
                     }
-
 
                     if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                     {
                         // unavailable
                         Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": no internet access; journal synchronisation has not been performed");
+                        Model.DispatcherHelper.RunAsyncOnUI(() =>
+                        {
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "No internet: unable to sync");
+                        });
                     }
                     else
                     {
@@ -839,9 +890,9 @@ namespace LobsterConnect.Model
 
                         // Ask the backend to send us every record with a higher Cloud Seq Number than syncFrom (the highest one that we have seen so far)
                         // and send it all the local journal records that so far have not been given a Cloud Seq Number).
-                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X8");
+                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X8")+"&remoteDevice="+Model.Utilities.InstallationId;
                         StringContent postContent = new StringContent(contentString);
-                        HttpResponseMessage response = await client.PostAsync(postQuery, postContent);
+                        HttpResponseMessage response = client.PostAsync(postQuery, postContent).Result;
 
                         if (response.IsSuccessStatusCode)
                         {
@@ -851,7 +902,8 @@ namespace LobsterConnect.Model
                             // cloud seq number; these will be updated by putting a cloud seq number on them.  Records that must be added to the local
                             // journal (and must be replayed, to load them into the viewmodel) will be the ones coming from other devices (i.e.
                             // having an installation id different from the local installation id).
-                            string content = await response.Content.ReadAsStringAsync();
+                            string content = response.Content.ReadAsStringAsync().Result;
+                            int contentCount = 0;
                             if (string.IsNullOrEmpty(content))
                             {
                                 Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": synchronising 0 records");
@@ -862,14 +914,20 @@ namespace LobsterConnect.Model
                                 if (!content.Contains('\n'))
                                 {
                                     Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": synchronising 1 record");
+                                    Logger.LogMessage(Logger.Level.DEBUG, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": synchronising " + content);
                                     SyncCloudEntry(content);
+                                    contentCount = 1;
                                 }
                                 else
                                 {
                                     string[] cloudRecords = content.Split('\n');
                                     Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": synchronising " + cloudRecords.Length + " records");
                                     foreach (string s in cloudRecords)
+                                    {
+                                        Logger.LogMessage(Logger.Level.DEBUG, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": synchronising " + s);
                                         SyncCloudEntry(s);
+                                    }
+                                    contentCount = cloudRecords.Length;
                                 }
 
                                 // the local journal now needs to be written out to file in its entirety, to include all the updates to
@@ -904,11 +962,22 @@ namespace LobsterConnect.Model
                                     Utilities.FileRename(tempFilePath, "localjournal.txt");
                                 }
                             }
+                            if (toBeSent.Count != 0 || contentCount != 0)
+                            {
+                                Model.DispatcherHelper.RunAsyncOnUI(() =>
+                                {
+                                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Sync completed: " + toBeSent.Count.ToString() + " change(s) uploaded, " + contentCount.ToString() + " downloaded");
+                                });
+                            }
                         }
                         else
                         {
                             // failure response
                             Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": failed to sync with cloud service: "+response.StatusCode.ToString()+": "+response.ReasonPhrase);
+                            Model.DispatcherHelper.RunAsyncOnUI(() =>
+                            {
+                                MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sync failed: " + response.StatusCode.ToString() + ": " + response.ReasonPhrase);
+                            });
                         }
                     }
 
@@ -918,6 +987,10 @@ namespace LobsterConnect.Model
             catch (Exception ex)
             {
                 Logger.LogMessage(Logger.Level.ERROR,"FredaJournal.DoJournalWork", ex);
+                Model.DispatcherHelper.RunAsyncOnUI(() =>
+                {
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sync failed: Error");
+                });
             }
             finally
             {
@@ -1058,7 +1131,7 @@ namespace LobsterConnect.Model
                             {
                                 if (w == Journal.JournalWorker)
                                 {
-                                    await Journal.DoJournalWork(w, i);
+                                    Journal.DoJournalWork(w, i);
                                 }
                                 else if (Journal.JournalWorker == null)
                                 {

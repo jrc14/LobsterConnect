@@ -11,11 +11,14 @@ public partial class MainPage : ContentPage
 	{
 		MainPage.Instance = this;
 
-		MainViewModel.Instance.Load();
+        MainViewModel.Instance.Load();
 
 		this.BindingContext = MainViewModel.Instance;
 
-        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Data has been loaded");
+        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Local data has been loaded");
+
+		Journal.EnsureJournalWorkerRunning();
+        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Cloud sync service has been started");
 
         if (Microsoft.Maui.Storage.Preferences.ContainsKey("UserHandle"))
         {
@@ -29,6 +32,50 @@ public partial class MainPage : ContentPage
 					MainViewModel.Instance.SetLoggedOnUser(defaultUser, true);
                 }
             }
+        }
+
+		List<string> availableEvents = MainViewModel.Instance.GetAvailableEventNames();
+		if(availableEvents.Count==0)
+		{
+			if(Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+			{
+				DisplayAlert("No Network", "The app needs to access the internet, to fetch the list of available gaming events.  Please close the app, and return to it once you have an internet connection.", "Dismiss");
+			}
+			else
+			{
+                DisplayAlert("Sync", "The app is still fetching the list of available gaming events.  Please wait, and once an event name appears on the schedule screen, tap on it to make a selection.", "Dismiss");
+            }
+		}
+		else
+		{
+			string defaultGamingEventName = null;
+			if (Microsoft.Maui.Storage.Preferences.ContainsKey("GamingEvent"))
+			{
+				defaultGamingEventName = Microsoft.Maui.Storage.Preferences.Get("GamingEvent", "");
+			}
+		
+			// if there is no saved event name, or if the saved event name doesn't appear on the list
+			if (string.IsNullOrEmpty(defaultGamingEventName) || !MainViewModel.Instance.CheckEventName(defaultGamingEventName))
+			{
+				// then set the gaming event to a valid value (the first active event in the list, or if no
+				// events are active, the first event on the list
+				for(int e=0; e<availableEvents.Count;e++)
+				{
+					GamingEvent ee = MainViewModel.Instance.GetGamingEvent(availableEvents[e]);
+					if(ee!=null && ee.IsActive)
+					{
+						defaultGamingEventName = ee.Name;
+						break;
+					}
+				}
+				if (defaultGamingEventName == null)
+					defaultGamingEventName = availableEvents[0];
+
+				Microsoft.Maui.Storage.Preferences.Set("GamingEvent", defaultGamingEventName);
+            }
+            
+            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Gaming event '" + defaultGamingEventName + "' has been selected");
+            MainViewModel.Instance.SetCurrentEvent(defaultGamingEventName);
         }
 
         // As long as this page is loaded, we need to respond to a 'sessions must be refreshed' event raised
@@ -389,7 +436,7 @@ public partial class MainPage : ContentPage
 		if(!string.IsNullOrEmpty(eventName) && eventName!=MainViewModel.Instance.CurrentEvent.Name)
 		{
 			MainViewModel.Instance.SetCurrentEvent(eventName);
-
+            Microsoft.Maui.Storage.Preferences.Set("GamingEvent", eventName);
         }
     }
 }

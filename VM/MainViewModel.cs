@@ -52,9 +52,7 @@ namespace LobsterConnect.VM
             //SetCurrentEvent("LoBsterCon XXVIII");
             //LoadTestSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name,true);
 
-
             Journal.LoadJournal(this);
-            SetCurrentEvent("LoBsterCon XXVIII");
 
             // We set this handler after calling SetCurrentEvent above, to avoid a redundant call to
             // LoadSessionsAndSignUps and the firing of SessionsMustBeRefreshed
@@ -81,8 +79,8 @@ namespace LobsterConnect.VM
 
             CreatePerson(informJournal, "jrc14", password: Model.Utilities.PasswordHash("jrc14"));
 
-            // Create 500 random pixies
-            for (int i=0; i<500; i++)
+            // Create 50 random pixies
+            for (int i=0; i<50; i++)
             {
                 switch (i%5)
                 {
@@ -754,10 +752,11 @@ namespace LobsterConnect.VM
                     }
                     lock (session.instanceLock)
                     {
-                        if (checkActive)
+                        if (session.State != "OPEN")
                         {
-                            if (session.State != "OPEN")
+                            if (checkActive)
                             {
+
                                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CancelSignUp", "session is not OPEN:'" + sessionId + "'");
                                 throw new ArgumentException("MainViewModel.CancelSignUp: session is not OPEN:'" + sessionId + "'");
                             }
@@ -1425,6 +1424,49 @@ namespace LobsterConnect.VM
                         return g;
             }
             return null;
+        }
+
+        public void SyncCheckGamingEvent(string eventName, bool? toIsActive)
+        {
+            if (CurrentEvent != null)
+            {
+                if (eventName == CurrentEvent.Name && toIsActive == false)
+                {
+                    LogUserMessage(Logger.Level.WARNING, "Sync: the current event '" + eventName + "' has been DEACTIVATED");
+                }
+            }
+            else
+            {
+                // When the app starts up, it will have CurrentEvent equal to null, and if the MainPage Load method can't
+                // find any possible gaming events, it will leave CurrentEvent set to null.  We need to fix that here,
+                // becase a null current gaming event is a bad thing; we need a current gaming event set, to make the
+                // UI visible.  We will wait one second (because other gaming event updates might come in during that time)
+                // and then set the current event to something valid.
+                Model.DispatcherHelper.RunAsyncOnUI(async () =>
+                {
+                    await Model.DispatcherHelper.SleepAsync(1000);
+                    if(CurrentEvent==null && _availableEvents.Count!=0)
+                    {
+                        List<string> availableEvents = MainViewModel.Instance.GetAvailableEventNames();
+                        string eventName = null;
+                        // Set the gaming event to a valid value (the first active event in the list, or if no
+                        // events are active, the first event on the list
+                        for (int e = 0; e < availableEvents.Count; e++)
+                        {
+                            GamingEvent ee = MainViewModel.Instance.GetGamingEvent(availableEvents[e]);
+                            if (ee != null && ee.IsActive)
+                            {
+                                eventName = ee.Name;
+                                break;
+                            }
+                        }
+                        if (eventName == null)
+                            eventName = availableEvents[0];
+
+                        SetCurrentEvent(eventName);
+                    }
+                });
+            }
         }
 
         public void SyncCheckPersonUpdate(string personHandle, bool? toIsActive)
