@@ -119,7 +119,7 @@ namespace LobsterConnect.Model
 
                 if (e == EntityType.Session || e == EntityType.SignUp)
                 {
-                    _gamingEventFilter = GetParameterValue("EVENTNAME", p);
+                    _gamingEventFilter = GetParameterValue("EVENTNAME", p,"");
                 }
                 else
                 {
@@ -369,7 +369,7 @@ namespace LobsterConnect.Model
                 if (this._operationType == OperationType.Create)
                 {
                     vm.CreateGame(false, this._entityId,
-                        GetParameterValue("BGGLINK", this._parameters),
+                        GetParameterValue("BGGLINK", this._parameters,""),
                         GetParameterValueBool("ISACTIVE", this._parameters));
                 }
                 else if (this._operationType == OperationType.Update)
@@ -394,10 +394,10 @@ namespace LobsterConnect.Model
                 if (this._operationType == OperationType.Create)
                 {
                     vm.CreatePerson(false, this._entityId,
-                        GetParameterValue("FULLNAME", this._parameters),
-                        GetParameterValue("PHONENUMBER", this._parameters),
-                        GetParameterValue("EMAIL", this._parameters),
-                        GetParameterValue("PASSWORD", this._parameters),
+                        GetParameterValue("FULLNAME", this._parameters,""),
+                        GetParameterValue("PHONENUMBER", this._parameters,""),
+                        GetParameterValue("EMAIL", this._parameters,""),
+                        GetParameterValue("PASSWORD", this._parameters,""),
                         GetParameterValueBool("ISACTIVE", this._parameters),
                         GetParameterValueBool("ISADMIN", this._parameters));
                 }
@@ -430,7 +430,7 @@ namespace LobsterConnect.Model
                 {
                     string sessionId = this._entityId;
 
-                    string startTimeText = GetParameterValue("STARTAT", this._parameters);
+                    string startTimeText = GetParameterValue("STARTAT", this._parameters,"");
                     if(!startTimeText.Contains(':'))
                     {
                         throw new Exception("JournalEntry.ReplaySession: invalid start time");
@@ -467,9 +467,9 @@ namespace LobsterConnect.Model
                         GetParameterValue("EVENTNAME", this._parameters),
                         startAt,
                         false,
-                        GetParameterValue("NOTES", this._parameters),
-                        GetParameterValue("WHATSAPPLINK", this._parameters),
-                        GetParameterValue("BGGLINK", this._parameters),
+                        GetParameterValue("NOTES", this._parameters,""),
+                        GetParameterValue("WHATSAPPLINK", this._parameters,""),
+                        GetParameterValue("BGGLINK", this._parameters,""),
                         (int) sitsMinimum,
                         (int) sitsMaximum,
                         GetParameterValue("STATE", this._parameters));
@@ -536,7 +536,7 @@ namespace LobsterConnect.Model
                 }
             }
 
-            public static string GetParameterValue(string paramName, List<string> parameters, string defaultValue="")
+            public static string GetParameterValue(string paramName, List<string> parameters, string defaultValue=null)
             {
                 if(parameters==null)
                 {
@@ -890,7 +890,7 @@ namespace LobsterConnect.Model
 
                         // Ask the backend to send us every record with a higher Cloud Seq Number than syncFrom (the highest one that we have seen so far)
                         // and send it all the local journal records that so far have not been given a Cloud Seq Number).
-                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X8")+"&remoteDevice="+Model.Utilities.InstallationId;
+                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X16")+"&remoteDevice="+Model.Utilities.InstallationId;
                         StringContent postContent = new StringContent(contentString);
                         HttpResponseMessage response = client.PostAsync(postQuery, postContent).Result;
 
@@ -1043,7 +1043,14 @@ namespace LobsterConnect.Model
                         _LocalJournal.Add(remote);
                         Model.DispatcherHelper.RunAsyncOnUI(() =>
                         {
-                            remote.Replay(MainViewModel.Instance);
+                            try
+                            {
+                                remote.Replay(MainViewModel.Instance);
+                            }
+                            catch(Exception ex)
+                            {
+                                Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudError", ex, "Exception thrown while replaying remote journal entry " + remote.ToString());
+                            }
                         });
                     }
 

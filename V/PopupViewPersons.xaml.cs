@@ -14,26 +14,33 @@ public partial class PopupViewPersons : Popup
 
     public void SetPersons(List<string> personHandles)
     {
-        if(personHandles==null || personHandles.Count==0)
+        try
         {
-            Logger.LogMessage(Logger.Level.ERROR, "PopupViewPersons.SetPersons: list mustn't be null or empty");
-        }
-        else
-        {
-            this.BindingContext = MainViewModel.Instance.GetPerson(personHandles[0]);
-            if(personHandles.Count==1)
+            if (personHandles == null || personHandles.Count == 0)
             {
-                this.pickerPersons.IsVisible = false;
-                this.lbPickerPersons.IsVisible = false;
+                Logger.LogMessage(Logger.Level.ERROR, "PopupViewPersons.SetPersons: list mustn't be null or empty");
             }
             else
             {
-                this.pickerPersons.IsVisible = true;
-                this.lbPickerPersons.IsVisible = true;
-                this.pickerPersons.ItemsSource = personHandles;
-                this.pickerPersons.SelectedIndex = 0;
-            }    
-        }    
+                this.BindingContext = MainViewModel.Instance.GetPerson(personHandles[0]);
+                if (personHandles.Count == 1)
+                {
+                    this.pickerPersons.IsVisible = false;
+                    this.lbPickerPersons.IsVisible = false;
+                }
+                else
+                {
+                    this.pickerPersons.IsVisible = true;
+                    this.lbPickerPersons.IsVisible = true;
+                    this.pickerPersons.ItemsSource = personHandles;
+                    this.pickerPersons.SelectedIndex = 0;
+                }
+            }
+        }
+        catch(Exception ex)
+        {
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error setting person: "+ex.Message);
+        }
     }
 
     async void OnDismissClicked(object sender, EventArgs e)
@@ -44,16 +51,23 @@ public partial class PopupViewPersons : Popup
 
     private void pickerPersons_SelectedIndexChanged(object sender, EventArgs e)
     {
-        List<string> personHandles = this.pickerPersons.ItemsSource as List<string>;
+        try
+        {
+            List<string> personHandles = this.pickerPersons.ItemsSource as List<string>;
 
-        if (personHandles == null) return;
-        int i = this.pickerPersons.SelectedIndex;
-        if (i < 0) return;
-        if (i>= personHandles.Count) return;
-        Person p = MainViewModel.Instance.GetPerson(personHandles[i]);
-        if (p is null) return;
+            if (personHandles == null) return;
+            int i = this.pickerPersons.SelectedIndex;
+            if (i < 0) return;
+            if (i >= personHandles.Count) return;
+            Person p = MainViewModel.Instance.GetPerson(personHandles[i]);
+            if (p is null) return;
 
-        this.BindingContext = p;
+            this.BindingContext = p;
+        }
+        catch (Exception ex)
+        {
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error selecting person: " + ex.Message);
+        }
 
     }
 

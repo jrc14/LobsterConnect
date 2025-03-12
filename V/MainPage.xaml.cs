@@ -282,43 +282,57 @@ public partial class MainPage : ContentPage
                             return;
                         }
 
-                        MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
+						try
+						{
+							MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
 
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + userAndPassword.Item1 + "' has been created");
+							MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + userAndPassword.Item1 + "' has been created");
 
-						user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+							user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
 
-                        MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
+							MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
 
-                        var popup2 = new PopupPersonDetails();
-						popup2.SetPerson(user);
-                        var popupResult2 = await this.ShowPopupAsync(popup2, CancellationToken.None);
+							var popup2 = new PopupPersonDetails();
+							popup2.SetPerson(user);
+							var popupResult2 = await this.ShowPopupAsync(popup2, CancellationToken.None);
+						}
+						catch(Exception ex)
+						{
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error setting up user: " + ex.Message);
+                        }
                     }
                     
                 }
 				else if (a== logIn)
 				{
-                    var popup = new PopupLogIn();
-                    var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
-
-					if(popupResult!=null && popupResult is Tuple<string,string, bool>)
+					try
 					{
-						Tuple<string, string, bool> userAndPassword = (Tuple<string, string, bool>)popupResult;
+						var popup = new PopupLogIn();
+						var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
 
-						Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
-
-						if (user == null)
+						if (popupResult != null && popupResult is Tuple<string, string, bool>)
 						{
-							await DisplayAlert("Login", "There isn't any user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
-							return;
+							Tuple<string, string, bool> userAndPassword = (Tuple<string, string, bool>)popupResult;
+
+							Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+
+							if (user == null)
+							{
+								await DisplayAlert("Login", "There isn't any user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
+								return;
+							}
+							else if (user.Password != Model.Utilities.PasswordHash(userAndPassword.Item2))
+							{
+								await DisplayAlert("Login", "That is the wrong password for user '" + userAndPassword.Item1 + "'", "Dismiss");
+								return;
+							}
+
+							MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
 						}
-						else if (user.Password != Model.Utilities.PasswordHash(userAndPassword.Item2))
-						{
-                            await DisplayAlert("Login", "That is the wrong password for user '" + userAndPassword.Item1 + "'", "Dismiss");
-                            return;
-                        }
-
-						MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
+					}
+					catch (Exception ex)
+					{
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error logging in: " + ex.Message);
                     }
                 }
             }
@@ -338,30 +352,37 @@ public partial class MainPage : ContentPage
                 }
 				else if (a == changePassword)
 				{
-					if (!string.IsNullOrEmpty(MainViewModel.Instance.LoggedOnUser.Password))
+					try
 					{
-						string existing = await DisplayPromptAsync("Password", "Enter the current password for " + MainViewModel.Instance.LoggedOnUser.Handle, keyboard: Keyboard.Password);
-
-						if (Model.Utilities.PasswordHash(existing) != MainViewModel.Instance.LoggedOnUser.Password)
+						if (!string.IsNullOrEmpty(MainViewModel.Instance.LoggedOnUser.Password))
 						{
-							await DisplayAlert("Password", "That is not the right password for " + MainViewModel.Instance.LoggedOnUser.Handle, "Dismiss");
+							string existing = await DisplayPromptAsync("Password", "Enter the current password for " + MainViewModel.Instance.LoggedOnUser.Handle, keyboard: Keyboard.Password);
+
+							if (Model.Utilities.PasswordHash(existing) != MainViewModel.Instance.LoggedOnUser.Password)
+							{
+								await DisplayAlert("Password", "That is not the right password for " + MainViewModel.Instance.LoggedOnUser.Handle, "Dismiss");
+								return;
+							}
+						}
+						string newPassword1 = await DisplayPromptAsync("Password", "Enter the new password:", keyboard: Keyboard.Password);
+						if (string.IsNullOrEmpty(newPassword1))
+						{
 							return;
 						}
-					}
-					string newPassword1 = await DisplayPromptAsync("Password", "Enter the new password:", keyboard: Keyboard.Password);
-					if (string.IsNullOrEmpty(newPassword1))
-					{
-						return;
-					}
-					string newPassword2 = await DisplayPromptAsync("Password", "Enter the new password again:", keyboard: Keyboard.Password);
-					if (newPassword1 != newPassword2)
-					{
-						await DisplayAlert("Password", "Passwords did not match.  The password has not been changed", "Dismiss");
-						return;
-					}
+						string newPassword2 = await DisplayPromptAsync("Password", "Enter the new password again:", keyboard: Keyboard.Password);
+						if (newPassword1 != newPassword2)
+						{
+							await DisplayAlert("Password", "Passwords did not match.  The password has not been changed", "Dismiss");
+							return;
+						}
 
-					MainViewModel.Instance.UpdatePerson(true, MainViewModel.Instance.LoggedOnUser, password: Model.Utilities.PasswordHash(newPassword2));
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Password has been updated for " + MainViewModel.Instance.LoggedOnUser.Handle);
+						MainViewModel.Instance.UpdatePerson(true, MainViewModel.Instance.LoggedOnUser, password: Model.Utilities.PasswordHash(newPassword2));
+						MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Password has been updated for " + MainViewModel.Instance.LoggedOnUser.Handle);
+					}
+					catch (Exception ex)
+					{
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error setting password: " + ex.Message);
+                    }
                 }
 				else if (a == logOut)
 				{
@@ -372,27 +393,33 @@ public partial class MainPage : ContentPage
 		catch(Exception ex)
 		{
             Logger.LogMessage(Logger.Level.ERROR, "MainPage.btnUserClicked", ex);
-            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, ex.Message);
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error updating person: "+ex.Message);
         }
-
 	}
     async void btnAddSessionClicked(Object o, EventArgs e)
     {
-		if (MainViewModel.Instance.LoggedOnUser == null)
+		try
 		{
-			await DisplayAlert("Propose a Gaming Session", "Log in first please, before proposing a gaming session", "Dismiss");
-			return;
+			if (MainViewModel.Instance.LoggedOnUser == null)
+			{
+				await DisplayAlert("Propose a Gaming Session", "Log in first please, before proposing a gaming session", "Dismiss");
+				return;
+			}
+			else if (!MainViewModel.Instance.CurrentEvent.IsActive)
+			{
+				await DisplayAlert("Propose a Gaming Session", "The current gaming event '" + MainViewModel.Instance.CurrentEvent.Name + "' is not active so new sessions can't be proposed", "Dismiss");
+				return;
+			}
+			else
+			{
+				var popup = new PopupAddSession();
+				var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+			}
 		}
-		else if (!MainViewModel.Instance.CurrentEvent.IsActive)
+		catch(Exception ex)
 		{
-			await DisplayAlert("Propose a Gaming Session", "The current gaming event '" + MainViewModel.Instance.CurrentEvent.Name + "' is not active so new sessions can't be proposed", "Dismiss");
-            return;
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error adding session: " + ex.Message);
         }
-		else
-		{
-			var popup = new PopupAddSession();
-			var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
-		}
     }
     async void btnFilterClicked(Object o, EventArgs e)
     {

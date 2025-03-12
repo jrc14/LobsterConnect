@@ -82,7 +82,7 @@ public partial class PopupAddSession : Popup
             }
             catch(Exception ex)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, ex.Message);
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error adding session: " +ex.Message);
             }
 
             await CloseAsync(true, CancellationToken.None);         
@@ -96,56 +96,63 @@ public partial class PopupAddSession : Popup
 
     private void SetGameNameFilter(string newFilter)
     {
-        //Model.Logger.LogMessage(Model.Logger.Level.DEBUG, "SetGameNameFilter:", "'" + newFilter + "'");
-        if(string.IsNullOrEmpty(newFilter))
+        try
         {
-            // if the name filter is cleared, then reload the picker's items source
-            currentGameNameFilter = "";
-
-            List<string> existingGames = MainViewModel.Instance.GetAvailableGames();
-            existingGames.Sort();
-
-            existingGames.Insert(0, ADD_GAME_TEXT);
-
-            this.lvGame.ItemsSource = new ObservableCollection<string>(existingGames);
-
-        }
-        else if(string.IsNullOrEmpty(currentGameNameFilter) || newFilter.Contains(currentGameNameFilter, StringComparison.InvariantCultureIgnoreCase))
-        {
-            // if the name filter is set to a value that is more specific than the existing name filter,
-            // then weed out elments of the picker's existing item source.
-
-            ObservableCollection<string> existingFilteredGames = (ObservableCollection<string>)this.lvGame.ItemsSource as ObservableCollection<string>;
-
-            if(existingFilteredGames!=null && existingFilteredGames.Count()>0) // no good reason for it to be null or empty, but best be careful
+            //Model.Logger.LogMessage(Model.Logger.Level.DEBUG, "SetGameNameFilter:", "'" + newFilter + "'");
+            if (string.IsNullOrEmpty(newFilter))
             {
-                // Count backwards from the last element of the list, removing strings that don't match the new
-                // filter.  Count backwards because removing the last item doesn't change the index
-                // of any earlier item in the list; stop before 1 because we want to keep the "[add a game ..." label in position 0.
-                for(int i=existingFilteredGames.Count()-1; i>0; i--)
+                // if the name filter is cleared, then reload the picker's items source
+                currentGameNameFilter = "";
+
+                List<string> existingGames = MainViewModel.Instance.GetAvailableGames();
+                existingGames.Sort();
+
+                existingGames.Insert(0, ADD_GAME_TEXT);
+
+                this.lvGame.ItemsSource = new ObservableCollection<string>(existingGames);
+
+            }
+            else if (string.IsNullOrEmpty(currentGameNameFilter) || newFilter.Contains(currentGameNameFilter, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // if the name filter is set to a value that is more specific than the existing name filter,
+                // then weed out elments of the picker's existing item source.
+
+                ObservableCollection<string> existingFilteredGames = (ObservableCollection<string>)this.lvGame.ItemsSource as ObservableCollection<string>;
+
+                if (existingFilteredGames != null && existingFilteredGames.Count() > 0) // no good reason for it to be null or empty, but best be careful
+                {
+                    // Count backwards from the last element of the list, removing strings that don't match the new
+                    // filter.  Count backwards because removing the last item doesn't change the index
+                    // of any earlier item in the list; stop before 1 because we want to keep the "[add a game ..." label in position 0.
+                    for (int i = existingFilteredGames.Count() - 1; i > 0; i--)
+                    {
+                        if (!existingFilteredGames[i].Contains(newFilter, StringComparison.InvariantCultureIgnoreCase))
+                            existingFilteredGames.RemoveAt(i);
+                    }
+                }
+
+                currentGameNameFilter = newFilter;
+            }
+            else
+            {
+                // The game filter is a new value, not contained within the old filter.  We must reload the
+                // item source.
+                List<string> existingFilteredGames = MainViewModel.Instance.GetAvailableGames();
+                existingFilteredGames.Sort();
+
+                existingFilteredGames.Insert(0, ADD_GAME_TEXT);
+                for (int i = existingFilteredGames.Count - 1; i > 0; i--)
                 {
                     if (!existingFilteredGames[i].Contains(newFilter, StringComparison.InvariantCultureIgnoreCase))
                         existingFilteredGames.RemoveAt(i);
                 }
-            }
 
-            currentGameNameFilter = newFilter;
+                this.lvGame.ItemsSource = new ObservableCollection<string>(existingFilteredGames);
+            }
         }
-        else
+        catch(Exception ex)
         {
-            // The game filter is a new value, not contained within the old filter.  We must reload the
-            // item source.
-            List<string> existingFilteredGames = MainViewModel.Instance.GetAvailableGames();
-            existingFilteredGames.Sort();
-
-            existingFilteredGames.Insert(0, ADD_GAME_TEXT);
-            for (int i = existingFilteredGames.Count - 1; i > 0; i--)
-            {
-                if (!existingFilteredGames[i].Contains(newFilter, StringComparison.InvariantCultureIgnoreCase))
-                    existingFilteredGames.RemoveAt(i);
-            }
-
-            this.lvGame.ItemsSource = new ObservableCollection<string>(existingFilteredGames);
+            MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error setting filter: " + ex.Message);
         }
     }
     private string currentGameNameFilter="";
@@ -214,7 +221,7 @@ public partial class PopupAddSession : Popup
             }
             catch(Exception ex)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, ex.Message);
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error creating game: "+ex.Message);
             }
 
         }

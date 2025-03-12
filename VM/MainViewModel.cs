@@ -498,9 +498,7 @@ namespace LobsterConnect.VM
                 if(state==null)
                 {
                     state = "OPEN";
-                }
-
-                
+                }                
 
                 proposer = GetPerson(proposerHandle);
                 if (proposer == null)

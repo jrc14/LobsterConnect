@@ -67,8 +67,15 @@ public partial class PopupPersonDetails : Popup
 
         if (newFullName != null || newPhoneNumber != null || newEmail != null)
         {
-            MainViewModel.Instance.UpdatePerson(true, _person, newFullName, newPhoneNumber, newEmail);
-            MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "Details for '"+_person.Handle+"' have been updated");
+            try
+            {
+                MainViewModel.Instance.UpdatePerson(true, _person, newFullName, newPhoneNumber, newEmail);
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "Details for '" + _person.Handle + "' have been updated");
+            }
+            catch(Exception ex)
+            {
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error saving details for '" + _person.Handle + "': "+ex.Message);
+            }
         }
 
         await CloseAsync(true, CancellationToken.None);
