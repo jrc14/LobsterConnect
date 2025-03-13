@@ -310,6 +310,16 @@ namespace LobsterConnect.Model
                 return s;
             }
 
+            /// <summary>
+            /// Replay this journal entry, into the viewmodel specified, updating its contents accordingly.  You will want to
+            /// do this after initially loading the local journal file, and also whenever you've fetched more journal entries
+            /// from the cloud.  Note that this method will make various calls to the vm.SyncCheck... methods, which will
+            /// detect changes needing a notification to the logged on user (and also changes to the 'event selection' drop
+            /// down menu).  If you want to suppress the noticifications to the logged on user, you shoud ensure that, when
+            /// you call the Replay method, vm.LoggedOnUser is set to null.
+            /// </summary>
+            /// <param name="vm">the viewmodel to be updated accordingly to the content of this journal entry</param>
+            /// <exception cref="Exception"></exception>
             public void Replay(MainViewModel vm)
             {
                 if(!DispatcherHelper.UIDispatcherHasThreadAccess)
@@ -333,6 +343,11 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// Replay a gaming event journal entry
+            /// </summary>
+            /// <param name="vm"></param>
+            /// <exception cref="Exception"></exception>
             private void ReplayGamingEvent(MainViewModel vm)
             {
                 if(this._operationType==OperationType.Create)
@@ -364,6 +379,11 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// Replay a game journal entry
+            /// </summary>
+            /// <param name="vm"></param>
+            /// <exception cref="Exception"></exception>
             private void ReplayGame(MainViewModel vm)
             {
                 if (this._operationType == OperationType.Create)
@@ -389,6 +409,11 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// Replay a person journal entry
+            /// </summary>
+            /// <param name="vm"></param>
+            /// <exception cref="Exception"></exception>
             private void ReplayPerson(MainViewModel vm)
             {
                 if (this._operationType == OperationType.Create)
@@ -424,6 +449,11 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// Replay a session journal entry
+            /// </summary>
+            /// <param name="vm"></param>
+            /// <exception cref="Exception"></exception>
             private void ReplaySession(MainViewModel vm)
             {
                 if (this._operationType == OperationType.Create)
@@ -485,7 +515,7 @@ namespace LobsterConnect.Model
                         GetParameterValueInt("SITSMAXIMUM", this._parameters),
                         GetParameterValue("STATE", this._parameters));
 
-                    vm.SyncCheckSessionUpdate(session, GetParameterValue("STATE", this._parameters));
+                    vm.SyncCheckSessionUpdate(session, GetParameterValue("STATE", this._parameters), GetParameterValue("NOTES", this._parameters));
                 }
                 else
                 {
@@ -493,6 +523,11 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// Replay a sign-up journal entry
+            /// </summary>
+            /// <param name="vm"></param>
+            /// <exception cref="Exception"></exception>
             private void ReplaySignUp(MainViewModel vm)
             {
                 string personAndSession = this._entityId;
@@ -525,8 +560,7 @@ namespace LobsterConnect.Model
                 }
                 else if (this._operationType == OperationType.Delete)
                 {
-                    vm.CancelSignUp(false, personHandle, sessionId, false,
-                        modifiedBy);
+                    vm.CancelSignUp(false, personHandle, sessionId, modifiedBy);
 
                     vm.SyncCheckCancelSignUp(sessionId, personHandle, modifiedBy);
                 }
@@ -536,6 +570,15 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// A utility method for retrieving a parameter value from a journal entry parameter list,
+            /// which is a list of strings with an even (possibly zero) number of elements whose even elements
+            /// are parameter names and whose odd elements are parameter values.
+            /// </summary>
+            /// <param name="paramName">what parameter to look for (using case-insensitive comparison)</param>
+            /// <param name="parameters">the parameter list to search</param>
+            /// <param name="defaultValue">the value to return if the indicated parameter is not found</param>
+            /// <returns>the parameter value if found, otherwise the defaultValue</returns>
             public static string GetParameterValue(string paramName, List<string> parameters, string defaultValue=null)
             {
                 if(parameters==null)
@@ -560,7 +603,14 @@ namespace LobsterConnect.Model
                     return defaultValue;
                 }
             }
-
+            /// <summary>
+            /// A utility method for retrieving an integer parameter value from a journal entry parameter list,
+            /// which is a list of strings with an even (possibly zero) number of elements whose even elements
+            /// are parameter names and whose odd elements are parameter values.
+            /// </summary>
+            /// <param name="paramName">what parameter to look for (using case-insensitive comparison)</param>
+            /// <param name="parameters">the parameter list to search</param>
+            /// <returns>the parameter value if found, otherwise null</returns>
             public static int? GetParameterValueInt(string paramName, List<string> parameters)
             {
                 if (parameters == null)
@@ -595,7 +645,14 @@ namespace LobsterConnect.Model
                 }
             }
 
-
+            /// <summary>
+            /// A utility method for retrieving a bool parameter value from a journal entry parameter list,
+            /// which is a list of strings with an even (possibly zero) number of elements whose even elements
+            /// are parameter names and whose odd elements are parameter values.
+            /// </summary>
+            /// <param name="paramName">what parameter to look for (using case-insensitive comparison)</param>
+            /// <param name="parameters">the parameter list to search</param>
+            /// <returns>the parameter value if found, otherwise null</returns>
             public static bool? GetParameterValueBool(string paramName, List<string> parameters)
             {
                 if (parameters == null)
@@ -630,6 +687,9 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// The locally created sequence number of this entry, on the device that originated the entry
+            /// </summary>
             public Int64 LocalSeq
             {
                 get
@@ -638,6 +698,12 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// The sequence number of this entry in the cloud journal store (it will be 0 in the case of entries
+            /// that we haven't yet told the cloud store about - when we hear back from the cloud sync service that
+            /// an entry has been uploaded to the cloud store, we update the sequence number to the value provided
+            /// by the cloud sync service).
+            /// </summary>
             public Int64 CloudSeq
             {
                 get
@@ -646,11 +712,20 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// Change the cloud sequence number on this entry.  The appropriate time to do this is when the cloud sync
+            /// services has acknlowledged that the entry has been uploaded, and has given us a new sequence number for it.
+            /// </summary>
+            /// <param name="c"></param>
             public void SetCloudSeq(Int64 c)
             {
                 this._cloudSeq = c;
             }
 
+            /// <summary>
+            /// The installation id of the device on which this entry originated (i.e. on which it was created by a user
+            /// action).
+            /// </summary>
             public string InstallationId
             {
                 get
@@ -658,6 +733,15 @@ namespace LobsterConnect.Model
                     return this._installationId;
                 }
             }
+
+            /// <summary>
+            /// The gaming event that this entry relates to.  It's not doing much at the moment, but in the future it could be
+            /// used to support selective fetching and loading of journal entries.  The logic would be something like:
+            ///  * Set it to null or "" to mean this entry must always be loaded, no matter what the viewmodel's current
+            ///    gaming event is.  Gaming events, games and persons would match this case.
+            ///  * Set it to the name of a certain gaming event, if this entry only needs loading when the viewmodel's
+            ///    gaming event is set to the specified value.  This would be appropriate for sessions and sign-ups.
+            /// </summary>
             public string GamingEventFilter
             {
                 get
@@ -678,7 +762,7 @@ namespace LobsterConnect.Model
         }
 
         /// <summary>
-        /// Call this from the UI thread to read the current local journal file from disc, and replay (i.e. apply) all the
+        /// Call this on the UI thread to read the current local journal file from disc, and replay (i.e. apply) all the
         /// journalled actions in it (loading them all into the viewmodel).
         /// </summary>
         public static void LoadJournal(MainViewModel vm)
@@ -732,15 +816,14 @@ namespace LobsterConnect.Model
                 _LocalJournalNextSeq++;
 
                 Logger.LogMessage(Logger.Level.INFO, "Journal.LoadJournal: loaded " + _LocalJournal.Count.ToString() + " entries");
-                Logger.LogMessage(Logger.Level.INFO, "Journal.LoadJournal: next entry to be created will be given sequence number " + _LocalJournalNextSeq.ToString());
+                Logger.LogMessage(Logger.Level.INFO, "Journal.LoadJournal: next entry to be created will be given local sequence number " + _LocalJournalNextSeq.ToString());
 
 
                 foreach (JournalEntry entry in _LocalJournal)
                     toReplay.Add(entry);
             }
 
-            // having released the lock on the journal, now replay all the entries we fetched from it
-
+            // Having released the lock on the journal, now replay all the entries we fetched from it
             foreach (JournalEntry entry in _LocalJournal)
             {
                 try
@@ -756,7 +839,10 @@ namespace LobsterConnect.Model
 
 
         /// <summary>
-        /// Call this from the UI thread (or any other thread except the worker thread for BackgroundJournalWriter)
+        /// Call this on the UI thread (or any other thread except the worker thread for BackgroundJournalWriter),
+        /// to add a new journal entry to the queue.  It will, some time in the next 1,000ms, be picked up from the queue, and written
+        /// to the local journal file (i.e. saved to disc).  Some time later, it will be uploaded to the
+        /// cloud sync service.
         /// </summary>
         /// <param name="e"></param>
         public static void AddEntryToQueue(JournalEntry e)
@@ -772,11 +858,38 @@ namespace LobsterConnect.Model
         private static List<JournalEntry> Q = new List<JournalEntry>();
 
         /// <summary>
-        /// The worker thread should hold this lock only when it needs to prevent another thread from making updates to the queue.
+        /// The worker thread will hold this lock when it needs to prevent another thread from making updates to the queue.
+        /// Basically that means 'when it is picking up the entries from the queue so it can process them'.
         /// </summary>
         private static LobsterLock QLock = new LobsterLock();
 
+        /// <summary>
+        /// Set this to tell the journal worker that you've done something that you'd like to sync with the cloud now
+        /// (rather than waiting for the 'every sixty seconds' refresh cycle.  Don't do it too often, because the sync
+        /// operation takes a while, and means re-writing the whole journal file.  But it does make sense to set this
+        /// value if the user has used the UI to make a change to something.
+        /// </summary>
+        public static bool CloudSyncRequested = false;
+
+        /// <summary>
+        /// The journal worker will set this variable when it's in the process of doing a journal save or sync cycle,
+        /// so as to discourage another cycle from starting.  Maybe some day we could link this to a UI indicator showing
+        /// when the app was busy.
+        /// </summary>
         public static bool DoingJournalWork = false;
+
+        /// <summary>
+        /// Do a cycle of save and sync work.  Every time it's called, this method will empty the queue and write it's entries
+        /// to the local journal file.  We expect that to happen every second.
+        /// Whenever it's called with an interation number having mod 60 == 1 (or if CloudSyncRequested is true) it will
+        /// sync the current journal with the cloud store.  That means that all local journal entries that haven't yet been
+        /// assigned cloud sequence numbers will be sent to the cloud (and the new sequence numbers will be fetched and 
+        /// applied to the entries in the local journal).  In addition, cloud journal entries that we haven't seen before will be
+        /// downloaded and added to the local journal (these correspond to journal entries coming from other devices).
+        /// </summary>
+        /// <param name="w"></param>
+        /// <param name="iteration"></param>
+        /// <returns></returns>
         public static bool DoJournalWork(LobsterWorker w, int iteration)
         {
             if (DoingJournalWork)
@@ -801,6 +914,7 @@ namespace LobsterConnect.Model
                     {
                         try
                         {
+                            // Write the queued entries onto the end of the local journal file.
                             string journalFilePath = Path.Combine(App.ProgramFolder, "localjournal.txt");
 
                             using (Stream fs = System.IO.File.Open(journalFilePath, FileMode.OpenOrCreate, FileAccess.Write))
@@ -842,8 +956,11 @@ namespace LobsterConnect.Model
                     }
                 }
 
-                if (iteration % 60 == 1) // iteration = number of seconds - so this runs every minute.
+                // Perform the cloud sync
+                if (iteration % 60 == 1 || CloudSyncRequested) // iteration = number of seconds - so this runs every minute.
                 {
+                    CloudSyncRequested = false;
+
                     Logger.LogMessage(Logger.Level.INFO,"Journal.DoJournalWork","iteration number " + iteration.ToString() + ": journal sync starting...");
 
                     // syncFrom will end up being set to the highest non-zero cloud seq number in our journal enties;
@@ -930,9 +1047,9 @@ namespace LobsterConnect.Model
                                     contentCount = cloudRecords.Length;
                                 }
 
-                                // the local journal now needs to be written out to file in its entirety, to include all the updates to
+                                // The local journal now needs to be written out to file in its entirety, to include all the updates to
                                 // cloud seq numbers, and the additional journal lines received from the cloud sync service.
-                                // Wreite it to a temp file, then use that file to replace the existing journal.
+                                // We wite it to a temp file, then use that file to replace the existing journal.
 
                                 string tempFilePath = Path.Combine(App.ProgramFolder, Guid.NewGuid().ToString("N") + ".txt");
 
@@ -962,6 +1079,7 @@ namespace LobsterConnect.Model
                                     Utilities.FileRename(tempFilePath, "localjournal.txt");
                                 }
                             }
+                            // Log a message to the UI if the sync actually changed anything
                             if (toBeSent.Count != 0 || contentCount != 0)
                             {
                                 Model.DispatcherHelper.RunAsyncOnUI(() =>
@@ -1000,6 +1118,13 @@ namespace LobsterConnect.Model
             return true;
         }
 
+        /// <summary>
+        /// Deals with a line of text received in the response from the cloud sync service.  The line is either an
+        /// acknowledgement of a local journal entry that we uploaded (now being sent back to us, with a cloud seq
+        /// number applied to it) or it is an updated originating from some othher device that needs to be applied to
+        /// this device to bring it up to date.
+        /// </summary>
+        /// <param name="entryText">the text received from the cloud sync service</param>
         private static void SyncCloudEntry(string entryText)
         {
             try
@@ -1036,15 +1161,17 @@ namespace LobsterConnect.Model
 
                     if(localDuplicate!=null)
                     {
-                        Logger.LogMessage(Logger.Level.DEBUG, "Journal.SyncCloudEntry: there is already a local entry having seq number " + remote.CloudSeq.ToString("X8") + ", so the corresponding cloud record will not be replayed");
+                        Logger.LogMessage(Logger.Level.DEBUG, "Journal.SyncCloudEntry: there is already a local entry having cloud seq number " + remote.CloudSeq.ToString("X8") + ", so the corresponding cloud record will not be replayed");
                     }
                     else
                     {
+                        // add it to the journal
                         _LocalJournal.Add(remote);
                         Model.DispatcherHelper.RunAsyncOnUI(() =>
                         {
                             try
                             {
+                                // apply the change(s) to the viewmodel
                                 remote.Replay(MainViewModel.Instance);
                             }
                             catch(Exception ex)
@@ -1066,11 +1193,18 @@ namespace LobsterConnect.Model
         // so that while you're working on the file, the worker won't try to do anything with the file.
         private static LobsterLock JournalFileLock = new Model.LobsterLock();
 
+        // The background worker that runs the journal save and sync process.  There should be only one.
         static LobsterWorker JournalWorker = null;
+
+        /// <summary>
+        /// Start the background worker that runs the journal save and sync process.
+        /// </summary>
+        /// <returns></returns>
         private static bool CreateAndStartJournalWorker()
         {
             try
             {
+                // If the worker is already running try to kill it.
                 if (Journal.JournalWorker != null)
                 {
                     Logger.LogMessage(Logger.Level.ERROR,"Journal.CreateAndStartJournalWorker","there is already a worker running; attempting to stop it.");
@@ -1123,7 +1257,10 @@ namespace LobsterConnect.Model
                     }
                 };
 
-                Journal.JournalWorker.DoWork += async (object sender, Model.DoWorkEventArgs e) =>
+                // Once we tell the worker to start, we expect it to carry on forever (the DoWork handler runs
+                // an infinite loop, only exiting if there is a horrible error). It cakks
+                // Journal.DoJournalWork every 1,000ms, with a succesively increasing 'iteration number' value.
+                Journal.JournalWorker.DoWork += (object sender, Model.DoWorkEventArgs e) =>
                 {
                     try
                     {
@@ -1179,6 +1316,12 @@ namespace LobsterConnect.Model
             }
         }
 
+        /// <summary>
+        /// Call this method to start the journal save and sync worker thread safely - if the thread is running
+        /// already, the method will do nothing, otherwise it will start the worker thread.  If you call it twice in
+        /// ve3ry quick succession, you will get a race condition, so don't do that.
+        /// </summary>
+        /// <returns></returns>
         public static bool EnsureJournalWorkerRunning()
         {
             if (Journal.JournalWorker == null)
@@ -1192,7 +1335,6 @@ namespace LobsterConnect.Model
             }
 
             return true;
-
         }
     }
 }

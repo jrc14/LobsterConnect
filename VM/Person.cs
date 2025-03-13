@@ -18,8 +18,9 @@ namespace LobsterConnect.VM
     public class Person : LobsterConnect.VM.BindableBase
     {
         /// <summary>
-        /// The handle (user id) of this person.  Attempts to set it to a value containing a comma will result in a value where ',' is replaced
-        /// by '_'.
+        /// The handle (user id) of this person.  Attempts to set it to a value containing a comma, a
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string Handle
         {
@@ -37,13 +38,22 @@ namespace LobsterConnect.VM
                     if (value == "" && this._handle == null)
                         dontNotify = true;
 
-                    if (value.Contains(','))
+                    this._handle = value;
+                    if (this._handle.Contains(','))
                     {
-                        this._handle = value.Replace(',','_') ;
+                        this._handle = this._handle.Replace(',','_') ;
                     }
-                    else
+                    if (this._handle.Contains('\\'))
                     {
-                        this._handle = value;
+                        this._handle = this._handle.Replace('\\', '_');
+                    }
+                    if (this._handle.Contains('|'))
+                    {
+                        this._handle = this._handle.Replace('|', '_');
+                    }
+                    if (this._handle.Contains('\n'))
+                    {
+                        this._handle = this._handle.Replace('\n', '_');
                     }
 
                     if (!dontNotify)
@@ -56,7 +66,9 @@ namespace LobsterConnect.VM
         private string _handle;
 
         /// <summary>
-        /// The full name of this person
+        /// The full name of this person. Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string FullName
         {
@@ -76,6 +88,19 @@ namespace LobsterConnect.VM
 
                     this._fullName = value;
 
+                    if (this._fullName.Contains('\\'))
+                    {
+                        this._fullName = this._fullName.Replace('\\', '_');
+                    }
+                    if (this._fullName.Contains('|'))
+                    {
+                        this._fullName = this._fullName.Replace('|', '_');
+                    }
+                    if (this._fullName.Contains('\n'))
+                    {
+                        this._fullName = this._fullName.Replace('\n', '_');
+                    }
+
                     if (!dontNotify)
                     {
                         this.OnPropertyChanged("FullName");
@@ -86,7 +111,9 @@ namespace LobsterConnect.VM
         private string _fullName;
 
         /// <summary>
-        /// The phone number of this person
+        /// The phone number of this person.  Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string PhoneNumber
         {
@@ -106,6 +133,19 @@ namespace LobsterConnect.VM
 
                     this._phoneNumber = value;
 
+                    if (this._phoneNumber.Contains('\\'))
+                    {
+                        this._phoneNumber = this._phoneNumber.Replace('\\', '_');
+                    }
+                    if (this._phoneNumber.Contains('|'))
+                    {
+                        this._phoneNumber = this._phoneNumber.Replace('|', '_');
+                    }
+                    if (this._phoneNumber.Contains('\n'))
+                    {
+                        this._phoneNumber = this._phoneNumber.Replace('\n', '_');
+                    }
+
                     if (!dontNotify)
                     {
                         this.OnPropertyChanged("PhoneNumber");
@@ -116,7 +156,9 @@ namespace LobsterConnect.VM
         private string _phoneNumber;
 
         /// <summary>
-        /// The email of this person
+        /// The email of this person.  Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string Email
         {
@@ -135,6 +177,19 @@ namespace LobsterConnect.VM
                         dontNotify = true;
 
                     this._email = value;
+
+                    if (this._email.Contains('\\'))
+                    {
+                        this._email = this._email.Replace('\\', '_');
+                    }
+                    if (this._email.Contains('|'))
+                    {
+                        this._email = this._email.Replace('|', '_');
+                    }
+                    if (this._email.Contains('\n'))
+                    {
+                        this._email = this._email.Replace('\n', '_');
+                    }
 
                     if (!dontNotify)
                     {

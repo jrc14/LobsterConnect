@@ -100,9 +100,6 @@ public partial class MainPage : ContentPage
 
 	public void RefreshSessionsGrid(object o, EventArgs a)
 	{
-        this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(0, 0, gdSlotLabels.WidthRequest, 30));
-		this.svSessions.ScrollToAsync(0, 0, false);
-
         List<Session>[] sessions;
 
 		if (MainViewModel.Instance.CurrentEvent == null)
@@ -113,6 +110,8 @@ public partial class MainPage : ContentPage
 		this.gdSlotLabels.Children.Clear();
 		this.gdSlotLabels.WidthRequest = sessions.Length * 100;
 
+        this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(0, 0, gdSlotLabels.WidthRequest, 30));
+        this.svSessions.ScrollToAsync(0, 0, false);
 
         this.gdSessions.Children.Clear();
 		this.gdSessions.ColumnDefinitions.Clear();

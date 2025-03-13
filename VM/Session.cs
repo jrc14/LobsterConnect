@@ -75,6 +75,9 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Person handle of the person proposing this gaming session.  The set accessor does not check whether it is a valid, active person.
+        /// Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.  Such values are, in any case, not valid person handles.
         /// </summary>
         public string Proposer
         {
@@ -94,6 +97,19 @@ namespace LobsterConnect.VM
 
                     this._proposer = value;
 
+                    if (this._proposer.Contains('\\'))
+                    {
+                        this._proposer = this._proposer.Replace('\\', '_');
+                    }
+                    if (this._proposer.Contains('|'))
+                    {
+                        this._proposer = this._proposer.Replace('|', '_');
+                    }
+                    if (this._proposer.Contains('\n'))
+                    {
+                        this._proposer = this._proposer.Replace('\n', '_');
+                    }
+
                     if (!dontNotify)
                     {
                         this.OnPropertyChanged("Proposer");
@@ -105,6 +121,9 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// The full name of the game that is to be played.  The set accessor does not check that it is a valid game name.
+        /// Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.  Such values are, in any case, not valid game names.
         /// </summary>
         public string ToPlay
         {
@@ -124,6 +143,19 @@ namespace LobsterConnect.VM
 
                     this._toPlay = value;
 
+                    if (this._toPlay.Contains('\\'))
+                    {
+                        this._toPlay = this._toPlay.Replace('\\', '_');
+                    }
+                    if (this._toPlay.Contains('|'))
+                    {
+                        this._toPlay = this._toPlay.Replace('|', '_');
+                    }
+                    if (this._toPlay.Contains('\n'))
+                    {
+                        this._toPlay = this._toPlay.Replace('\n', '_');
+                    }
+
                     if (!dontNotify)
                     {
                         this.OnPropertyChanged("ToPlay");
@@ -136,6 +168,9 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// The name of the event at which this session will happen.  The set accessor does not check that it is a valid game name.
+        /// Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.  Such values are, in any case, not valid gaming event names.
         /// </summary>
         public string EventName
         {
@@ -154,6 +189,19 @@ namespace LobsterConnect.VM
                         dontNotify = true;
 
                     this._eventName = value;
+
+                    if (this._eventName.Contains('\\'))
+                    {
+                        this._eventName = this._eventName.Replace('\\', '_');
+                    }
+                    if (this._eventName.Contains('|'))
+                    {
+                        this._eventName = this._eventName.Replace('|', '_');
+                    }
+                    if (this._eventName.Contains('\n'))
+                    {
+                        this._eventName = this._eventName.Replace('\n', '_');
+                    }
 
                     if (!dontNotify)
                     {
@@ -191,7 +239,9 @@ namespace LobsterConnect.VM
         private SessionTime _startAt;
 
         /// <summary>
-        /// Human-readable notes about this session
+        /// Human-readable notes about this session. Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string Notes 
         {
@@ -211,6 +261,19 @@ namespace LobsterConnect.VM
 
                     this._notes = value;
 
+                    if (this._notes.Contains('\\'))
+                    {
+                        this._notes = this._notes.Replace('\\', '_');
+                    }
+                    if (this._notes.Contains('|'))
+                    {
+                        this._notes = this._notes.Replace('|', '_');
+                    }
+                    if (this._notes.Contains('\n'))
+                    {
+                        this._notes = this._notes.Replace('\n', '_');
+                    }
+
                     if (!dontNotify)
                     {
                         this.OnPropertyChanged("Notes");
@@ -221,7 +284,9 @@ namespace LobsterConnect.VM
         private string _notes;
 
         /// <summary>
-        /// Link to WhatsApp chat for this session
+        /// Link to WhatsApp chat for this session.  Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string WhatsAppLink
         {
@@ -241,6 +306,19 @@ namespace LobsterConnect.VM
 
                     this._whatsAppLink = value;
 
+                    if (this._whatsAppLink.Contains('\\'))
+                    {
+                        this._whatsAppLink = this._whatsAppLink.Replace('\\', '_');
+                    }
+                    if (this._whatsAppLink.Contains('|'))
+                    {
+                        this._whatsAppLink = this._whatsAppLink.Replace('|', '_');
+                    }
+                    if (this._whatsAppLink.Contains('\n'))
+                    {
+                        this._whatsAppLink = this._whatsAppLink.Replace('\n', '_');
+                    }
+
                     if (!dontNotify)
                     {
                         this.OnPropertyChanged("WhatsAppLink");
@@ -251,7 +329,9 @@ namespace LobsterConnect.VM
         private string _whatsAppLink;
 
         /// <summary>
-        /// Link to BGG entry for the game played in this session
+        /// Link to BGG entry for the game played in this session.  Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string BggLink
         {
@@ -270,6 +350,19 @@ namespace LobsterConnect.VM
                         dontNotify = true;
 
                     this._bggLink = value;
+
+                    if (this._bggLink.Contains('\\'))
+                    {
+                        this._bggLink = this._bggLink.Replace('\\', '_');
+                    }
+                    if (this._bggLink.Contains('|'))
+                    {
+                        this._bggLink = this._bggLink.Replace('|', '_');
+                    }
+                    if (this._bggLink.Contains('\n'))
+                    {
+                        this._bggLink = this._bggLink.Replace('\n', '_');
+                    }
 
                     if (!dontNotify)
                     {
@@ -334,8 +427,6 @@ namespace LobsterConnect.VM
                             this._signUps = handles;
                             this._numSignUps = hh;
                         }
-
-                        this._signUps = value;
 
                         this.OnPropertyChanged("SignUps");
                         this.OnPropertyChanged("NumSignUps");
@@ -492,6 +583,12 @@ namespace LobsterConnect.VM
             }
         }
 
+        /// <summary>
+        /// Returns true if the indicated person is signed up to self (i.e. the SignUps member includes
+        /// that person).
+        /// </summary>
+        /// <param name="userHandle"></param>
+        /// <returns></returns>
         public bool IsSignedUp(string userHandle)
         {
             /* consider - should I use this test instead?
@@ -600,8 +697,9 @@ namespace LobsterConnect.VM
         private string _state="OPEN"; // games start in the OPEN state
 
         /// <summary>
-        /// Number of entries in the SignUps list (the only place this is set, and the only place that
-        /// calls its OnPropertyChanged, is the set access for SignUps
+        /// Number of entries in the SignUps list (the only places this is set, and the only places that
+        /// calls its OnPropertyChanged, are the set accessor for SignUps and the
+        /// AddSignUp and RemoveSignUp methods on this class)
         /// </summary>
         public int NumSignUps
         {

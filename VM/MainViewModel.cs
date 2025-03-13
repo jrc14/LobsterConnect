@@ -26,10 +26,7 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Initialise the main view model by loading Gaming Events, Persons, Games and Sessions (in due course this will come from
-        /// the local journal store and the cloud; initially I'm just creating some test data).
-        /// It will load all Gaming Events, Persons and Games, because these exist independent of any particular gaming event.
-        /// It only loads the Sessions appropriate for one particular gaming event (chosen using logic that is still TBC).
+        /// Initialise the main view model by loading Gaming Events, Persons, Games and Sessions.
         /// This method also sets up the event handler for PropertyChanged events, to detect situations when the UI
         /// needs to refresh its session list, and to fire SessionsMustBeRefreshed in those situations
         /// </summary>
@@ -52,6 +49,7 @@ namespace LobsterConnect.VM
             //SetCurrentEvent("LoBsterCon XXVIII");
             //LoadTestSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name,true);
 
+            // Reads everything from the local journal file into the viewmodel.
             Journal.LoadJournal(this);
 
             // We set this handler after calling SetCurrentEvent above, to avoid a redundant call to
@@ -185,7 +183,8 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Create a game.  The only information needed is game name.  There also an optional BoardGameGeek link, and an active flag
+        /// Create a game.  The only information needed is game name.  There also an optional BoardGameGeek link,
+        /// and an active flag.
         /// An exception is thrown if the game name is null, or a game of that name is already in the games collection.
         /// </summary>
         /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
@@ -233,6 +232,8 @@ namespace LobsterConnect.VM
                     Journal.AddJournalEntry(Journal.EntityType.Game, Journal.OperationType.Create, name,
                         "ISACTIVE", ((bool)isActive).ToString(),
                         "BGGLINK", bggLink);
+
+                    Journal.CloudSyncRequested = true;
                 }
             }
         }
@@ -365,6 +366,8 @@ namespace LobsterConnect.VM
                             "PASSWORD", password,
                             "ISACTIVE", ((bool)isActive).ToString(),
                             "ISADMIN", ((bool)isAdmin).ToString());
+
+                        Journal.CloudSyncRequested = true;
                     }
                 }
             }
@@ -448,6 +451,8 @@ namespace LobsterConnect.VM
         /// Create a game session that people will be able to sign up for, at the event named in the eventName parameter.
         /// The person proposing the game is identified by the proposerHandle parameter, the game is identified by
         /// the gameNameToPlay parameter.  The starting time of the session is provided by the startAt parameter.
+        /// The checkActive defines how the method will respond to attempt to create sessions having inactive game or
+        /// inactive proposer.
         /// Other parameters are optional.
         /// The method will throw an exception if the proposer handle isn't found in the persons collection or if it
         /// corresponds to an inactive person, or if the game name is not found in the games collection, or if the gaming
@@ -594,13 +599,15 @@ namespace LobsterConnect.VM
                         "SITSMINIMUM", sitsMinimum.ToString(),
                         "SITSMAXIMUM", sitsMaximum.ToString(),
                         "STATE", state);
+
+                    Journal.CloudSyncRequested = true;
                 }
             }
         }
 
         /// <summary>
         /// Signs a person up to play in a session.  The method throws an exception if the person handle or session id is invalid.
-        /// The checkActive parameter defines the method's behaviour when the person is not active or the session is not open
+        /// The checkActive parameter defines the method's behaviour when the person is not active or the session is not open.
         /// An exception is also thrown (from Session.AddSignUp) if the person was already signed up.
         /// </summary>
         /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
@@ -691,30 +698,31 @@ namespace LobsterConnect.VM
                     Journal.AddJournalEntry(Journal.EntityType.SignUp, Journal.OperationType.Create, personHandle + "," + sessionId,
                         "EVENTNAME", session.EventName,
                         "MODIFIEDBY", modifiedBy);
+
+                    Journal.CloudSyncRequested = true;
                 }
             }
         }
 
         /// <summary>
         /// Cancels an existing signup for a person to play in a session.  The method throws an exception if the person handle or session id is invalid.
-        /// An exception is also thrown (from Session.RemoveSignUp) if the person was not signed up.
+        /// An exception is also thrown (from Session.RemoveSignUp) if the person was not signed up.  Note that, unlike
+        /// the SignUp method, this method doesn't check whether the user is inactive or the sessions not OPEN (we're prepared
+        /// to allow the viewmodel to clean up sessions in such cases, by removing sign-ups that are no longer valid).
         /// </summary>
         /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
         /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
         /// replaying the journal.</param>
         /// <param name="personHandle"></param>
         /// <param name="sessionId"></param>
-        /// <param name="checkActive">mandatory, whether to throw an exception or just log a user warning in the case of a
-        /// non-OPEN game or inactive person. If calling this method from the UI, 'true' may be appropriate; if you're replaying
-        /// a journal from the cloud store, 'false' might be a better choice.</param>
         /// <param name="modifiedBy">the handle of the person who's removing the sign-up, if it isn't the person playing</param>
         /// <exception cref="ArgumentException"></exception>
-        public void CancelSignUp(bool informJournal, string personHandle, string sessionId, bool checkActive, string modifiedBy = null)
+        public void CancelSignUp(bool informJournal, string personHandle, string sessionId, string modifiedBy = null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CancelSignUp", "Coding bug: Should be called on the UI thread");
-                Model.DispatcherHelper.RunAsyncOnUI(() => CancelSignUp(informJournal, personHandle, sessionId, checkActive, modifiedBy));
+                Model.DispatcherHelper.RunAsyncOnUI(() => CancelSignUp(informJournal, personHandle, sessionId, modifiedBy));
             }
             else
             {
@@ -733,40 +741,7 @@ namespace LobsterConnect.VM
                     throw new ArgumentException("MainViewModel.CancelSignUp: no such session:'" + sessionId + "'");
                 }
 
-
-                lock (person.instanceLock)
-                {
-                    if (!person.IsActive)
-                    {
-                        if (checkActive)
-                        {
-                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CancelSignUp", "person is not active:'" + personHandle + "'");
-                            throw new ArgumentException("MainViewModel.CancelSignUp: person is not active:'" + personHandle + "'");
-                        }
-                        else
-                        {
-                            LogUserMessage(Logger.Level.WARNING, "Cancel sign-up: an inactive person '" + personHandle + "' is being removed from '" + session.ToPlay + "'");
-                        }
-                    }
-                    lock (session.instanceLock)
-                    {
-                        if (session.State != "OPEN")
-                        {
-                            if (checkActive)
-                            {
-
-                                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CancelSignUp", "session is not OPEN:'" + sessionId + "'");
-                                throw new ArgumentException("MainViewModel.CancelSignUp: session is not OPEN:'" + sessionId + "'");
-                            }
-                            else
-                            {
-                                LogUserMessage(Logger.Level.WARNING, "Cancel sign-up: '" + personHandle + "' is being removed from a non-OPEN session of '" + session.ToPlay + "'");
-                            }
-                        }
-
-                        session.RemoveSignUp(person.Handle);
-                    }
-                }
+                session.RemoveSignUp(person.Handle);
 
                 // If there is a filter active, then changing a session's sign-ups could affect whether or not
                 // a certain session is visible, if the active filter criteria include sign-ups.
@@ -789,6 +764,8 @@ namespace LobsterConnect.VM
                     Journal.AddJournalEntry(Journal.EntityType.SignUp, Journal.OperationType.Delete, personHandle + "," + sessionId,
                         "EVENTNAME", session.EventName,
                         "MODIFIEDBY", modifiedBy);
+
+                    Journal.CloudSyncRequested = true;
                 }
             }
         }
@@ -808,7 +785,7 @@ namespace LobsterConnect.VM
         /// <param name="bggLink"></param>
         /// <param name="sitsMinimum"></param>
         /// <param name="sitsMaximum"></param>
-        /// <param name="state">must be OPEN, FULL or ABANDONED</param>
+        /// <param name="state">must be null, OPEN, FULL or ABANDONED</param>
         public void UpdateSession(bool informJournal, Session session, string notes = null, string whatsAppLink = null, string bggLink = null, int? sitsMinimum = null, int? sitsMaximum = null, string state=null)
         {
             if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
@@ -848,7 +825,7 @@ namespace LobsterConnect.VM
                 // a certain session is visible, if the active filter criteria include state.
                 if (state!=null && CurrentFilter != null)
                 {
-                    if (!string.IsNullOrEmpty(CurrentFilter.SignUpsInclude))
+                    if (!string.IsNullOrEmpty(CurrentFilter.State))
                     {
                         Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
                         {
@@ -961,7 +938,7 @@ namespace LobsterConnect.VM
         /// </summary>
         /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
         /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
-        /// replaying the journal.</param>
+        /// replaying the journal).</param>
         /// <param name="name"></param>
         /// <param name="eventType">DAY, EVENING or CONVENTION - depending on this value, different sign-up slot times will be set up
         /// This value is immutable - once you've set it you can't update it</param>
@@ -1006,6 +983,8 @@ namespace LobsterConnect.VM
                     Journal.AddJournalEntry(Journal.EntityType.GamingEvent, Journal.OperationType.Create, name,
                         "ISACTIVE", isActive.ToString(),
                         "EVENTTYPE", eventType);
+
+                    Journal.CloudSyncRequested = true;
                 }
             }
         }
@@ -1059,7 +1038,7 @@ namespace LobsterConnect.VM
         /// Get a gaming event by name, from the list of gaming events we know about
         /// </summary>
         /// <param name="eventName"></param>
-        /// <returns>true if the gaming event is know, false if it is not</returns>
+        /// <returns>the gaming event if it exists, null if not</returns>
         public GamingEvent GetGamingEvent(string eventName)
         {
             foreach (GamingEvent e in _availableEvents)
@@ -1086,7 +1065,7 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Retrieve a list of events that we can manage signups for.
+        /// Retrieve a list of events that we can manage sessions and signups for.
         /// </summary>
         /// <returns>The names of the events</returns>
         public List<string> GetAvailableEventNames()
@@ -1146,7 +1125,7 @@ namespace LobsterConnect.VM
         /// If p is a person, the method logs in and - if parameter 'remember' is true, saves the person handle in an application
         /// setting so they will be logged in again next time the app runs.
         /// If p is null, the user is logged out.  In this case the application setting is always cleared, so that the next time
-        /// the app runs no user will be automatically logged n.
+        /// the app runs no user will be automatically logged in.
         /// </summary>
         /// <param name="p"></param>
         /// <param name="remember"></param>
@@ -1175,9 +1154,7 @@ namespace LobsterConnect.VM
                         MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + p.Handle + "' has been remembered, and will be logged in next time too");
                     }
                 }
-
             }
-
         }
 
         /// <summary>
@@ -1478,7 +1455,7 @@ namespace LobsterConnect.VM
             }
         }
 
-        public void SyncCheckSessionUpdate(Session session, string toState)
+        public void SyncCheckSessionUpdate(Session session, string toState, string toNotes)
         {
             if (LoggedOnUser != null)
             {
@@ -1492,6 +1469,11 @@ namespace LobsterConnect.VM
                     {
                         LogUserMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' organised by you has been declared FULL");
                     }
+
+                    if(toNotes!=null)
+                    {
+                        LogUserMessage(Logger.Level.INFO, "Sync: new NOTES have been added to a game of '" + session.ToPlay + "' organised by you");
+                    }
                 }
                 else if (session.IsSignedUp(LoggedOnUser.Handle))
                 {
@@ -1503,6 +1485,11 @@ namespace LobsterConnect.VM
                     {
                         LogUserMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' involving you has been declared FULL");
                     }
+
+                    if (toNotes != null)
+                    {
+                        LogUserMessage(Logger.Level.INFO, "Sync: new NOTES have been added to a game of '" + session.ToPlay + "' involving you");
+                    }
                 }
             }
         }
@@ -1510,7 +1497,11 @@ namespace LobsterConnect.VM
         public void SyncCheckSignUp(string sessionId, string personHandle, string modifiedBy)
         {
             Session session = GetSession(sessionId);
-            if (session.Proposer == personHandle)
+
+            if (LoggedOnUser == null)
+                return;
+
+            if (LoggedOnUser.Handle == session.Proposer && session.Proposer != personHandle) 
             {
                 if (session.State == "OPEN")
                 {
@@ -1527,7 +1518,7 @@ namespace LobsterConnect.VM
                 }
             }
 
-            if (modifiedBy!=personHandle)
+            if (LoggedOnUser.Handle==personHandle && modifiedBy != personHandle)
             {
                 LogUserMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has signed you up to play a game of '" + session.ToPlay + "'");
             }
@@ -1535,13 +1526,17 @@ namespace LobsterConnect.VM
 
         public void SyncCheckCancelSignUp(string sessionId, string personHandle, string modifiedBy)
         {
+            if (LoggedOnUser == null)
+                return;
+
             Session session = GetSession(sessionId);
-            if (session.Proposer == personHandle)
+
+            if (LoggedOnUser.Handle == session.Proposer && session.Proposer != personHandle)
             {
                 LogUserMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has cancelled their sign-up to play your game of '" + session.ToPlay + "'");
             }
 
-            if (modifiedBy != personHandle)
+            if (LoggedOnUser.Handle == personHandle && modifiedBy != personHandle)
             {
                 LogUserMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has cancelled your sign-up up to play a game of '" + session.ToPlay + "'");
             }

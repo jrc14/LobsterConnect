@@ -165,7 +165,7 @@ public partial class PopupManageSession : Popup
             MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error updating sign-up: "+ex.Message);
         }
     }
-    }
+    
 
     async void btnStateClicked(object sender, EventArgs e)
     {

@@ -17,7 +17,9 @@ namespace LobsterConnect.VM
     public class Game : LobsterConnect.VM.BindableBase
     {
         /// <summary>
-        /// The name of this game.
+        /// The name of this game.  Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string Name
         {
@@ -37,6 +39,19 @@ namespace LobsterConnect.VM
 
                     this._name = value;
 
+                    if (this._name.Contains('\\'))
+                    {
+                        this._name = this._name.Replace('\\', '_');
+                    }
+                    if (this._name.Contains('|'))
+                    {
+                        this._name = this._name.Replace('|', '_');
+                    }
+                    if (this._name.Contains('\n'))
+                    {
+                        this._name = this._name.Replace('\n', '_');
+                    }
+
                     if (!dontNotify)
                     {
                         this.OnPropertyChanged("Name");
@@ -47,7 +62,9 @@ namespace LobsterConnect.VM
         private string _name;
 
         /// <summary>
-        /// Link to BGG entry for this game
+        /// Link to BGG entry for this game.  Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string BggLink
         {
@@ -66,6 +83,19 @@ namespace LobsterConnect.VM
                         dontNotify = true;
 
                     this._bggLink = value;
+
+                    if (this._bggLink.Contains('\\'))
+                    {
+                        this._bggLink = this._bggLink.Replace('\\', '_');
+                    }
+                    if (this._bggLink.Contains('|'))
+                    {
+                        this._bggLink = this._bggLink.Replace('|', '_');
+                    }
+                    if (this._bggLink.Contains('\n'))
+                    {
+                        this._bggLink = this._bggLink.Replace('\n', '_');
+                    }
 
                     if (!dontNotify)
                     {

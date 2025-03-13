@@ -7,12 +7,14 @@ namespace LobsterConnect.VM
     /// Note that its member variables have public set accessors and are bindable
     /// but UI code should not use those accessors to change their values, because doing so will
     /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
-    /// cloud storage).
+    /// cloud storage). 
     /// </summary>
     public class GamingEvent : LobsterConnect.VM.BindableBase
     {
         /// <summary>
-        /// The name of this gaming event.
+        /// The name of this gaming event. Attempts to set it to a value containing a 
+        /// backslash, a vertical bar or a newline will result in a value where the offending character
+        /// is replaced by '_'.
         /// </summary>
         public string Name
         {
@@ -31,6 +33,20 @@ namespace LobsterConnect.VM
                         dontNotify = true;
 
                     this._name = value;
+
+                    if (this._name.Contains('\\'))
+                    {
+                        this._name = this._name.Replace('\\', '_');
+                    }
+                    if (this._name.Contains('|'))
+                    {
+                        this._name = this._name.Replace('|', '_');
+                    }
+                    if (this._name.Contains('\n'))
+                    {
+                        this._name = this._name.Replace('\n', '_');
+                    }
+
 
                     if (!dontNotify)
                     {

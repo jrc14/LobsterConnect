@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.Model
 {
-
     public static class DispatcherHelper
     {
         public static void RunAsyncOnUI(Action action)

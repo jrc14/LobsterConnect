@@ -8,6 +8,12 @@ namespace LobsterConnect.Model
 {
     static public class Utilities
     {
+        /// <summary>
+        /// Get a key that uniquely identifies this device, so that the cloud sync process knows which updates came from
+        /// which devices. Note that, strictly, it identifies an 'installation of the app'.  If you uninstall and 
+        /// re-install the app, you'll get a different id.  That's the right behaviour because it will mean that
+        /// a fresh installation gets the whole cloud journal sent to it to load initially.
+        /// </summary>
         public static string InstallationId
         {
             get
