@@ -16,13 +16,13 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="250"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Set Filter" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="1" Grid.Column="0" Text="Proposer:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
         <StackLayout Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
             <Picker HorizontalOptions="Start" x:Name="pickerProposer" Margin="5" VerticalOptions="Center" MaximumWidthRequest="150"></Picker>
-            <Entry HorizontalOptions="Start" x:Name="entryProposer" Margin="5" VerticalOptions="Center" MaximumWidthRequest="50" TextChanged="entryProposer_TextChanged"></Entry>
+            <Entry HorizontalOptions="Start" x:Name="entryProposer" Margin="5" VerticalOptions="Center" MaximumWidthRequest="80" TextChanged="entryProposer_TextChanged"></Entry>
         </StackLayout>
         
         <Label Grid.Row="2" Grid.Column="0" Text="Game Name contains:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
@@ -31,7 +31,7 @@
         
         <StackLayout Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
             <Picker HorizontalOptions="Start" x:Name="pickerSignUps" Margin="5" VerticalOptions="Center" MaximumWidthRequest="150"></Picker>
-            <Entry HorizontalOptions="Start" x:Name="entrySignUps" Margin="5" VerticalOptions="Center" MaximumWidthRequest="50" TextChanged="entrySignUps_TextChanged"></Entry>
+            <Entry HorizontalOptions="Start" x:Name="entrySignUps" Margin="5" VerticalOptions="Center" MaximumWidthRequest="80" TextChanged="entrySignUps_TextChanged"></Entry>
         </StackLayout>
 
         <Label Grid.Row="4" Grid.Column="0" Text="State:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>

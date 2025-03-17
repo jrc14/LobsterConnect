@@ -438,7 +438,7 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Adds a signup to self.  The method doesn't check that the person handle is a valid, active person, but it does
-        /// reject attempts to add a duplicate sign up.  It also rejects person handles containing a comma, because of the trouble this
+        /// ignore attempts to add a duplicate sign up.  It also rejects person handles containing a comma, because of the trouble this
         /// can cause.
         /// Warning: though this method is public you probably don't want to call it.  Rather, you should add sign-ups by
         /// calling MainViewModel.Instance.ignUp because that method will take care of updating the UI and writing to
@@ -471,32 +471,39 @@ namespace LobsterConnect.VM
                 {
                     string existing = this._signUps.Trim();
 
-                    if(existing==personHandle)
+                    if (existing == personHandle)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "Session.AddSignUp", "person handle is already signed up: '" + personHandle + "'");
-                        throw new ArgumentException("Session.AddSignUp: person is already signed up");
+                        Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person handle is already signed up: '" + personHandle + "'");
+                        this._numSignUps = 1;
                     }
+                    else
+                    {
 
-                    this._signUps+=", "+personHandle;
-                    this._numSignUps = 2;
+                        this._signUps += ", " + personHandle;
+                        this._numSignUps = 2;
+                    }
                 }
                 else // the existing list contains more than one person handle
                 {
                     int hh = 0;
 
+                    bool duplicated = false;
                     foreach (string h in this._signUps.Split(','))
                     {
                         string existing = h.Trim();
-                        if (personHandle==existing)
+                        if (personHandle == existing)
                         {
-                            Logger.LogMessage(Logger.Level.ERROR, "Session.AddSignUp", "person is already signed up: '" + personHandle + "'");
-                            throw new ArgumentException("Session.AddSignUp: person is already signed up");
+                            duplicated = true;
+                            Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person is already signed up: '" + personHandle + "'");
                         }
 
                         hh++;
                     }
-                    this._signUps += ", " + personHandle;
-                    this._numSignUps = hh+1;
+                    if (!duplicated)
+                    {
+                        this._signUps += ", " + personHandle;
+                        this._numSignUps = hh + 1;
+                    }
                 }
 
                 this.OnPropertyChanged("SignUps");
@@ -532,8 +539,7 @@ namespace LobsterConnect.VM
             {
                 if (string.IsNullOrEmpty(this._signUps)) // no person handles existing
                 {
-                    Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "session has no sign ups");
-                    throw new ArgumentException("Session.RemoveSignUp: session has no sign ups");
+                    Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "session has no sign ups");
                 }
                 else if (!_signUps.Contains(',')) // one person handle existing
                 {
@@ -546,8 +552,7 @@ namespace LobsterConnect.VM
                     }
                     else
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
-                        throw new ArgumentException("Session.RemoveSignUp: person was not signed up");
+                        Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
                     }
                 }
                 else // the existing list contains more than one person handle
@@ -567,15 +572,17 @@ namespace LobsterConnect.VM
                             toRemove = hh;
                         }
                     }
-                    if(toRemove==-1)
+                    if (toRemove == -1)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
-                        throw new ArgumentException("Session.RemoveSignUp: person was not signed up");
+                        Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
                     }
-                    existing.RemoveAt(toRemove);
+                    else
+                    {
+                        existing.RemoveAt(toRemove);
 
-                    this._signUps = string.Join(", ",existing);
-                    this._numSignUps = existing.Count;
+                        this._signUps = string.Join(", ", existing);
+                        this._numSignUps = existing.Count;
+                    }
                 }
 
                 this.OnPropertyChanged("SignUps");

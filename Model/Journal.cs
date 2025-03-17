@@ -106,12 +106,12 @@ namespace LobsterConnect.Model
         }
 
         private static List<JournalEntry> _LocalJournal = new List<JournalEntry>();
-        private static Int64 _LocalJournalNextSeq = 1;
+        private static Int32 _LocalJournalNextSeq = 1;
         private static LobsterLock _LocalJournalLock = new LobsterLock(); // lock while changing or viewing the two items above
 
         public class JournalEntry()
         {
-            public JournalEntry(Int64 cloudSeq, Int64 localSeq, string installationId, EntityType e, OperationType o, string i, List<string> p) : this()
+            public JournalEntry(Int32 cloudSeq, Int32 localSeq, string installationId, EntityType e, OperationType o, string i, List<string> p) : this()
             {
                 _cloudSeq = cloudSeq;
                 _localSeq = localSeq;
@@ -223,14 +223,14 @@ namespace LobsterConnect.Model
                 else
                     parameters = ss[7];
 
-                if(!Int64.TryParse(cloudSeqString,
+                if(!Int32.TryParse(cloudSeqString,
                     System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture,
                     out this._cloudSeq))
                 {
                     throw new Exception("JournalEntry(string) ctor: cloud sequence number malformed");
                 }
 
-                if (!Int64.TryParse(localSeqString,
+                if (!Int32.TryParse(localSeqString,
                     System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture,
                     out this._localSeq))
                 {
@@ -280,8 +280,8 @@ namespace LobsterConnect.Model
 
             public override string ToString()
             {
-                string cloudSeqString = _cloudSeq.ToString("X16");
-                string localSeqString = _localSeq.ToString("X16");
+                string cloudSeqString = _cloudSeq.ToString("X8");
+                string localSeqString = _localSeq.ToString("X8");
                 string entityTypeString = null;
                 switch(this._entityType)
                 {
@@ -690,7 +690,7 @@ namespace LobsterConnect.Model
             /// <summary>
             /// The locally created sequence number of this entry, on the device that originated the entry
             /// </summary>
-            public Int64 LocalSeq
+            public Int32 LocalSeq
             {
                 get
                 {
@@ -704,7 +704,7 @@ namespace LobsterConnect.Model
             /// an entry has been uploaded to the cloud store, we update the sequence number to the value provided
             /// by the cloud sync service).
             /// </summary>
-            public Int64 CloudSeq
+            public Int32 CloudSeq
             {
                 get
                 {
@@ -717,7 +717,7 @@ namespace LobsterConnect.Model
             /// services has acknlowledged that the entry has been uploaded, and has given us a new sequence number for it.
             /// </summary>
             /// <param name="c"></param>
-            public void SetCloudSeq(Int64 c)
+            public void SetCloudSeq(Int32 c)
             {
                 this._cloudSeq = c;
             }
@@ -750,8 +750,8 @@ namespace LobsterConnect.Model
                 }
             }
 
-            Int64 _cloudSeq;
-            Int64 _localSeq;
+            Int32 _cloudSeq;
+            Int32 _localSeq;
             string _installationId;
             string _gamingEventFilter;
 
@@ -983,7 +983,7 @@ namespace LobsterConnect.Model
                     else if(toBeSent.Count > 1)
                         contentString= string.Join('\n', toBeSent);
 
-                    Int64 syncFrom = 0;
+                    Int32 syncFrom = 0;
                     foreach (JournalEntry e in _LocalJournal)
                     {
                         if (e.CloudSeq > syncFrom)
@@ -1007,7 +1007,7 @@ namespace LobsterConnect.Model
 
                         // Ask the backend to send us every record with a higher Cloud Seq Number than syncFrom (the highest one that we have seen so far)
                         // and send it all the local journal records that so far have not been given a Cloud Seq Number).
-                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X16")+"&remoteDevice="+Model.Utilities.InstallationId;
+                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X8")+"&remoteDevice="+Model.Utilities.InstallationId;
                         StringContent postContent = new StringContent(contentString);
                         HttpResponseMessage response = client.PostAsync(postQuery, postContent).Result;
 
@@ -1107,7 +1107,7 @@ namespace LobsterConnect.Model
                 Logger.LogMessage(Logger.Level.ERROR,"FredaJournal.DoJournalWork", ex);
                 Model.DispatcherHelper.RunAsyncOnUI(() =>
                 {
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sync failed: Error");
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sync failed: Error: "+ex.Message);
                 });
             }
             finally

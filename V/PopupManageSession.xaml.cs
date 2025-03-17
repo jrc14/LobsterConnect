@@ -54,7 +54,7 @@ public partial class PopupManageSession : Popup
                 if (s != null)
                 {
                     MainViewModel.Instance.UpdateSession(true, s, whatsAppLink: whatsAppLink);
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': WhatsApp link updated to '" + whatsAppLink + "'");
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': WhatsApp link has been updated to '" + whatsAppLink + "'");
                 }
             }
         }
@@ -76,7 +76,7 @@ public partial class PopupManageSession : Popup
                 if (s != null)
                 {
                     MainViewModel.Instance.UpdateSession(true, s, notes: notes);
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': Notes updated to '" + notes + "'");
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': Notes have been updated to '" + notes + "'");
                 }
             }
         }
@@ -137,12 +137,19 @@ public partial class PopupManageSession : Popup
 
                     if (a == signUp)
                     {
-                        MainViewModel.Instance.SignUp(true, MainViewModel.Instance.LoggedOnUser.Handle, s.Id, true, MainViewModel.Instance.LoggedOnUser.Handle);
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has signed up to play '" + s.ToPlay + "'");
+                        if (s.State != "OPEN")
+                        {
+                            await MainPage.Instance.DisplayAlert("Sign-up", "The session isn't OPEN so new sign-ups are not allowed", "dismiss");
+                        }
+                        else
+                        {
+                            MainViewModel.Instance.SignUp(true, MainViewModel.Instance.LoggedOnUser.Handle, s.Id, true, MainViewModel.Instance.LoggedOnUser.Handle);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has signed up to play '" + s.ToPlay + "'");
+                        }
                     }
                     else if (a == cancelSignUp)
                     {
-                        MainViewModel.Instance.CancelSignUp(true, MainViewModel.Instance.LoggedOnUser.Handle, s.Id, true, MainViewModel.Instance.LoggedOnUser.Handle);
+                        MainViewModel.Instance.CancelSignUp(true, MainViewModel.Instance.LoggedOnUser.Handle, s.Id, MainViewModel.Instance.LoggedOnUser.Handle);
                         MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "'" + MainViewModel.Instance.LoggedOnUser.Handle + "' has cancelled their sign-up for '" + s.ToPlay + "'");
                     }
                     else if (a == user)
@@ -256,7 +263,7 @@ public partial class PopupManageSession : Popup
             }
             catch (Exception ex)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, ex.Message);
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Failed to launch BGG using link '" + s.BggLink + "': "+ ex.Message);
             }
         }
     }
@@ -275,7 +282,7 @@ public partial class PopupManageSession : Popup
             }
             catch(Exception ex)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, ex.Message);
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Failed to launch WhatsApp using link '" + s.WhatsAppLink + "': "+ex.Message);
             }
         }
     }

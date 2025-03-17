@@ -18,11 +18,11 @@
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Person Details" x:Name="lbPersonDetails" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="1" Grid.Column="0" Text="Full name:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Entry Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" x:Name="entryFullName" Margin="5" VerticalOptions="Center"></Entry>
+        <Entry Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" x:Name="entryFullName" Margin="5" WidthRequest="130" VerticalOptions="Center"></Entry>
         <Label Grid.Row="2" Grid.Column="0" Text="Phone Number:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Entry Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" x:Name="entryPhoneNumber" Margin="5" VerticalOptions="Center"></Entry>
+        <Entry Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" x:Name="entryPhoneNumber" Margin="5" WidthRequest="130" VerticalOptions="Center"></Entry>
         <Label Grid.Row="3" Grid.Column="0" Text="Email:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Entry Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="entryEmail" Margin="5" VerticalOptions="Center"></Entry>
+        <Entry Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="entryEmail" Margin="5" WidthRequest="130" VerticalOptions="Center"></Entry>
         <Button Grid.Row="4" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
         <Button Grid.Row="4" Grid.Column="1" Text="OK" Clicked="OnOkClicked" Margin="5" x:Name="btnOk" ></Button>
     </Grid>

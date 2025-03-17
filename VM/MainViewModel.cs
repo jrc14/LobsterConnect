@@ -1,6 +1,22 @@
 ﻿using System.ComponentModel;
 using LobsterConnect.Model;
 
+// TO DO
+// Text entry fields are too short, notably on iPhone
+// Session mgt screen should use a popup to prompt switching btw OPEN/FULL/ABANDONED; the current setup with two
+// prompt popups is just tiresome.
+// Popup width should be set more carefully to avoid overflowing screen width on narrow devices
+// Session organiser and admin users should be allowed to remove other people's sign-ups
+// Admin user should be allowed to set events, games, and persons to inactive (or back to active) and should be 
+// to change session state
+// UI top status bar on Android should not be white
+// A hamburger menu is needed, offering switch event, add session and maybe a user list.  Also about, legal and privacy
+// policy, reset app, and email for support.  Perhaps also a link to the manual, once I have written one.
+// Tap on schedule bar or on background should show the add session popup
+// The session grid shouldn't scroll back to 0 unless it needs to (when we've added a session it would be better
+// if it stayed on screen)
+
+
 namespace LobsterConnect.VM
 {
     public class MainViewModel : LobsterConnect.VM.BindableBase
@@ -581,10 +597,13 @@ namespace LobsterConnect.VM
                 // Adding a new session always means that the UI display of sessions must be refreshed (but because we might
                 // sometimes add a lot of sessions in quick succession, make sure we don't fire the 'refresh' event every
                 // single time).
-                Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                if (CurrentEvent != null && CurrentEvent.Name == eventName)
                 {
-                    ThrottledFireSessionsRefreshEvent();
-                });
+                    Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                    {
+                        ThrottledFireSessionsRefreshEvent();
+                    });
+                }
 
                 if(informJournal)
                 {
@@ -608,7 +627,7 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Signs a person up to play in a session.  The method throws an exception if the person handle or session id is invalid.
         /// The checkActive parameter defines the method's behaviour when the person is not active or the session is not open.
-        /// An exception is also thrown (from Session.AddSignUp) if the person was already signed up.
+        /// If the person was already signed up, the method won't change anything.
         /// </summary>
         /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
         /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
@@ -629,6 +648,7 @@ namespace LobsterConnect.VM
             }
             else
             {
+                bool succeeded = false;
                 Person person = GetPerson(personHandle);
                 Session session = GetSession(sessionId);
 
@@ -673,24 +693,35 @@ namespace LobsterConnect.VM
                             }
                         }
 
-                        session.AddSignUp(person.Handle);
+                        if (session.IsSignedUp(person.Handle))
+                        {
+                            Logger.LogMessage(Logger.Level.INFO, "MainViewModel.SignUp", "duplicate sign-up ignored:'" + sessionId + "'");
+                        }
+                        else
+                        {
+                            session.AddSignUp(person.Handle);
+                            succeeded = true;
+                        }
                     }
                 }
 
                 // If there is a filter active, then changing a session's sign-ups could affect whether or not
                 // a certain session is visible, if the active filter criteria include sign-ups.
-                if (CurrentFilter != null)
+                if (succeeded && CurrentEvent != null && CurrentEvent.Name == session.EventName)
                 {
-                    if (!string.IsNullOrEmpty(CurrentFilter.SignUpsInclude))
+                    if (CurrentFilter != null)
                     {
-                        Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        if (!string.IsNullOrEmpty(CurrentFilter.SignUpsInclude))
                         {
-                            ThrottledFireSessionsRefreshEvent();
-                        });
+                            Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                            {
+                                ThrottledFireSessionsRefreshEvent();
+                            });
+                        }
                     }
                 }
 
-                if (informJournal)
+                if (succeeded && informJournal)
                 {
                     if (modifiedBy == null)
                         modifiedBy = personHandle;
@@ -706,7 +737,7 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Cancels an existing signup for a person to play in a session.  The method throws an exception if the person handle or session id is invalid.
-        /// An exception is also thrown (from Session.RemoveSignUp) if the person was not signed up.  Note that, unlike
+        /// If the person was not signed up, the method won't change anything.  Note that, unlike
         /// the SignUp method, this method doesn't check whether the user is inactive or the sessions not OPEN (we're prepared
         /// to allow the viewmodel to clean up sessions in such cases, by removing sign-ups that are no longer valid).
         /// </summary>
@@ -726,6 +757,7 @@ namespace LobsterConnect.VM
             }
             else
             {
+                bool succeeded = false;
                 Person person = GetPerson(personHandle);
                 Session session = GetSession(sessionId);
 
@@ -741,22 +773,34 @@ namespace LobsterConnect.VM
                     throw new ArgumentException("MainViewModel.CancelSignUp: no such session:'" + sessionId + "'");
                 }
 
-                session.RemoveSignUp(person.Handle);
+                if (!session.IsSignedUp(person.Handle))
+                {
+                    Logger.LogMessage(Logger.Level.INFO, "MainViewModel.CancelSignUp", "ignored because user was not signed up:'" + sessionId + "'");
+                }
+                else
+                {
+                    session.RemoveSignUp(person.Handle);
+                    succeeded = true;
+                }
+
 
                 // If there is a filter active, then changing a session's sign-ups could affect whether or not
                 // a certain session is visible, if the active filter criteria include sign-ups.
-                if (CurrentFilter != null)
+                if (succeeded && CurrentEvent != null && CurrentEvent.Name == session.EventName)
                 {
-                    if (!string.IsNullOrEmpty(CurrentFilter.SignUpsInclude))
+                    if (CurrentFilter != null)
                     {
-                        Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        if (!string.IsNullOrEmpty(CurrentFilter.SignUpsInclude))
                         {
-                            ThrottledFireSessionsRefreshEvent();
-                        });
+                            Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                            {
+                                ThrottledFireSessionsRefreshEvent();
+                            });
+                        }
                     }
                 }
 
-                if (informJournal)
+                if (succeeded && informJournal)
                 {
                     if (modifiedBy == null)
                         modifiedBy = personHandle;
@@ -823,14 +867,17 @@ namespace LobsterConnect.VM
 
                 // If there is a filter active, then changing a session's state could affect whether or not
                 // a certain session is visible, if the active filter criteria include state.
-                if (state!=null && CurrentFilter != null)
+                if (CurrentEvent != null && CurrentEvent.Name == session.EventName)
                 {
-                    if (!string.IsNullOrEmpty(CurrentFilter.State))
+                    if (state != null && CurrentFilter != null)
                     {
-                        Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        if (!string.IsNullOrEmpty(CurrentFilter.State))
                         {
-                            ThrottledFireSessionsRefreshEvent();
-                        });
+                            Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                            {
+                                ThrottledFireSessionsRefreshEvent();
+                            });
+                        }
                     }
                 }
 
@@ -928,7 +975,7 @@ namespace LobsterConnect.VM
 
                 LogUserMessage(Logger.Level.INFO, "Current gaming event has been set to '" + eventName + "'");
 
-                SessionTime.SetEventType(g.EventType); // set the number of gaming slots and their labels, according to the type of gaming event
+                SessionTime.SetEventType(g.EventType); // set the number of gaming time slots and their labels, according to the type of gaming event
                 this.CurrentEvent = g;
             }
         }

@@ -33,7 +33,7 @@ public partial class PopupPersonDetails : Popup
         {
             if(this._person.FullName!= this.initialFullName)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Update to full name has been lost, because someone else updated the database while you were working on it");
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.WARNING, "Update to full name has been lost, because someone else updated the database while you were working on it");
             }
             else
             {
@@ -45,7 +45,7 @@ public partial class PopupPersonDetails : Popup
         {
             if (this._person.PhoneNumber != this.initialPhoneNumber)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Update to phone number has been lost, because someone else updated the database while you were working on it");
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.WARNING, "Update to phone number has been lost, because someone else updated the database while you were working on it");
             }
             else
             {
@@ -57,7 +57,7 @@ public partial class PopupPersonDetails : Popup
         {
             if (this._person.Email != this.initialEmail)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Update to email has been lost, because someone else updated the database while you were working on it");
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.WARNING, "Update to email has been lost, because someone else updated the database while you were working on it");
             }
             else
             {

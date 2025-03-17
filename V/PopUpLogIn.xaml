@@ -14,13 +14,13 @@
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="150"/>
-        <ColumnDefinition Width="150"/>
+        <ColumnDefinition Width="200"/>
     </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="User Handle and Password" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="1" Grid.Column="0" Text="User handle:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Entry Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" x:Name="entryUserHandle" Margin="5" VerticalOptions="Center"></Entry>
+        <Entry Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" x:Name="entryUserHandle" Margin="5" WidthRequest="180" VerticalOptions="Center"></Entry>
         <Label Grid.Row="2" Grid.Column="0" Text="Password:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Entry Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" IsPassword="True" x:Name="entryPassword" Margin="5" VerticalOptions="Center"></Entry>
+        <Entry Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" IsPassword="True" x:Name="entryPassword" Margin="5" WidthRequest="180" VerticalOptions="Center"></Entry>
         <Label Grid.Row="3" Grid.Column="0" Text="Remember me:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
         <CheckBox Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="chkRememberMe" Margin="5" VerticalOptions="Center"></CheckBox>
         <Button Grid.Row="4" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>

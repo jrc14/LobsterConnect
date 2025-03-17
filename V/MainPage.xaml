@@ -5,7 +5,10 @@
              xmlns:vm="clr-namespace:LobsterConnect.VM"
              x:DataType="vm:MainViewModel"
              x:Class="LobsterConnect.V.MainPage">
-	<Grid RowSpacing="0" ColumnSpacing="0" Background="Black">
+    <ContentPage.Resources>
+        <local:SeverityToColorConverter x:Key="severityToColor"/>
+    </ContentPage.Resources>
+    <Grid RowSpacing="0" ColumnSpacing="0" Background="Black">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
             <RowDefinition Height="30"/>
@@ -86,8 +89,10 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Label Text="{Binding}" FontFamily="FiraMonoRegular"  TextColor="White" HorizontalOptions="Start" HorizontalTextAlignment="Start"
-									Grid.Row="0" Grid.Column="0"/>
+                        <Label Text="{Binding}" FontFamily="FiraMonoRegular"
+                               TextColor="{Binding Converter={StaticResource severityToColor}}"
+                               HorizontalOptions="Start" HorizontalTextAlignment="Start"
+							   Grid.Row="0" Grid.Column="0"/>
                     </Grid>
                 </DataTemplate>
 			</CollectionView.ItemTemplate>

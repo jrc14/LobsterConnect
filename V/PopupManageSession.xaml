@@ -8,7 +8,7 @@
                x:Class="LobsterConnect.V.PopupManageSession">
     <toolkit:Popup.Resources>
         <local:StateToColorConverter x:Key="stateToColor"/>
-        </toolkit:Popup.Resources>
+    </toolkit:Popup.Resources>
     <Grid RowSpacing="0" ColumnSpacing="0" Padding="10" MaximumWidthRequest="300">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>

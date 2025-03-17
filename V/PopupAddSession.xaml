@@ -19,7 +19,7 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="150"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Propose a Gaming Session" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="1" Grid.Column="0" Text="Game to play:" HorizontalOptions="Start" Margin="5" VerticalOptions="Start"></Label>
@@ -35,10 +35,10 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Border>
-        <Border Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" Margin="5,0,5,0" WidthRequest="90" VerticalOptions="Start" Stroke="Gray">
+        <Border Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" Margin="5,0,5,0" WidthRequest="140" VerticalOptions="Start" Stroke="Gray">
             <StackLayout Orientation="Horizontal"  WidthRequest="80">
                 <Label Text="&#xf407;" FontFamily="FluentSystemIcons-Regular" FontSize="20" VerticalOptions="Center" WidthRequest="25"></Label>
-                <Entry HorizontalOptions="Start" WidthRequest="40" VerticalOptions="Center" x:Name="entryGameFilter" TextChanged="entryGameFilter_TextChanged"></Entry>
+                <Entry HorizontalOptions="Start" WidthRequest="90" VerticalOptions="Center" x:Name="entryGameFilter" TextChanged="entryGameFilter_TextChanged"></Entry>
             </StackLayout>
         </Border>
         
