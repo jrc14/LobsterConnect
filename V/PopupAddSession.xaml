@@ -5,7 +5,8 @@
                xmlns:local="clr-namespace:LobsterConnect.V"
                xmlns:vm="clr-namespace:LobsterConnect.VM"
                x:DataType="vm:MainViewModel"
-               x:Class="LobsterConnect.V.PopupAddSession">
+               x:Class="LobsterConnect.V.PopupAddSession"
+               >
     <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -18,13 +19,13 @@
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250"/>
-            <ColumnDefinition Width="150"/>
+            <ColumnDefinition x:Name="colDef0" Width="250"/>
+            <ColumnDefinition x:Name="colDef1" Width="150"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Propose a Gaming Session" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="1" Grid.Column="0" Text="Game to play:" HorizontalOptions="Start" Margin="5" VerticalOptions="Start"></Label>
-        <Border Grid.Row="2" Grid.Column="0" WidthRequest="250" VerticalOptions="Start" Stroke="Gray">               
-            <CollectionView HorizontalOptions="Start" Margin="5" WidthRequest="235" VerticalOptions="Start" x:Name="lvGame" SelectionChanged="lvGame_SelectionChanged" SelectionMode="Single">
+        <Border Grid.Row="2" Grid.Column="0" VerticalOptions="Start" Stroke="Gray">               
+            <CollectionView HorizontalOptions="Start" Margin="5" VerticalOptions="Start" x:Name="lvGame" SelectionChanged="lvGame_SelectionChanged" SelectionMode="Single">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
                 </CollectionView.ItemsLayout>
@@ -35,15 +36,15 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Border>
-        <Border Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" Margin="5,0,5,0" WidthRequest="140" VerticalOptions="Start" Stroke="Gray">
-            <StackLayout Orientation="Horizontal"  WidthRequest="80">
+        <Border Grid.Row="2" Grid.Column="1" HorizontalOptions="Start" Margin="5,0,5,0" VerticalOptions="Start" Stroke="Gray">
+            <StackLayout Orientation="Horizontal" >
                 <Label Text="&#xf407;" FontFamily="FluentSystemIcons-Regular" FontSize="20" VerticalOptions="Center" WidthRequest="25"></Label>
                 <Entry HorizontalOptions="Start" WidthRequest="90" VerticalOptions="Center" x:Name="entryGameFilter" TextChanged="entryGameFilter_TextChanged"></Entry>
             </StackLayout>
         </Border>
         
         <Label Grid.Row="3" Grid.Column="0" Text="Start Time:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Picker Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="pickerStartTime" Margin="5" WidthRequest="100" VerticalOptions="Center"></Picker>
+        <Picker Grid.Row="3" Grid.Column="1" HorizontalOptions="Start" x:Name="pickerStartTime" Margin="5" MinimumWidthRequest="100" VerticalOptions="Center"></Picker>
         <Label Grid.Row="4" Grid.Column="0" Text="Sits Minimum: 2" HorizontalOptions="Start" x:Name="lblMinimum" Margin="5" VerticalOptions="Center"></Label>
         <Stepper Grid.Row="4" Grid.Column="1" HorizontalOptions="Start" x:Name="stpMinimum" Margin="5" VerticalOptions="Center" Maximum="20" Minimum="2" Value="2" ValueChanged="stpMinimum_ValueChanged"></Stepper>
         <Label Grid.Row="5" Grid.Column="0" Text="Sits Maximum: 2" HorizontalOptions="Start" x:Name="lblMaximum" Margin="5" VerticalOptions="Center"></Label>

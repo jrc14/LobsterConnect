@@ -4,12 +4,12 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:LobsterConnect.V"
-    Shell.NavBarIsVisible="False" Shell.FlyoutBehavior="Flyout"
+    Shell.NavBarIsVisible="True" Shell.FlyoutBehavior="Flyout"
     Shell.BackgroundColor="Red"
-    Shell.DisabledColor="DarkRed"
+    Shell.DisabledColor="DarkGray"
     Shell.ForegroundColor="White"
     Shell.TabBarBackgroundColor="DarkRed"
-    Shell.TabBarDisabledColor="Black"
+    Shell.TabBarDisabledColor="DarkGray"
     Shell.TabBarForegroundColor="White"
     Shell.TabBarTitleColor="Red"
     Shell.TabBarUnselectedColor="DarkRed"
@@ -38,16 +38,17 @@
     </Shell.TitleView>
 
     <ShellContent
-        Title=""
+        Title="LobsterConnect"
         ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage"/>
+        Route="MainPage"/> 
+
 
     <!-- The menu items will get their color set via the wacky code in the MenuItemTemplate, in AppShell.xaml.cs-->
-        <MenuItem Text="Support"
+    <MenuItem Text="Support"
                   CommandParameter="support">
             <MenuItem.IconImageSource>
-                <FontImageSource Glyph="&#xee88;" FontFamily="FluentSystemIcons-Regular"/>
-            </MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xee88;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
         </MenuItem>
         <MenuItem Text="Legal"
                   CommandParameter="legal">
@@ -67,11 +68,11 @@
                 <FontImageSource Glyph="&#xf4a4;" FontFamily="FluentSystemIcons-Regular"/>
             </MenuItem.IconImageSource>
         </MenuItem>
-        <MenuItem Text="Help"
+    <MenuItem Text="Help"
                   CommandParameter="help">
-            <MenuItem.IconImageSource>
-                <FontImageSource Glyph="&#xf639;" FontFamily="FluentSystemIcons-Regular"/>
-            </MenuItem.IconImageSource>
-        </MenuItem>
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xf639;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
 
 </Shell>

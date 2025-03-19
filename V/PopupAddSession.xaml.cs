@@ -26,7 +26,25 @@ public partial class PopupAddSession : Popup
 
         this.pickerStartTime.ItemsSource = timeSlotLabels;
 
-        
+        if (MainPage.Instance.Width < 350)
+        {
+            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+            this.entryGameFilter.WidthRequest = 50;
+            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+            this.entryGameFilter.WidthRequest = 50;
+        }
+        else if (MainPage.Instance.Width<400)
+        {
+            this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+            this.entryGameFilter.WidthRequest = 50;
+        }
+        else
+        {
+            this.colDef0.Width = new GridLength(250, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            this.entryGameFilter.WidthRequest = 90;
+        }
 
         // Do this later because it takes a while
         Model.DispatcherHelper.RunAsyncOnUI(() => this.lvGame.ItemsSource = new ObservableCollection<string>(allGames));
