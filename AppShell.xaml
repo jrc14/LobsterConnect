@@ -4,11 +4,74 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:LobsterConnect.V"
-    Shell.FlyoutBehavior="Disabled">
+    Shell.NavBarIsVisible="False" Shell.FlyoutBehavior="Flyout"
+    Shell.BackgroundColor="Red"
+    Shell.DisabledColor="DarkRed"
+    Shell.ForegroundColor="White"
+    Shell.TabBarBackgroundColor="DarkRed"
+    Shell.TabBarDisabledColor="Black"
+    Shell.TabBarForegroundColor="White"
+    Shell.TabBarTitleColor="Red"
+    Shell.TabBarUnselectedColor="DarkRed"
+    Shell.TitleColor="White"
+    Shell.FlyoutBackgroundColor="DarkRed"
+    Shell.UnselectedColor="DarkRed">
+
+    <Shell.TitleView>
+        <Grid>
+            <Label 
+        Text="LobsterConnect"
+        HorizontalOptions="Fill"
+        VerticalOptions="Fill"
+        BackgroundColor="Red"
+        TextColor="White"
+        FontSize="Title"
+        Padding="2,2,0,0"
+                >
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer 
+                Tapped="AppShell_Tapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+
+        </Grid>
+    </Shell.TitleView>
 
     <ShellContent
-        Title="LobsterConnect"
+        Title=""
         ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Route="MainPage"/>
+
+    <!-- The menu items will get their color set via the wacky code in the MenuItemTemplate, in AppShell.xaml.cs-->
+        <MenuItem Text="Support"
+                  CommandParameter="support">
+            <MenuItem.IconImageSource>
+                <FontImageSource Glyph="&#xee88;" FontFamily="FluentSystemIcons-Regular"/>
+            </MenuItem.IconImageSource>
+        </MenuItem>
+        <MenuItem Text="Legal"
+                  CommandParameter="legal">
+            <MenuItem.IconImageSource>
+                <FontImageSource Glyph="&#xe53b;" FontFamily="FluentSystemIcons-Regular" />
+            </MenuItem.IconImageSource>
+        </MenuItem>
+        <MenuItem Text="Privacy"
+                  CommandParameter="privacy">
+            <MenuItem.IconImageSource>
+                <FontImageSource Glyph="&#xe302;" FontFamily="FluentSystemIcons-Regular"/>
+            </MenuItem.IconImageSource>
+        </MenuItem>
+        <MenuItem Text="About"
+                  CommandParameter="about">
+            <MenuItem.IconImageSource>
+                <FontImageSource Glyph="&#xf4a4;" FontFamily="FluentSystemIcons-Regular"/>
+            </MenuItem.IconImageSource>
+        </MenuItem>
+        <MenuItem Text="Help"
+                  CommandParameter="help">
+            <MenuItem.IconImageSource>
+                <FontImageSource Glyph="&#xf639;" FontFamily="FluentSystemIcons-Regular"/>
+            </MenuItem.IconImageSource>
+        </MenuItem>
 
 </Shell>

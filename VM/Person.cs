@@ -14,6 +14,7 @@ namespace LobsterConnect.VM
     /// but UI code should not use those accessors to change their values, because doing so will
     /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
     /// cloud storage).
+    /// You should create and modify instances of this class only on the UI thread; it is not thread-safe.
     /// </summary>
     public class Person : LobsterConnect.VM.BindableBase
     {
@@ -243,15 +244,11 @@ namespace LobsterConnect.VM
             }
             set
             {
-                lock (this.instanceLock)
+                if (this._isActive != value)
                 {
-                    if (this._isActive != value)
-                    {
-                        this._isActive = value;
+                    this._isActive = value;
 
-                        this.OnPropertyChanged("IsActive");
-
-                    }
+                    this.OnPropertyChanged("IsActive");
                 }
             }
         }
@@ -269,23 +266,15 @@ namespace LobsterConnect.VM
             }
             set
             {
-                lock (this.instanceLock)
+                if (this._isAdmin != value)
                 {
-                    if (this._isAdmin != value)
-                    {
-                        this._isAdmin = value;
+                    this._isAdmin = value;
 
-                        this.OnPropertyChanged("IsAdmin");
+                    this.OnPropertyChanged("IsAdmin");
 
-                    }
                 }
             }
         }
         private bool _isAdmin;
-
-        /// <summary>
-        /// Lock this if doing something state-changing involving this person
-        /// </summary>
-        public LobsterLock instanceLock = new LobsterLock();
     }
 }

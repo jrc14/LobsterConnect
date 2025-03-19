@@ -8,6 +8,7 @@ namespace LobsterConnect.VM
     /// but UI code should not use those accessors to change their values, because doing so will
     /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
     /// cloud storage). 
+    /// You should create and modify instances of this class only on the UI thread; it is not thread-safe
     /// </summary>
     public class GamingEvent : LobsterConnect.VM.BindableBase
     {
@@ -72,18 +73,15 @@ namespace LobsterConnect.VM
             }
             set
             {
-                lock (this.instanceLock)
+                if (value == "EVENING" || value == "DAY" || value == "CONVENTION")
                 {
-                    if (value == "EVENING" || value == "DAY" || value == "CONVENTION")
-                    {
-                        this._eventType = value;
-                        this.OnPropertyChanged("EventType");
-                    }
-                    else
-                    {
-                        Logger.LogMessage(Logger.Level.ERROR, "GamingEvent.EventType set accessor", "invalid type:'" + value + "'");
-                        throw new ArgumentException("GamingEvent.EventType set accessor: invalid state:'" + value + "'");
-                    }
+                    this._eventType = value;
+                    this.OnPropertyChanged("EventType");
+                }
+                else
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "GamingEvent.EventType set accessor", "invalid type:'" + value + "'");
+                    throw new ArgumentException("GamingEvent.EventType set accessor: invalid state:'" + value + "'");
                 }
             }
         }
@@ -111,10 +109,5 @@ namespace LobsterConnect.VM
             }
         }
         private bool _isActive = true;
-
-        /// <summary>
-        /// Lock this if doing something state-changing involving this gaming event
-        /// </summary>
-        public LobsterLock instanceLock = new LobsterLock();
     }
 }

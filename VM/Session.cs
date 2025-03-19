@@ -17,6 +17,7 @@ namespace LobsterConnect.VM
     /// but UI code should not use those accessors to change their values, because doing so will
     /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
     /// cloud storage).
+    /// You should create and modify instances of this class only on the UI thread; it is not thread-safe
     /// </summary>
     public class Session : LobsterConnect.VM.BindableBase, IComparable
     {
@@ -387,50 +388,47 @@ namespace LobsterConnect.VM
             }
             set
             {
-                lock (this.instanceLock)
+                if (this._signUps != value)
                 {
-                    if (this._signUps != value)
+                    if (string.IsNullOrEmpty(value)) // no person handles
                     {
-                        if (string.IsNullOrEmpty(value)) // no person handles
-                        {
-                            this._signUps = "";
-                            this._numSignUps = 0;
-                            this._signUps = value;
-                        }
-                        else if (!value.Contains(',')) // one person handle
-                        {
-                            string handle = value.Trim();
-
-                            this._signUps = handle;
-                            this._numSignUps = 1;
-                        }
-                        else // the list contains more than one person handle
-                        {
-                            int hh = 0;
-                            string handles = "";
-                            foreach (string h in value.Split(','))
-                            {
-                                string handle = h.Trim();
-                                if (string.IsNullOrEmpty(handle))
-                                {
-                                    Logger.LogMessage(Logger.Level.ERROR, "Session.SignUps set accessor", "list contains NULL person");
-                                    throw new ArgumentException("Session.SignUps set accessor: list contains NULL person'");
-                                }
-
-                                if (handles == "")
-                                    handles = handle;
-                                else
-                                    handles += ", " + handle;
-
-                                hh++;
-                            }
-                            this._signUps = handles;
-                            this._numSignUps = hh;
-                        }
-
-                        this.OnPropertyChanged("SignUps");
-                        this.OnPropertyChanged("NumSignUps");
+                        this._signUps = "";
+                        this._numSignUps = 0;
+                        this._signUps = value;
                     }
+                    else if (!value.Contains(',')) // one person handle
+                    {
+                        string handle = value.Trim();
+
+                        this._signUps = handle;
+                        this._numSignUps = 1;
+                    }
+                    else // the list contains more than one person handle
+                    {
+                        int hh = 0;
+                        string handles = "";
+                        foreach (string h in value.Split(','))
+                        {
+                            string handle = h.Trim();
+                            if (string.IsNullOrEmpty(handle))
+                            {
+                                Logger.LogMessage(Logger.Level.ERROR, "Session.SignUps set accessor", "list contains NULL person");
+                                throw new ArgumentException("Session.SignUps set accessor: list contains NULL person'");
+                            }
+
+                            if (handles == "")
+                                handles = handle;
+                            else
+                                handles += ", " + handle;
+
+                            hh++;
+                        }
+                        this._signUps = handles;
+                        this._numSignUps = hh;
+                    }
+
+                    this.OnPropertyChanged("SignUps");
+                    this.OnPropertyChanged("NumSignUps");
                 }
             }
         }
@@ -448,67 +446,65 @@ namespace LobsterConnect.VM
         /// <exception cref="ArgumentException"></exception>
         public void AddSignUp(string personHandle)
         {
-            if(string.IsNullOrEmpty(personHandle))
+            if (string.IsNullOrEmpty(personHandle))
             {
                 Logger.LogMessage(Logger.Level.ERROR, "Session.AddSignUp", "person handle must not be null");
                 throw new ArgumentException("Session.AddSignUp: null person");
             }
             if (personHandle.Contains(','))
             {
-                Logger.LogMessage(Logger.Level.ERROR, "Session.AddSignUp", "person handle invalid (it contains a comma): '"+personHandle+"'");
+                Logger.LogMessage(Logger.Level.ERROR, "Session.AddSignUp", "person handle invalid (it contains a comma): '" + personHandle + "'");
                 throw new ArgumentException("Session.AddSignUp: person handle is invalid");
             }
 
             personHandle = personHandle.Trim();
-            lock (this.instanceLock)
+
+            if (string.IsNullOrEmpty(this._signUps)) // no person handles existing
             {
-                if (string.IsNullOrEmpty(this._signUps)) // no person handles existing
+                this._signUps = personHandle;
+                this._numSignUps = 1;
+            }
+            else if (!_signUps.Contains(',')) // one person handle existing
+            {
+                string existing = this._signUps.Trim();
+
+                if (existing == personHandle)
                 {
-                    this._signUps = personHandle;
+                    Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person handle is already signed up: '" + personHandle + "'");
                     this._numSignUps = 1;
                 }
-                else if (!_signUps.Contains(',')) // one person handle existing
+                else
                 {
-                    string existing = this._signUps.Trim();
 
-                    if (existing == personHandle)
-                    {
-                        Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person handle is already signed up: '" + personHandle + "'");
-                        this._numSignUps = 1;
-                    }
-                    else
-                    {
-
-                        this._signUps += ", " + personHandle;
-                        this._numSignUps = 2;
-                    }
+                    this._signUps += ", " + personHandle;
+                    this._numSignUps = 2;
                 }
-                else // the existing list contains more than one person handle
-                {
-                    int hh = 0;
-
-                    bool duplicated = false;
-                    foreach (string h in this._signUps.Split(','))
-                    {
-                        string existing = h.Trim();
-                        if (personHandle == existing)
-                        {
-                            duplicated = true;
-                            Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person is already signed up: '" + personHandle + "'");
-                        }
-
-                        hh++;
-                    }
-                    if (!duplicated)
-                    {
-                        this._signUps += ", " + personHandle;
-                        this._numSignUps = hh + 1;
-                    }
-                }
-
-                this.OnPropertyChanged("SignUps");
-                this.OnPropertyChanged("NumSignUps");
             }
+            else // the existing list contains more than one person handle
+            {
+                int hh = 0;
+
+                bool duplicated = false;
+                foreach (string h in this._signUps.Split(','))
+                {
+                    string existing = h.Trim();
+                    if (personHandle == existing)
+                    {
+                        duplicated = true;
+                        Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person is already signed up: '" + personHandle + "'");
+                    }
+
+                    hh++;
+                }
+                if (!duplicated)
+                {
+                    this._signUps += ", " + personHandle;
+                    this._numSignUps = hh + 1;
+                }
+            }
+
+            this.OnPropertyChanged("SignUps");
+            this.OnPropertyChanged("NumSignUps");
         }
 
         /// <summary>
@@ -535,59 +531,57 @@ namespace LobsterConnect.VM
             }
 
             personHandle = personHandle.Trim();
-            lock (this.instanceLock)
+
+            if (string.IsNullOrEmpty(this._signUps)) // no person handles existing
             {
-                if (string.IsNullOrEmpty(this._signUps)) // no person handles existing
-                {
-                    Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "session has no sign ups");
-                }
-                else if (!_signUps.Contains(',')) // one person handle existing
-                {
-                    string existing = this._signUps.Trim();
-
-                    if (existing == personHandle)
-                    {
-                        this._signUps= "";
-                        this._numSignUps = 0;
-                    }
-                    else
-                    {
-                        Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
-                    }
-                }
-                else // the existing list contains more than one person handle
-                {
-                    int toRemove = -1;
-                    List<string> existing = new List<string>(this._signUps.Split(','));
-                    for(int hh=0; hh<existing.Count; hh++)
-                    {
-                        existing[hh] = existing[hh].Trim();
-                        if (existing[hh]==personHandle)
-                        {
-                            if(toRemove!=-1)
-                            {
-                                Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was signed up twice: '" + personHandle + "'");
-                                throw new ArgumentException("Session.RemoveSignUp: person was signed up twice");
-                            }
-                            toRemove = hh;
-                        }
-                    }
-                    if (toRemove == -1)
-                    {
-                        Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
-                    }
-                    else
-                    {
-                        existing.RemoveAt(toRemove);
-
-                        this._signUps = string.Join(", ", existing);
-                        this._numSignUps = existing.Count;
-                    }
-                }
-
-                this.OnPropertyChanged("SignUps");
-                this.OnPropertyChanged("NumSignUps");
+                Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "session has no sign ups");
             }
+            else if (!_signUps.Contains(',')) // one person handle existing
+            {
+                string existing = this._signUps.Trim();
+
+                if (existing == personHandle)
+                {
+                    this._signUps = "";
+                    this._numSignUps = 0;
+                }
+                else
+                {
+                    Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
+                }
+            }
+            else // the existing list contains more than one person handle
+            {
+                int toRemove = -1;
+                List<string> existing = new List<string>(this._signUps.Split(','));
+                for (int hh = 0; hh < existing.Count; hh++)
+                {
+                    existing[hh] = existing[hh].Trim();
+                    if (existing[hh] == personHandle)
+                    {
+                        if (toRemove != -1)
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was signed up twice: '" + personHandle + "'");
+                            throw new ArgumentException("Session.RemoveSignUp: person was signed up twice");
+                        }
+                        toRemove = hh;
+                    }
+                }
+                if (toRemove == -1)
+                {
+                    Logger.LogMessage(Logger.Level.INFO, "Session.RemoveSignUp", "person was not signed up: '" + personHandle + "'");
+                }
+                else
+                {
+                    existing.RemoveAt(toRemove);
+
+                    this._signUps = string.Join(", ", existing);
+                    this._numSignUps = existing.Count;
+                }
+            }
+
+            this.OnPropertyChanged("SignUps");
+            this.OnPropertyChanged("NumSignUps");
         }
 
         /// <summary>
@@ -686,18 +680,15 @@ namespace LobsterConnect.VM
             }
             set
             {
-                lock (this.instanceLock)
+                if (value == "OPEN" || value == "FULL" || value == "ABANDONED")
                 {
-                    if (value == "OPEN" || value == "FULL" || value == "ABANDONED")
-                    {
-                        this._state = value;
-                        this.OnPropertyChanged("State");
-                    }
-                    else
-                    {
-                        Logger.LogMessage(Logger.Level.ERROR, "Session.State set accessor", "invalid state:'" + value + "'");
-                        throw new ArgumentException("Session.State set accessor: invalid state:'" + value + "'");
-                    }
+                    this._state = value;
+                    this.OnPropertyChanged("State");
+                }
+                else
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "Session.State set accessor", "invalid state:'" + value + "'");
+                    throw new ArgumentException("Session.State set accessor: invalid state:'" + value + "'");
                 }
             }
         }
@@ -716,10 +707,5 @@ namespace LobsterConnect.VM
             }
         }
         private int _numSignUps = 0;
-
-        /// <summary>
-        /// Lock this if doing something state dependent to this session
-        /// </summary>
-        public LobsterLock instanceLock = new LobsterLock();
     }
 }

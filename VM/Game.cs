@@ -128,10 +128,5 @@ namespace LobsterConnect.VM
             }
         }
         private bool _isActive=true;
-
-        /// <summary>
-        /// Lock this if doing something state-changing involving this game
-        /// </summary>
-        public LobsterLock instanceLock = new LobsterLock();
     }
 }
