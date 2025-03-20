@@ -14,7 +14,7 @@
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="150"/>
-        <ColumnDefinition Width="200"/>
+        <ColumnDefinition x:Name="colDef1" Width="200"/>
     </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="User Handle and Password" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="1" Grid.Column="0" Text="User handle:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>

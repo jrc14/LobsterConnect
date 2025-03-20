@@ -31,7 +31,6 @@ public partial class PopupAddSession : Popup
             this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
             this.entryGameFilter.WidthRequest = 50;
             this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
-            this.entryGameFilter.WidthRequest = 50;
         }
         else if (MainPage.Instance.Width<400)
         {

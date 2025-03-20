@@ -1,7 +1,12 @@
 ﻿using CommunityToolkit.Maui.Markup;
 using CommunityToolkit.Maui.Views;
+using CommunityToolkit.Maui.Behaviors;
+using CommunityToolkit.Maui.Core;
+
 using LobsterConnect.VM;
 using LobsterConnect.Model;
+
+
 
 namespace LobsterConnect.V;
 
@@ -13,7 +18,7 @@ public partial class MainPage : ContentPage
 
         MainViewModel.Instance.Load();
 
-		this.BindingContext = MainViewModel.Instance;
+        this.BindingContext = MainViewModel.Instance;
 
         MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Local data has been loaded");
 
@@ -98,7 +103,36 @@ public partial class MainPage : ContentPage
 		
 	}
 
-	public void RefreshSessionsGrid(object o, EventArgs a)
+    public static MainPage Instance = null;
+
+	protected override void OnAppearing()
+	{
+		base.OnAppearing();
+
+
+#if __ANDROID__
+        try
+        {
+            Behavior existing = this.Behaviors.FirstOrDefault(b => b is StatusBarBehavior);
+
+            if (existing != null)
+                this.Behaviors.Remove(existing);
+
+
+            this.Behaviors.Add(new StatusBarBehavior()
+            {
+                StatusBarColor = Colors.Red, // for some reason it does not work
+                StatusBarStyle = StatusBarStyle.DarkContent
+            });
+
+        }
+        catch (Exception ex)
+        {
+            Logger.LogMessage(Logger.Level.ERROR, "MainPage.OnAppearing", ex, "while setting status bar colour");
+        }
+#endif
+    }
+    public void RefreshSessionsGrid(object o, EventArgs a)
 	{
         List<Session>[] sessions;
 
@@ -441,7 +475,7 @@ public partial class MainPage : ContentPage
         return true;
 	}
 
-	public static MainPage Instance = null;
+
 
     private void svSessions_Scrolled(object sender, ScrolledEventArgs e)
     {
@@ -464,6 +498,54 @@ public partial class MainPage : ContentPage
 			MainViewModel.Instance.SetCurrentEvent(eventName);
             Microsoft.Maui.Storage.Preferences.Set("GamingEvent", eventName);
         }
+    }
+
+	public void FlyoutMenuAction(string action)
+	{
+		if(action=="event")
+		{
+			lblEventTapped(this, new TappedEventArgs(null));
+        }
+		else if (action=="users")
+		{
+            
+
+        }
+		else if (action == "addsession")
+		{
+			btnAddSessionClicked(this, new EventArgs());
+
+        }
+		else if (action == "filter")
+		{
+			btnFilterClicked(this, new EventArgs());
+		}
+		else if (action == "support")
+		{
+
+		}
+		else if (action == "legal")
+		{
+
+		}
+		else if (action == "privacy")
+		{
+
+		}
+		else if (action == "about")
+		{
+
+		}
+		else if (action == "help")
+		{
+
+		}
+		else
+		{
+			Logger.LogMessage(Logger.Level.ERROR, "MainPage.FlyoutMenuAtion", "invalid action: " + action);
+		}
+
+
     }
 }
 

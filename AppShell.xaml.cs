@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui.Markup;
+using LobsterConnect.V;
 
 namespace LobsterConnect;
 
@@ -73,4 +74,14 @@ public partial class AppShell : Shell
 
     }
 
+    private void AppShell_MenuItemClicked(object sender, EventArgs e)
+    {
+        this.FlyoutIsPresented = false;
+
+        if (sender is MenuItem)
+        {
+
+            MainPage.Instance.FlyoutMenuAction(((MenuItem)sender).CommandParameter as string);
+        }
+    }
 }

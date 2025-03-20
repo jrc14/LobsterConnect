@@ -22,8 +22,8 @@
             <RowDefinition Height="5"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="80"/>
+            <ColumnDefinition x:Name="colDef0" Width="200"/>
+            <ColumnDefinition x:Name="colDef1" Width="80"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Gaming Session Details" x:Name="lbSessionDetails" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="{Binding Proposer}" x:Name="lbProposer" Margin="0" HorizontalOptions="End" VerticalOptions="Center"></Label>

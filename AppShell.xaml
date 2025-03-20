@@ -4,7 +4,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:LobsterConnect.V"
-    Shell.NavBarIsVisible="True" Shell.FlyoutBehavior="Flyout"
+    Shell.NavBarIsVisible="True"
+    Shell.FlyoutBehavior="Flyout"
     Shell.BackgroundColor="Red"
     Shell.DisabledColor="DarkGray"
     Shell.ForegroundColor="White"
@@ -38,38 +39,53 @@
     </Shell.TitleView>
 
     <ShellContent
-        Title="LobsterConnect"
+        Title=""
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage"/> 
 
 
     <!-- The menu items will get their color set via the wacky code in the MenuItemTemplate, in AppShell.xaml.cs-->
-    <MenuItem Text="Support"
-                  CommandParameter="support">
+    <MenuItem Text="Change Event" Clicked="AppShell_MenuItemClicked" CommandParameter="event">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xE716;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
+    <MenuItem Text="User List" Clicked="AppShell_MenuItemClicked" CommandParameter="users">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xe906;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>    
+    <MenuItem Text="Add Session" Clicked="AppShell_MenuItemClicked" CommandParameter="addsession">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xf10a;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
+    <MenuItem Text="Filter" Clicked="AppShell_MenuItemClicked" CommandParameter="filter">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xf407;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
+    <MenuItem Text="Support" Clicked="AppShell_MenuItemClicked" CommandParameter="support">
             <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xee88;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
         </MenuItem>
-        <MenuItem Text="Legal"
-                  CommandParameter="legal">
+    <MenuItem Text="Legal" Clicked="AppShell_MenuItemClicked" CommandParameter="legal">
             <MenuItem.IconImageSource>
                 <FontImageSource Glyph="&#xe53b;" FontFamily="FluentSystemIcons-Regular" />
             </MenuItem.IconImageSource>
         </MenuItem>
-        <MenuItem Text="Privacy"
-                  CommandParameter="privacy">
+    <MenuItem Text="Privacy" Clicked="AppShell_MenuItemClicked" CommandParameter="privacy">
             <MenuItem.IconImageSource>
                 <FontImageSource Glyph="&#xe302;" FontFamily="FluentSystemIcons-Regular"/>
             </MenuItem.IconImageSource>
         </MenuItem>
-        <MenuItem Text="About"
-                  CommandParameter="about">
+    <MenuItem Text="About" Clicked="AppShell_MenuItemClicked" CommandParameter="about">
             <MenuItem.IconImageSource>
                 <FontImageSource Glyph="&#xf4a4;" FontFamily="FluentSystemIcons-Regular"/>
             </MenuItem.IconImageSource>
         </MenuItem>
-    <MenuItem Text="Help"
-                  CommandParameter="help">
+    <MenuItem Text="Help" Clicked="AppShell_MenuItemClicked" CommandParameter="help">
         <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xf639;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>

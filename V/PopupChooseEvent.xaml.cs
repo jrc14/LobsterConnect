@@ -10,6 +10,16 @@ public partial class PopupChooseEvent : Popup
         InitializeComponent();
 
         V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
+
+        if (MainPage.Instance.Width < 350)
+        {
+            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+ 
+        }
+        else
+        {
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+        }
     }
 
     public void SetEventList(List<string> eventNames, string initialEvent)

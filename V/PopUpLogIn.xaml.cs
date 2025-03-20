@@ -18,6 +18,25 @@ public partial class PopupLogIn : Popup
                 this.entryUserHandle.Text = defaultUserName;
             }
         }
+
+        if (MainPage.Instance.Width < 350)
+        {
+            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+            this.entryUserHandle.WidthRequest = 80;
+            this.entryPassword.WidthRequest = 80;
+        }
+        else if (MainPage.Instance.Width < 400)
+        {
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            this.entryUserHandle.WidthRequest = 130;
+            this.entryPassword.WidthRequest = 130;
+        }
+        else
+        {
+            this.colDef1.Width = new GridLength(200, GridUnitType.Absolute);
+            this.entryUserHandle.WidthRequest = 180;
+            this.entryPassword.WidthRequest = 180;
+        }
     }
 
     async void OnOkClicked(object sender, EventArgs e)

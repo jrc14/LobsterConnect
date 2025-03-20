@@ -9,6 +9,31 @@ public partial class PopupManageFilter : Popup
         InitializeComponent();
 
         V.Utilities.StylePopupButtons(this.btnSave, this.btnCancel, this.rdefButtons);
+
+        if (MainPage.Instance.Width < 350)
+        {
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            this.pickerProposer.WidthRequest = 100;
+            this.entryProposer.WidthRequest = 40;
+            this.pickerSignUps.WidthRequest = 100;
+            this.entrySignUps.WidthRequest = 40;
+        }
+        else if (MainPage.Instance.Width < 400)
+        {
+            this.colDef1.Width = new GridLength(200, GridUnitType.Absolute);
+            this.pickerProposer.WidthRequest = 130;
+            this.entryProposer.WidthRequest = 60;
+            this.pickerSignUps.WidthRequest = 130;
+            this.entrySignUps.WidthRequest = 60;
+        }
+        else
+        {
+            this.colDef1.Width = new GridLength(250, GridUnitType.Absolute);
+            this.pickerProposer.WidthRequest = 150;
+            this.entryProposer.WidthRequest = 80;
+            this.pickerSignUps.WidthRequest = 150;
+            this.entrySignUps.WidthRequest = 80;
+        }
     }
 
     public void SetFilter(SessionFilter f)

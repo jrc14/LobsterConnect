@@ -14,6 +14,23 @@ public partial class PopupManageSession : Popup
     public PopupManageSession()
     {
         InitializeComponent();
+
+        if (MainPage.Instance.Width < 350)
+        {
+            this.colDef0.Width = new GridLength(160, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(60, GridUnitType.Absolute);
+        }
+        else if (MainPage.Instance.Width < 400)
+        {
+            this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(80, GridUnitType.Absolute);
+        }
+        else
+        {
+            this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(80, GridUnitType.Absolute);
+        }
+
     }
 
     public void SetSession(Session s)

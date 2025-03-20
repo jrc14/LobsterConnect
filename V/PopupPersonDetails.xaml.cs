@@ -9,6 +9,31 @@ public partial class PopupPersonDetails : Popup
         InitializeComponent();
 
         V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
+
+        if (MainPage.Instance.Width < 350)
+        {
+            this.colDef0.Width = new GridLength(100, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+            this.entryFullName.WidthRequest = 80;
+            this.entryPhoneNumber.WidthRequest = 80;
+            this.entryEmail.WidthRequest = 80;
+        }
+        else if (MainPage.Instance.Width < 400)
+        {
+            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            this.entryFullName.WidthRequest = 130;
+            this.entryPhoneNumber.WidthRequest = 130;
+            this.entryEmail.WidthRequest = 130;
+        }
+        else
+        {
+            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            this.entryFullName.WidthRequest = 130;
+            this.entryPhoneNumber.WidthRequest = 130;
+            this.entryEmail.WidthRequest = 130;
+        }
     }
 
     public void SetPerson(Person person)

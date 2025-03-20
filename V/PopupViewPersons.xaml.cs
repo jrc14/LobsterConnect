@@ -10,6 +10,22 @@ public partial class PopupViewPersons : Popup
         InitializeComponent();
 
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
+
+        if (MainPage.Instance.Width < 350)
+        {
+            this.colDef0.Width = new GridLength(125, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(125, GridUnitType.Absolute);
+        }
+        else if (MainPage.Instance.Width < 400)
+        {
+            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+        }
+        else
+        {
+            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+        }
     }
 
     public void SetPersons(List<string> personHandles)
