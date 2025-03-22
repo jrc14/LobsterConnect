@@ -43,6 +43,17 @@ namespace LobsterConnect.Model
         private static string _installationId = null;
 
         /// <summary>
+        /// Call this method to make the app create a new installation id for this device.  This will have the effect
+        /// of making it think that all existing journal entries that it previously recognised as coming from this
+        /// device are now coming from some other device and not this one.
+        /// </summary>
+        public static void ResetInstallationId()
+        {
+            Microsoft.Maui.Storage.Preferences.Remove("InstallationId");
+            _installationId = null;
+        }
+
+        /// <summary>
         /// Turn a password into a very irreversible hash.  The method makes a string using only the even
         /// numbered characters of the password, then makes a hash value by doing 
         /// for (int i = 0; i &lt; s.Length; i++) { h = 31 * h + s[i];}, then formatting the resultant Int32

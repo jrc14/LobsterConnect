@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="LobsterConnect.V.PopupDataHandling">
+    <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" x:Name="rdefTextViewer"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" x:Name="rdefButtons"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="colDef0" Width="150"/>
+            <ColumnDefinition x:Name="colDef1" Width="150"/>
+            <ColumnDefinition x:Name="colDef2" Width="150"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="Privacy and Data Handling" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+
+        <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Text="Our privacy and data handling policy is shown below.  If you are logged on, you will see buttons that you can use to view a copy of all the personal data that is held about you, and to purge the application's database to remove all this data.  Do keep in mind that, once purged, the data cannot be restored." Margin="0" HorizontalOptions="Start" VerticalOptions="Center" LineBreakMode="WordWrap"></Label>
+
+        <ScrollView x:Name="svTextViewer" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Background="Black" Padding="4" Margin="4" >
+            <Label x:Name="lbTextViewer" LineBreakMode="WordWrap" TextColor="White"/>
+        </ScrollView>
+        <Button Grid.Row="3" Grid.Column="0" Text="View Policy" Clicked="OnViewPolicyClicked" Margin="5" x:Name="btnViewPolicy" ></Button>
+        <Button Grid.Row="3" Grid.Column="1" Text="View Data" Clicked="OnViewPersonalDataClicked" Margin="5" x:Name="btnViewPersonalData" ></Button>
+        <Button Grid.Row="3" Grid.Column="2" Text="Purge Data" Clicked="OnPurgePersonalDataClicked" Margin="5" x:Name="btnPurgePersonalData" ></Button>
+        <Button Grid.Row="4" Grid.Column="2" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+    </Grid>
+</toolkit:Popup>

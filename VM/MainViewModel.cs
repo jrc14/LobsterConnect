@@ -4,16 +4,32 @@ using LobsterConnect.Model;
 // TO DO
 // Session mgt screen should use a popup to prompt switching btw OPEN/FULL/ABANDONED; the current setup with two
 // prompt popups is just tiresome.
-// Popup width should be set more carefully to avoid overflowing screen width on narrow devices
 // Session organiser and admin users should be allowed to remove other people's sign-ups
 // Admin user should be allowed to set events, games, and persons to inactive (or back to active) and should be 
 // to change session state
-// UI top status bar on Android should not be white
 // A hamburger menu is needed, offering switch event, add session and maybe a user list.  Also about, legal and privacy
 // policy, reset app, and email for support.  Perhaps also a link to the manual, once I have written one.
 // Tap on schedule bar or on background should show the add session popup
 // The session grid shouldn't scroll back to 0 unless it needs to (when we've added a session it would be better
 // if it stayed on screen)
+// On first run should ask whether the user is 18 or over - and if not, it should refuse to sync with the cloud.
+// Popups for entering person info should give a privacy warning when first used, and contain a link to the
+// privacy policy page
+// The popup for adding comments to a session should warn you that you mustn't post personally identifying
+// information, or anything offensive.  The comment viewer popup should include a link to a 'report
+// inappropriate content'.
+// The privacy policy popup should let you view all the personal data that's held for the logged on user, and
+// offer an option to purge your personal data from the app.  This will
+// initiate a special action in the backend to scrub all your data from the journal table.  An admin
+// would be permitted to do this for any user; other users can only do it for the logged on user.
+// The 'purge' action will delete signup create/delete actions having that user id as first half of id,
+// amend signup create/delete actions having MODIFIEDBY that user (replacing user id with "#deleted")
+// delete person create/update actions, and replace create/update sessions with the same, but with PROPOSER
+// person handle replaced by "#deleted".
+// The privacy policy should stipulate that after five years of inactivity a user's information will be
+// purged from the backend database.  The app should periodically do a complete download and refresh of its local
+// journal file, so that backend changes are always taken into account (it should only do this when it has
+// access to the internet).  
 
 
 namespace LobsterConnect.VM
@@ -25,7 +41,7 @@ namespace LobsterConnect.VM
     /// persons, games and sessions incorporate business logic and consistency checks, you should not in general access
     /// any of these collections, or their members, directly (even though they are exposed as public members for binding
     /// purposes).  Instead, you should access them using the methods on this class with names like Create..., Update...,
-    /// Get... and Check... (also SignUp and CancelSignUp).
+    /// Get..., Check... and ...SignUp.
     /// </summary>
     public class MainViewModel : LobsterConnect.VM.BindableBase
     {
@@ -67,17 +83,24 @@ namespace LobsterConnect.VM
             // would be pointless being as every time the app starts these games get loaded).
             CreateDefaultGames();
 
-            //
-            // Uncomment the lines below, to generate a load of test entries in the viewmodel
-            //LoadTestEventsGamesAndPersons(true);
-            //SetCurrentEvent("LoBsterCon XXVIII");
-            //LoadTestSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name,true);
+            // Create the 'deleted' person, for the sake of referential integrity.  It exists only in the local store.
+            CreatePerson(false, "#deleted", "NAME DELETED", "NUMBER DELETED", "EMAIL DELETED", "#deleted", false, false);
 
-
-            // Reads everything from the local journal file into the viewmodel.
-            // Uncomment the line below, to use the journal from the previous run (which is what
-            // you'll want to do unless you're loading test data above.
-            Journal.LoadJournal(this);
+            bool loadTestData = false;
+            if (loadTestData)
+            {
+                // Uncomment the lines below, to generate a load of test entries in the viewmodel
+                //LoadTestEventsGamesAndPersons(true);
+                //SetCurrentEvent("LoBsterCon XXVIII");
+                //LoadTestSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name,true);
+            }
+            else
+            {
+                // Reads everything from the local journal file into the viewmodel.
+                // Uncomment the line below, to use the journal from the previous run (which is what
+                // you'll want to do unless you're loading test data above.
+                Journal.LoadJournal(this);
+            }
 
             // We set this handler after calling SetCurrentEvent above, to avoid a redundant call to
             // LoadSessionsAndSignUps and the firing of SessionsMustBeRefreshed
@@ -206,6 +229,71 @@ namespace LobsterConnect.VM
             {
                 this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
                 return;
+            }
+        }
+
+        /// <summary>
+        /// Puts the app back into the state that it was when first installed.
+        /// </summary>
+        public async Task<bool> ResetApp()
+        {
+            try
+            {
+                LogUserMessage(Logger.Level.WARNING, "Resetting the app ...");
+                Journal.SuspendJournalSync = true;
+
+                await DispatcherHelper.SleepAsync(5000); // allow time for journal sync to complete
+
+                int i = 0;
+                while (Journal.DoingJournalWork)
+                {
+                    if (i++ > 10)
+                    {
+                        LogUserMessage(Logger.Level.ERROR, "... sync operation did not finish.  Please exit and restart the app");
+                        return false;
+                    }
+                    LogUserMessage(Logger.Level.WARNING, "... waiting for a sync operation to finish, before attempting to reset");
+                    await DispatcherHelper.SleepAsync(5000);
+                }
+
+                SetLoggedOnUser(null);
+
+                Microsoft.Maui.Storage.Preferences.Remove("UserHandle");
+                Microsoft.Maui.Storage.Preferences.Remove("GamingEvent");
+
+                this._currentEvent = null;
+                this._availableEvents.Clear();
+                this._games.Clear();
+                this._sessions.Clear();
+                this._persons.Clear();
+                this._currentFilter = new SessionFilter();
+
+                Model.Utilities.ResetInstallationId();
+
+                Journal.ClearAndReset();
+
+                CreateDefaultGames(); // creates the list of 500 games that are always installed
+                // Create the deleted person, for the sake of referential integrity
+                CreatePerson(false, "#deleted", "NAME DELETED", "NUMBER DELETED", "EMAIL DELETED", "#deleted", false, false);
+
+                // encourage the journal to start syncing again
+                Journal.CloudSyncRequested = true;
+                Journal.SuspendJournalSync = false;
+
+                await DispatcherHelper.SleepAsync(2000); // allow time for journal sync to complete
+
+                V.MainPage.Instance.InitialiseGamingEvent(); // sets the current event to something reasonable
+
+                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+
+                LogUserMessage(Logger.Level.WARNING, "... app reset has been completed.");
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                LogUserMessage(Logger.Level.ERROR, "... app reset failed with error: " + ex.Message);
+                return false;
             }
         }
 
@@ -1186,11 +1274,19 @@ namespace LobsterConnect.VM
                 }
                 else
                 {
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + p.Handle + "' has been logged in");
-                    if (remember)
+                    if (p.Handle == "#deleted") // you can't log in as the 'deleted' user
                     {
-                        Microsoft.Maui.Storage.Preferences.Set("UserHandle", p.Handle);
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + p.Handle + "' has been remembered, and will be logged in next time too");
+                        this.LoggedOnUser = null;
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Login is not permitted for #deleted user");
+                    }
+                    else
+                    {
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + p.Handle + "' has been logged in");
+                        if (remember)
+                        {
+                            Microsoft.Maui.Storage.Preferences.Set("UserHandle", p.Handle);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + p.Handle + "' has been remembered, and will be logged in next time too");
+                        }
                     }
                 }
             }

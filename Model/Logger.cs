@@ -4,7 +4,7 @@ namespace LobsterConnect.Model
     /// <summary>
     /// Methods for writing to the app log file, which is logfile.txt in the app's working directyory.
     /// The log file is maintained by a background worker thread, so log operations
-    /// don't block the UI thread.  It is not allowed to grow beyond 10MB in size; when it does,
+    /// don't block the UI thread.  It is not allowed to grow beyond 3MB in size; when it does,
     /// a new log file is started and the old one is renamed (to a name incorporating a GUID).
     /// </summary>
     public static class Logger
@@ -92,6 +92,14 @@ namespace LobsterConnect.Model
 
         public enum Level { DEBUG, INFO, WARNING, ERROR};
 
+        public static string LogFilePath
+        {
+            get
+            {
+                return Path.Combine(App.ProgramFolder, "logfile.txt");
+            }
+        }
+
         private static void StartLogWorker()
         {
             try
@@ -136,7 +144,7 @@ namespace LobsterConnect.Model
                         // Get the LobsterWorker that raised this event.
                         LobsterWorker w = sender as LobsterWorker;
 
-                        string logFilePath = Path.Combine(App.ProgramFolder, "logfile.txt");
+                        string logFilePath = LogFilePath;
 
                         int waitTime = 1000;
 
@@ -189,11 +197,11 @@ namespace LobsterConnect.Model
                                             }
                                         }
 
-                                        if (fileLength > 1024L * 1024L * 1024L)
+                                        if (fileLength > 1024L * 1024L * 1024L) // edge case for stupidly large file
                                         {
                                             Utilities.FileDeleteIfExists(logFilePath);
                                         }
-                                        else if (fileLength > 10L * 1024L * 1024L)
+                                        else if (fileLength > 3L * 1024L * 1024L)
                                         {
                                             string moveFilePath = Path.Combine(App.ProgramFolder, "logfile" + Guid.NewGuid().ToString("N") + ".txt");
 
@@ -204,7 +212,7 @@ namespace LobsterConnect.Model
                                             {
                                                 using (StreamWriter logFileWriter = new StreamWriter(fs))
                                                 {
-                                                    logFileWriter.WriteLine("LOG FILE EXCEEDED 10MB.  Previous file contents stored at: " + moveFilePath);
+                                                    logFileWriter.WriteLine("LOG FILE EXCEEDED 3MB.  Previous file contents stored at: " + moveFilePath);
                                                 }
                                             }
                                         }
@@ -245,7 +253,7 @@ namespace LobsterConnect.Model
 
         // Lock this lock if you're planning to mess with the log file (copying it or anything)
         // so that while you're working on the file, the log worker won't try to do anything with the file.
-        private static LobsterLock LogFileLock = new Model.LobsterLock();
+        public static LobsterLock LogFileLock = new Model.LobsterLock();
 
         private static LobsterWorker LogWorker = null;
         private static List<string> LogLinesToWrite = new List<string>();

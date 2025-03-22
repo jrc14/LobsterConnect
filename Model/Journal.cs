@@ -1,4 +1,6 @@
 ﻿using LobsterConnect.VM;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 
 
@@ -95,6 +97,49 @@ namespace LobsterConnect.Model
             Journal.AddEntryToQueue(e);
         }
 
+        /// <summary>
+        /// Call this method from the UI thread to reset the journal to the empty (on first run) state.
+        /// It won't work well if the sync process is happening at the same time, so you should
+        /// set Journal.SuspendJournalSync to true, and wait a while, before calling it.
+        /// </summary>
+        public static void ClearAndReset()
+        {
+            lock(QLock)
+            {
+                Q.Clear();
+            }
+            lock (JournalLock)
+            {
+                _LocalJournal.Clear();
+                _LocalJournalNextSeq = 0;
+                
+                lock(JournalFileLock)
+                {
+                    string journalFilePath = Path.Combine(App.ProgramFolder, "localjournal.txt");
+                    Utilities.FileDeleteIfExists(journalFilePath);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns a string containing a prettily formatted printout of all the journal entries that match the predicate.
+        /// </summary>
+        /// <param name="pred">entries for which this predicate is true will be included</param>
+        /// <returns></returns>
+        public static string PrettyPrint(Predicate<JournalEntry> pred, MainViewModel vm)
+        {
+            string returnValue = "";
+            lock(JournalLock)
+            {
+                foreach(JournalEntry e in _LocalJournal)
+                {
+                    if (pred(e))
+                        returnValue += e.PrettyPrint(vm);
+
+                }    
+            }
+            return returnValue;
+        }
         public enum EntityType
         {
             Game, Person, Session, SignUp, GamingEvent
@@ -353,6 +398,104 @@ namespace LobsterConnect.Model
                 {
                     string p = string.Join('|', this._parameters);
                     s += p;
+                }
+                return s;
+            }
+
+            /// <summary>
+            /// Returns true if this entry relates to the given user (in the sense that the content of the entry
+            /// might constitute personal data for that user, from a privacy perspective).
+            /// </summary>
+            /// <param name="handle"></param>
+            /// <returns></returns>
+            public bool RelatesToUser(string handle)
+            {
+                if (this._entityType == EntityType.Person && this._entityId == handle)
+                    return true;
+                else if (this._entityType == EntityType.Session)
+                {
+                    if (GetParameterValue("PROPOSER", this._parameters) == handle)
+                        return true;
+                    else
+                        return false;
+                }
+                else if (this._entityType == EntityType.SignUp)
+                {
+                    if (this._entityId.StartsWith(handle + ","))
+                        return true;
+                    else if (GetParameterValue("MODIFIEDBY", this._parameters) == handle)
+                        return true;
+                    else
+                        return false;
+
+                }
+                else return false;
+            }
+            public string PrettyPrint(MainViewModel vm)
+            {
+                string cloudSeqString = _cloudSeq.ToString("X8");
+                string localSeqString = _localSeq.ToString("X8");
+                string entityTypeString = null;
+                switch (this._entityType)
+                {
+                    case EntityType.GamingEvent: entityTypeString = "GamingEvent"; break;
+                    case EntityType.Game: entityTypeString = "Game"; break;
+                    case EntityType.Person: entityTypeString = "Person"; break;
+                    case EntityType.Session: entityTypeString = "Session"; break;
+                    case EntityType.SignUp: entityTypeString = "SignUp"; break;
+                    default: throw new Exception("JournalEntry.ToString: invalid entity tpe");
+                }
+                string operationTypeString = null;
+                switch (this._operationType)
+                {
+                    case OperationType.Create: operationTypeString = "Create"; break;
+                    case OperationType.Delete: operationTypeString = "Delete"; break;
+                    case OperationType.Update: operationTypeString = "Update"; break;
+                    default: throw new Exception("JournalEntry.ToString: invalid operation type");
+                }
+
+                string s = operationTypeString + " "+ entityTypeString;
+                string idString;
+                if(this._entityType == EntityType.Session)
+                {
+                    if(vm!=null)
+                    {
+                        Session session = vm.GetSession(this._entityId);
+                        if (session != null)
+                            idString = session.ToPlay + " (" + session.Proposer + ") @ " + session.StartAt.ToString();
+                        else
+                            idString = this._entityId;
+                    }
+                    else
+                        idString = this._entityId;
+                }
+                else if (this._entityType==EntityType.SignUp)
+                {
+                    string personHandle = this._entityId.Split(',')[0];
+                    string sessionId = this._entityId.Split(',')[1];
+                    if (vm != null)
+                    {
+                        Session session = vm.GetSession(sessionId);
+                        if (session != null)
+                            idString = personHandle+" "+ session.ToPlay + " (" + session.Proposer + ") @ " + session.StartAt.ToString();
+                        else
+                            idString = this._entityId;
+                    }
+                    else
+                        idString = this._entityId;
+                }
+                else
+                {
+                    idString = this._entityId;
+                }
+                s = s + " " + idString + "\n";
+
+                if (this._parameters.Count > 0)
+                {
+                    for (int i = 0; i < this._parameters.Count; i += 2)
+                    {
+                        s += "    " + this._parameters[i] + " = " + this._parameters[i + 1]+"\n";
+                    }
                 }
                 return s;
             }
@@ -926,6 +1069,8 @@ namespace LobsterConnect.Model
         /// </summary>
         public static bool DoingJournalWork = false;
 
+        public static bool SuspendJournalSync = false;
+
         /// <summary>
         /// Do a cycle of save and sync work.  Every time it's called, this method will empty the queue and write it's entries
         /// to the local journal file.  We expect that to happen every second.
@@ -945,6 +1090,12 @@ namespace LobsterConnect.Model
                 Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork","entered while a previous iteration is still running - doing nothing.");
                 return false;
             }
+            else if (SuspendJournalSync)
+            {
+                Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork", "entered while SuspendJournalSync is  set - doing nothing.");
+                return false;
+            }
+
             DoingJournalWork = true;
             try
             {
@@ -1279,6 +1430,9 @@ namespace LobsterConnect.Model
                     {
                         // add it to the journal
                         _LocalJournal.Add(remote);
+
+                        ManualResetEvent replaySync = new ManualResetEvent(false);
+
                         Model.DispatcherHelper.RunAsyncOnUI(() =>
                         {
                             try
@@ -1290,7 +1444,18 @@ namespace LobsterConnect.Model
                             {
                                 Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudError", ex, "Exception thrown while replaying remote journal entry " + remote.ToString());
                             }
+                            finally
+                            {
+                                replaySync.Set();
+                            }
                         });
+
+                        bool waitResult = replaySync.WaitOne(60 * 1000); // one minute
+
+                        if (!waitResult) // the sync did not get signalled; it timed out
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudEntry", "time out has expired without the action replay being complete.  Proceeding anyway.");
+                        }
                     }
 
                 }

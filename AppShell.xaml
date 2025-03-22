@@ -20,21 +20,18 @@
 
     <Shell.TitleView>
         <Grid>
-            <Label 
-        Text="LobsterConnect"
-        HorizontalOptions="Fill"
-        VerticalOptions="Fill"
-        BackgroundColor="Red"
-        TextColor="White"
-        FontSize="Title"
-        Padding="2,2,0,0"
-                >
+            <Label Text="LobsterConnect"
+                HorizontalOptions="Fill"
+                VerticalOptions="Fill"
+                BackgroundColor="Red"
+                TextColor="White"
+                FontSize="Title"
+                Padding="2,2,2,2">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer 
-                Tapped="AppShell_Tapped"/>
+                        Tapped="AppShell_Tapped"/>
                 </Label.GestureRecognizers>
             </Label>
-
         </Grid>
     </Shell.TitleView>
 
@@ -50,7 +47,7 @@
             <FontImageSource Glyph="&#xE716;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
     </MenuItem>
-    <MenuItem Text="User List" Clicked="AppShell_MenuItemClicked" CommandParameter="users">
+    <MenuItem Text="List People" Clicked="AppShell_MenuItemClicked" CommandParameter="people">
         <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xe906;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
@@ -70,12 +67,12 @@
             <FontImageSource Glyph="&#xee88;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
         </MenuItem>
-    <MenuItem Text="Legal" Clicked="AppShell_MenuItemClicked" CommandParameter="legal">
+    <MenuItem Text="Legal Terms" Clicked="AppShell_MenuItemClicked" CommandParameter="legal">
             <MenuItem.IconImageSource>
                 <FontImageSource Glyph="&#xe53b;" FontFamily="FluentSystemIcons-Regular" />
             </MenuItem.IconImageSource>
         </MenuItem>
-    <MenuItem Text="Privacy" Clicked="AppShell_MenuItemClicked" CommandParameter="privacy">
+    <MenuItem Text="Privacy and Data Handling" Clicked="AppShell_MenuItemClicked" CommandParameter="privacy">
             <MenuItem.IconImageSource>
                 <FontImageSource Glyph="&#xe302;" FontFamily="FluentSystemIcons-Regular"/>
             </MenuItem.IconImageSource>

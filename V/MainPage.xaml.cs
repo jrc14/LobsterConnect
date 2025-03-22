@@ -39,49 +39,8 @@ public partial class MainPage : ContentPage
             }
         }
 
-		List<string> availableEvents = MainViewModel.Instance.GetAvailableEventNames();
-		if(availableEvents.Count==0)
-		{
-			if(Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
-			{
-				DisplayAlert("No Network", "The app needs to access the internet, to fetch the list of available gaming events.  Please close the app, and return to it once you have an internet connection.", "Dismiss");
-			}
-			else
-			{
-                DisplayAlert("Sync", "The app is still fetching the list of available gaming events.  Please wait, and once an event name appears on the schedule screen, tap on it to make a selection.", "Dismiss");
-            }
-		}
-		else
-		{
-			string defaultGamingEventName = null;
-			if (Microsoft.Maui.Storage.Preferences.ContainsKey("GamingEvent"))
-			{
-				defaultGamingEventName = Microsoft.Maui.Storage.Preferences.Get("GamingEvent", "");
-			}
-		
-			// if there is no saved event name, or if the saved event name doesn't appear on the list
-			if (string.IsNullOrEmpty(defaultGamingEventName) || !MainViewModel.Instance.CheckEventName(defaultGamingEventName))
-			{
-				// then set the gaming event to a valid value (the first active event in the list, or if no
-				// events are active, the first event on the list
-				for(int e=0; e<availableEvents.Count;e++)
-				{
-					GamingEvent ee = MainViewModel.Instance.GetGamingEvent(availableEvents[e]);
-					if(ee!=null && ee.IsActive)
-					{
-						defaultGamingEventName = ee.Name;
-						break;
-					}
-				}
-				if (defaultGamingEventName == null)
-					defaultGamingEventName = availableEvents[0];
-
-				Microsoft.Maui.Storage.Preferences.Set("GamingEvent", defaultGamingEventName);
-            }
-            
-            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Gaming event '" + defaultGamingEventName + "' has been selected");
-            MainViewModel.Instance.SetCurrentEvent(defaultGamingEventName);
-        }
+		// Make sure we have fetched the gaming event list from the cloud, and set the current event to something reasonable
+		InitialiseGamingEvent();
 
         // As long as this page is loaded, we need to respond to a 'sessions must be refreshed' event raised
         // by the view model, by refreshing the main UI grid that shows all the sessions
@@ -132,6 +91,7 @@ public partial class MainPage : ContentPage
         }
 #endif
     }
+
     public void RefreshSessionsGrid(object o, EventArgs a)
 	{
         List<Session>[] sessions;
@@ -500,21 +460,73 @@ public partial class MainPage : ContentPage
         }
     }
 
-	public void FlyoutMenuAction(string action)
+	/// <summary>
+	/// Initialise the current gaming event to a valid value, using the saved preference if that exists
+	/// and is valid.
+	/// </summary>
+	public void InitialiseGamingEvent()
+	{
+        List<string> availableEvents = MainViewModel.Instance.GetAvailableEventNames();
+        if (availableEvents.Count == 0)
+        {
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                DisplayAlert("No Network", "The app needs to access the internet, to fetch the list of available gaming events.  Please close the app, and return to it once you have an internet connection.", "Dismiss");
+            }
+            else
+            {
+                DisplayAlert("Sync", "The app is still fetching the list of available gaming events.  Please wait, and once an event name appears on the schedule screen, tap on it to make a selection.", "Dismiss");
+            }
+        }
+        else
+        {
+            string defaultGamingEventName = null;
+            if (Microsoft.Maui.Storage.Preferences.ContainsKey("GamingEvent"))
+            {
+                defaultGamingEventName = Microsoft.Maui.Storage.Preferences.Get("GamingEvent", "");
+            }
+
+            // if there is no saved event name, or if the saved event name doesn't appear on the list
+            if (string.IsNullOrEmpty(defaultGamingEventName) || !MainViewModel.Instance.CheckEventName(defaultGamingEventName))
+            {
+                // then set the gaming event to a valid value (the first active event in the list, or if no
+                // events are active, the first event on the list
+                for (int e = 0; e < availableEvents.Count; e++)
+                {
+                    GamingEvent ee = MainViewModel.Instance.GetGamingEvent(availableEvents[e]);
+                    if (ee != null && ee.IsActive)
+                    {
+                        defaultGamingEventName = ee.Name;
+                        break;
+                    }
+                }
+                if (defaultGamingEventName == null)
+                    defaultGamingEventName = availableEvents[0];
+
+                Microsoft.Maui.Storage.Preferences.Set("GamingEvent", defaultGamingEventName);
+            }
+
+            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Gaming event '" + defaultGamingEventName + "' has been selected");
+            MainViewModel.Instance.SetCurrentEvent(defaultGamingEventName);
+        }
+    }
+
+	public async void FlyoutMenuAction(string action)
 	{
 		if(action=="event")
 		{
 			lblEventTapped(this, new TappedEventArgs(null));
         }
-		else if (action=="users")
+		else if (action=="people")
 		{
-            
-
+			List<string> allPersons = MainViewModel.Instance.GetAvailablePersons();
+            PopupViewPersons personsViewer = new PopupViewPersons();
+            personsViewer.SetPersons(allPersons);
+            var popupResult = await MainPage.Instance.ShowPopupAsync(personsViewer, CancellationToken.None);
         }
 		else if (action == "addsession")
 		{
 			btnAddSessionClicked(this, new EventArgs());
-
         }
 		else if (action == "filter")
 		{
@@ -522,30 +534,80 @@ public partial class MainPage : ContentPage
 		}
 		else if (action == "support")
 		{
+			string action2 = await DisplayActionSheet("Support", "Dismiss", null, "Email for support", "Reset App");
 
-		}
+			if(action2 == "Email for support")
+			{
+				try
+				{
+					if (Email.Default.IsComposeSupported)
+					{
+						string fromPath = Logger.LogFilePath;
+						string toPath = Path.Combine(FileSystem.CacheDirectory, "logfile" + Guid.NewGuid().ToString("N") + ".txt");
+						lock (Logger.LogFileLock)
+						{
+							Model.Utilities.FileCopy(fromPath, toPath);
+						}
+						EmailAttachment attachment = new EmailAttachment(Logger.LogFilePath);
+						EmailMessage message = new EmailMessage()
+						{
+							Subject = "LobsterConnect Support",
+							Body = "\n\n I'm having trouble with LobsterConnect, please can you help out.  I attach the log file\n",
+							BodyFormat = EmailBodyFormat.PlainText,
+							To = new List<string>() { "lobsterconnect@turnipsoft.co.uk" },
+							Attachments = new List<EmailAttachment> { attachment }
+						};
+
+						await Email.Default.ComposeAsync(message);
+					}
+					else
+					{
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sorry, the app cannot create an email for you.  Please send your request to lobsterconnect@turnipsoft.co.uk");
+                    }
+				}
+				catch (Exception ex)
+				{
+					MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: "+ex.Message);
+				}
+            }
+			else if (action2 == "Reset App")
+			{
+				bool confirmation = await MainPage.Instance.DisplayAlert("Reset the application", "Please confirm you want to reset the application.  This will restore the application to its initial state and reload all game information from the internet.  Any recent changes that haven't synced yet will be lost.", "Reset", "Don't reset");
+				if(confirmation)
+				{
+					await MainViewModel.Instance.ResetApp();
+				}
+            }
+
+        }
 		else if (action == "legal")
 		{
-
-		}
+            var popup = new PopupLegalTerms();
+            var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+        }
 		else if (action == "privacy")
 		{
-
+			var popup = new PopupDataHandling();
+            var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
 		}
 		else if (action == "about")
 		{
+            int major = AppInfo.Version.Major;
+            int minor = AppInfo.Version.Minor;
+            int build = AppInfo.Version.Build;
 
-		}
+			string msg = "LobsterConnect (c) Turnipsoft 2005\n\nVersion " + major.ToString() + "." + minor.ToString() + " build " + build.ToString();
+
+			await DisplayAlert("About", msg, "Dismiss");
+        }
 		else if (action == "help")
 		{
-
-		}
+			await Browser.Default.OpenAsync("https://www.turnipsoft.com/lobsterconnect/");
+        }
 		else
 		{
 			Logger.LogMessage(Logger.Level.ERROR, "MainPage.FlyoutMenuAtion", "invalid action: " + action);
 		}
-
-
     }
 }
 
