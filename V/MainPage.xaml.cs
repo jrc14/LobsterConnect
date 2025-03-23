@@ -596,7 +596,7 @@ public partial class MainPage : ContentPage
             int minor = AppInfo.Version.Minor;
             int build = AppInfo.Version.Build;
 
-			string msg = "LobsterConnect (c) Turnipsoft 2005\n\nVersion " + major.ToString() + "." + minor.ToString() + " build " + build.ToString();
+			string msg = "LobsterConnect © Turnipsoft 2025\n\nVersion " + major.ToString() + "." + minor.ToString() + " build " + build.ToString();
 
 			await DisplayAlert("About", msg, "Dismiss");
         }

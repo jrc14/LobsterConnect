@@ -19,13 +19,8 @@ using LobsterConnect.Model;
 // information, or anything offensive.  The comment viewer popup should include a link to a 'report
 // inappropriate content'.
 // The privacy policy popup should let you view all the personal data that's held for the logged on user, and
-// offer an option to purge your personal data from the app.  This will
-// initiate a special action in the backend to scrub all your data from the journal table.  An admin
-// would be permitted to do this for any user; other users can only do it for the logged on user.
-// The 'purge' action will delete signup create/delete actions having that user id as first half of id,
-// amend signup create/delete actions having MODIFIEDBY that user (replacing user id with "#deleted")
-// delete person create/update actions, and replace create/update sessions with the same, but with PROPOSER
-// person handle replaced by "#deleted".
+// offer an option to purge your personal data from the app.
+//
 // The privacy policy should stipulate that after five years of inactivity a user's information will be
 // purged from the backend database.  The app should periodically do a complete download and refresh of its local
 // journal file, so that backend changes are always taken into account (it should only do this when it has
@@ -293,6 +288,106 @@ namespace LobsterConnect.VM
             catch(Exception ex)
             {
                 LogUserMessage(Logger.Level.ERROR, "... app reset failed with error: " + ex.Message);
+                return false;
+            }
+        }
+
+
+        /// <summary>
+        /// Removes all personal data about the specified user from the app and the cloud store.
+        /// </summary>
+        public async Task<bool> PurgeUserData(string personHandle)
+        {
+            try
+            {
+                LogUserMessage(Logger.Level.WARNING, "Purging data for ..."+ personHandle);
+                Journal.SuspendJournalSync = true;
+
+                await DispatcherHelper.SleepAsync(5000); // allow time for journal sync to complete
+
+                int i = 0;
+                while (Journal.DoingJournalWork)
+                {
+                    if (i++ > 10)
+                    {
+                        LogUserMessage(Logger.Level.ERROR, "... sync operation did not finish.  Please exit and restart the app");
+                        return false;
+                    }
+                    LogUserMessage(Logger.Level.WARNING, "... waiting for a sync operation to finish, before attempting to purge");
+                    await DispatcherHelper.SleepAsync(5000);
+                }
+
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    // unavailable
+                    LogUserMessage(Logger.Level.ERROR, "... data purge failed because there is no internet access");
+                    return false;
+                }
+                else
+                {
+                    System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
+
+                    // Ask the backend to purge the specified user from its database. This will
+                    // initiate a special action in the backend to scrub all your data from the journal table.  An admin
+                    // would be permitted to do this for any user; other users can only do it for the logged on user.
+                    // The 'purge' action will:
+                    //  - Amend signup create/delete actions having that user id as first half of id (replacing user id with "#deleted"),
+                    //  - Amend signup create/delete actions having MODIFIEDBY= that user (replacing user id with "#deleted")
+                    //  - Amend person create/update actions, replacing ID with "#deleted" and removing all parameters
+                    //  - Replace create/update sessions with the same, but with PROPOSER person handle replaced by "#deleted".
+                    string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?purgeUser=" + personHandle;
+                    StringContent postContent = new StringContent("");
+                    HttpResponseMessage response = await client.PostAsync(postQuery, postContent);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // failure response
+                        LogUserMessage(Logger.Level.ERROR, "... data purge failed with HTTP error: " + response.StatusCode.ToString() + ": " + response.ReasonPhrase);
+                        return false;
+                    }
+                    else
+                    {
+                        // Put the app back into its 'factory reset' state
+                        SetLoggedOnUser(null);
+
+                        Microsoft.Maui.Storage.Preferences.Remove("UserHandle");
+                        Microsoft.Maui.Storage.Preferences.Remove("GamingEvent");
+
+                        this._currentEvent = null;
+                        this._availableEvents.Clear();
+                        this._games.Clear();
+                        this._sessions.Clear();
+                        this._persons.Clear();
+                        this._currentFilter = new SessionFilter();
+
+                        Model.Utilities.ResetInstallationId();
+
+                        Journal.ClearAndReset(); // delete the journal file
+
+                        CreateDefaultGames(); // Create the list of 500 games that are always installed
+                        
+                        // Create the deleted person, for the sake of referential integrity
+                        CreatePerson(false, "#deleted", "NAME DELETED", "NUMBER DELETED", "EMAIL DELETED", "#deleted", false, false);
+
+                        // encourage the journal to start syncing again
+                        Journal.CloudSyncRequested = true;
+                        Journal.SuspendJournalSync = false;
+
+                        await DispatcherHelper.SleepAsync(2000); // allow time for journal sync to complete
+
+                        V.MainPage.Instance.InitialiseGamingEvent(); // sets the current event to something reasonable
+
+                        this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+
+                        LogUserMessage(Logger.Level.WARNING, "... data purge has been completed.");
+
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogUserMessage(Logger.Level.ERROR, "... data purge failed with error: " + ex.Message);
                 return false;
             }
         }
@@ -753,16 +848,23 @@ namespace LobsterConnect.VM
                     throw new ArgumentException("MainViewModel.SignUp: no such session:'" + sessionId + "'");
                 }
 
-                if (!person.IsActive)
+                if (personHandle == "#deleted")
                 {
-                    if (checkActive)
+                    Logger.LogMessage(Logger.Level.DEBUG, "MainViewModel.SignUp", "signing a deleted person up for " + sessionId);
+                }
+                else
+                {
+                    if (!person.IsActive)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.SignUp", "person is not active:'" + personHandle + "'");
-                        throw new ArgumentException("MainViewModel.SignUp: person is not active:'" + personHandle + "'");
-                    }
-                    else
-                    {
-                        LogUserMessage(Logger.Level.WARNING, "Sign-up: an inactive person '" + personHandle + "' is being signed up to play '" + session.ToPlay + "'");
+                        if (checkActive)
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.SignUp", "person is not active:'" + personHandle + "'");
+                            throw new ArgumentException("MainViewModel.SignUp: person is not active:'" + personHandle + "'");
+                        }
+                        else
+                        {
+                            LogUserMessage(Logger.Level.WARNING, "Sign-up: an inactive person '" + personHandle + "' is being signed up to play '" + session.ToPlay + "'");
+                        }
                     }
                 }
                 if (session.State != "OPEN")
@@ -777,8 +879,12 @@ namespace LobsterConnect.VM
                         LogUserMessage(Logger.Level.WARNING, "Sign-up: '" + personHandle + "' is being signed up to play a non-OPEN session of '" + session.ToPlay + "'");
                     }
                 }
-
-                if (session.IsSignedUp(person.Handle))
+                if (personHandle == "#deleted") // allow duplicate sign-ups for the 'deleted' user because more than one user may be deleted
+                {
+                    session.AddSignUp(person.Handle);
+                    succeeded = true;
+                }
+                else if (session.IsSignedUp(person.Handle))
                 {
                     Logger.LogMessage(Logger.Level.INFO, "MainViewModel.SignUp", "duplicate sign-up ignored:'" + sessionId + "'");
                 }

@@ -67,13 +67,13 @@ public partial class PopupDataHandling : Popup
 
     void OnViewPolicyClicked(object sender, EventArgs e)
     {
-        this.svTextViewer.ScrollTo(0, 0);
+        this.svTextViewer.ScrollToAsync(0, 0, false);
         this.lbTextViewer.Text = _PolicyText;
     }
 
     void OnViewPersonalDataClicked(object sender, EventArgs e)
     {
-        this.svTextViewer.ScrollTo(0, 0);
+        this.svTextViewer.ScrollToAsync(0, 0, false);
 
         if (MainViewModel.Instance.LoggedOnUser == null)
             this.lbTextViewer.Text = "NO LOGGED ON USER";
@@ -88,7 +88,15 @@ public partial class PopupDataHandling : Popup
 
     async void OnPurgePersonalDataClicked(object sender, EventArgs e)
     {
-
+        if (MainViewModel.Instance.LoggedOnUser != null)
+        {
+            string personHandle = MainViewModel.Instance.LoggedOnUser.Handle;
+            bool confirmation = await MainPage.Instance.DisplayAlert("Purge Data", "Please confirm you want to purge all information about '"+personHandle+"' from the app and its on-line database.  Please note that this action cannot be done; once purged, the data is permanently and unrecoverably lost.", "Purge", "Don't purge");
+            if (confirmation)
+            {
+                await MainViewModel.Instance.PurgeUserData(personHandle);
+            }
+        }
     }
 
 }

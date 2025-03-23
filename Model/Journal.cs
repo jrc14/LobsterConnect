@@ -505,7 +505,7 @@ namespace LobsterConnect.Model
             /// do this after initially loading the local journal file, and also whenever you've fetched more journal entries
             /// from the cloud.  Note that this method will make various calls to the vm.SyncCheck... methods, which will
             /// detect changes needing a notification to the logged on user (and also changes to the 'event selection' drop
-            /// down menu).  If you want to suppress the noticifications to the logged on user, you shoud ensure that, when
+            /// down menu).  If you want to suppress the notifications to the logged on user, you shoud ensure that, when
             /// you call the Replay method, vm.LoggedOnUser is set to null.
             /// </summary>
             /// <param name="vm">the viewmodel to be updated accordingly to the content of this journal entry</param>
@@ -606,7 +606,13 @@ namespace LobsterConnect.Model
             /// <exception cref="Exception"></exception>
             private void ReplayPerson(MainViewModel vm)
             {
-                if (this._operationType == OperationType.Create)
+                if(this._entityId=="#deleted")
+                {
+                    // If the person has been marked as deleted in the cloud store / journal, ignore any attempt
+                    // to create or delete them.  A '#deleted#' special person is created in the viewmodel at startup
+                    // and that one entry represents all users that have been marked as deleted.
+                }
+                else if (this._operationType == OperationType.Create)
                 {
                     vm.CreatePerson(false, this._entityId,
                         GetParameterValue("FULLNAME", this._parameters,""),

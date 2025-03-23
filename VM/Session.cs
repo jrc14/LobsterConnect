@@ -436,8 +436,8 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Adds a signup to self.  The method doesn't check that the person handle is a valid, active person, but it does
-        /// ignore attempts to add a duplicate sign up.  It also rejects person handles containing a comma, because of the trouble this
-        /// can cause.
+        /// ignore attempts to add a duplicate sign up, unless they are for the '#deleted' user.  It also rejects
+        /// person handles containing a comma, because of the trouble this can cause.
         /// Warning: though this method is public you probably don't want to call it.  Rather, you should add sign-ups by
         /// calling MainViewModel.Instance.ignUp because that method will take care of updating the UI and writing to
         /// the journal, so that changes get saved properly.
@@ -468,14 +468,13 @@ namespace LobsterConnect.VM
             {
                 string existing = this._signUps.Trim();
 
-                if (existing == personHandle)
+                if (existing == personHandle && personHandle!="#deleted")
                 {
                     Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person handle is already signed up: '" + personHandle + "'");
                     this._numSignUps = 1;
                 }
                 else
                 {
-
                     this._signUps += ", " + personHandle;
                     this._numSignUps = 2;
                 }
@@ -485,17 +484,24 @@ namespace LobsterConnect.VM
                 int hh = 0;
 
                 bool duplicated = false;
-                foreach (string h in this._signUps.Split(','))
+                if (personHandle != "#deleted")
                 {
-                    string existing = h.Trim();
-                    if (personHandle == existing)
+                    foreach (string h in this._signUps.Split(','))
                     {
-                        duplicated = true;
-                        Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person is already signed up: '" + personHandle + "'");
-                    }
+                        string existing = h.Trim();
+                        if (personHandle == existing)
+                        {
+                            duplicated = true;
+                            Logger.LogMessage(Logger.Level.INFO, "Session.AddSignUp", "person is already signed up: '" + personHandle + "'");
+                        }
 
-                    hh++;
+                        hh++;
+                    }
                 }
+                //else
+                //{
+                //    Logger.LogMessage(Logger.Level.DEBUG, "Session.AddSignUp", "signing up #deleted person to "+this.Id);
+                //}
                 if (!duplicated)
                 {
                     this._signUps += ", " + personHandle;
@@ -509,7 +515,9 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Removes a signup from self.  The method doesn't check that the person handle is a valid, active person, but it does
-        /// reject person handles containing a comma, because of the trouble this can cause.
+        /// reject person handles containing a comma, because of the trouble this can cause.  It's possible that when the
+        /// method is called, there are multiple sign-ups for the '#deleted' user; in this case, the method will remove one of
+        /// them.
         /// It will throw an exception if the person isn't signed up.
         /// Warning: though this method is public you probably don't want to call it.  Rather, you should remove sign-ups by
         /// calling MainViewModel.Instance.CancelSignUp because that method will take care of updating the UI and writing to
@@ -559,7 +567,7 @@ namespace LobsterConnect.VM
                     existing[hh] = existing[hh].Trim();
                     if (existing[hh] == personHandle)
                     {
-                        if (toRemove != -1)
+                        if (toRemove != -1 && personHandle!="#deleted") // a duplicate '#deleted' user is OK; we just remove the last one we find
                         {
                             Logger.LogMessage(Logger.Level.ERROR, "Session.RemoveSignUp", "person was signed up twice: '" + personHandle + "'");
                             throw new ArgumentException("Session.RemoveSignUp: person was signed up twice");
