@@ -335,7 +335,9 @@ namespace LobsterConnect.VM
                     //  - Amend signup create/delete actions having MODIFIEDBY= that user (replacing user id with "#deleted")
                     //  - Amend person create/update actions, replacing ID with "#deleted" and removing all parameters
                     //  - Replace create/update sessions with the same, but with PROPOSER person handle replaced by "#deleted".
-                    string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?purgeUser=" + personHandle;
+                    string nonce = System.Random.Shared.Next().ToString("X8");
+                    string signature = Utilities.GetHashCodeForString(personHandle + nonce).ToString("X8");
+                    string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?purgeUser=" + personHandle+"&nonce="+nonce+"&signature="+signature;
                     StringContent postContent = new StringContent("");
                     HttpResponseMessage response = await client.PostAsync(postQuery, postContent);
 

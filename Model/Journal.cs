@@ -1247,7 +1247,9 @@ namespace LobsterConnect.Model
 
                         // Ask the backend to send us every record with a higher Cloud Seq Number than syncFrom (the highest one that we have seen so far)
                         // and send it all the local journal records that so far have not been given a Cloud Seq Number).
-                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X8") + "&remoteDevice=" + Model.Utilities.InstallationId;
+                        string nonce = System.Random.Shared.Next().ToString("X8");
+                        string signature = Utilities.GetHashCodeForString(syncFrom.ToString("X8")+ Model.Utilities.InstallationId + nonce).ToString("X8");
+                        string postQuery = "https://lobsterconbackend.azurewebsites.net/api/JournalSync?syncFrom=" + syncFrom.ToString("X8") + "&remoteDevice=" + Model.Utilities.InstallationId+"&nonce=" + nonce + "&signature=" + signature;
                         StringContent postContent = new StringContent(contentString);
                         HttpResponseMessage response = client.PostAsync(postQuery, postContent).Result;
 
