@@ -75,7 +75,7 @@ public partial class PopupAddSession : Popup
                 else
                     gameName = this.lvGame.SelectedItem as string;
 
-                string notes = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "Please add any note that you want to display on this session");
+                string notes = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "Please add any note that you want to display on this session. Do not enter text that is offensive or defamatory, or contains information about any person.");
 
                 string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "If you want to associate a WhatsApp chat with this game, please get an 'invite to group' link for the chat, and paste it here");
 

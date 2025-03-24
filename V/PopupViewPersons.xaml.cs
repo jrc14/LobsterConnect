@@ -61,8 +61,13 @@ public partial class PopupViewPersons : Popup
 
     async void OnDismissClicked(object sender, EventArgs e)
     {
+        string result = null;
 
-        await CloseAsync(true, CancellationToken.None);
+        List<string> personHandles = this.pickerPersons.ItemsSource as List<string>;
+        int i = this.pickerPersons.SelectedIndex;
+        if (personHandles != null && i >= 0 && i < personHandles.Count)
+            result = personHandles[i];
+        await CloseAsync(result, CancellationToken.None);
     }
 
     private void pickerPersons_SelectedIndexChanged(object sender, EventArgs e)

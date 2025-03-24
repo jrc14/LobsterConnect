@@ -38,7 +38,7 @@ public partial class PopupManageFilter : Popup
 
     public void SetFilter(SessionFilter f)
     {
-        List<string> persons = MainViewModel.Instance.GetAvailablePersons(true);
+        List<string> persons = MainViewModel.Instance.GetAvailablePersons(false);
         persons.Sort();
 
         persons.Insert(0, "[Any Person]");

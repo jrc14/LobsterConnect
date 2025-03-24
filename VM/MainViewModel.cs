@@ -2,29 +2,25 @@
 using LobsterConnect.Model;
 
 // TO DO
-// Session mgt screen should use a popup to prompt switching btw OPEN/FULL/ABANDONED; the current setup with two
-// prompt popups is just tiresome.
-// Session organiser and admin users should be allowed to remove other people's sign-ups
-// Admin user should be allowed to set events, games, and persons to inactive (or back to active) and should be 
-// to change session state
-// A hamburger menu is needed, offering switch event, add session and maybe a user list.  Also about, legal and privacy
-// policy, reset app, and email for support.  Perhaps also a link to the manual, once I have written one.
+// [done] Session organiser and admin users should be allowed to remove other people's sign-ups
+// [done] Admin user should be allowed to set events, games, and persons to inactive (or back to active).
+// Admin user should be allowed to edit person and game details.
+// [done] Admin user should be allowed to edit session state and contents for any session
 // Tap on schedule bar or on background should show the add session popup
 // The session grid shouldn't scroll back to 0 unless it needs to (when we've added a session it would be better
 // if it stayed on screen)
 // On first run should ask whether the user is 18 or over - and if not, it should refuse to sync with the cloud.
 // Popups for entering person info should give a privacy warning when first used, and contain a link to the
 // privacy policy page
-// The popup for adding comments to a session should warn you that you mustn't post personally identifying
-// information, or anything offensive.  The comment viewer popup should include a link to a 'report
-// inappropriate content'.
-// The privacy policy popup should let you view all the personal data that's held for the logged on user, and
-// offer an option to purge your personal data from the app.
-//
-// The privacy policy should stipulate that after five years of inactivity a user's information will be
-// purged from the backend database.  The app should periodically do a complete download and refresh of its local
+// [done] The popups for adding comments to a session should warn you that you mustn't post personally identifying
+// information, or anything offensive.
+// The comment viewer popup should include a link to a 'report inappropriate content'.
+// The app should periodically do a complete download and refresh of its local
 // journal file, so that backend changes are always taken into account (it should only do this when it has
-// access to the internet).  
+// access to the internet).
+// A nice icon and splash screen are needed.
+// I'll need to write a manual, and a landing page on www.turnipsoft.com/lobsterconnect
+// I need to put the connection string in a secret, Git-and-FOSS-compatible place.
 
 
 namespace LobsterConnect.VM
@@ -1193,7 +1189,7 @@ namespace LobsterConnect.VM
                     throw new ArgumentException("MainViewModel.CreateGamingEvent: null name");
                 }
 
-                if(GetAvailableEventNames().Contains(name))
+                if(GetAvailableEvents().Contains(name))
                 {
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "event name is the same as one already in the list");
                     throw new ArgumentException("MainViewModel.CreateGamingEvent: duplicate name");
@@ -1302,14 +1298,18 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Retrieve a list of events that we can manage sessions and signups for.
         /// </summary>
+        /// <param name="ifActive">if true (the default), then only active events will be included in the list returned, if false, then only inactive ones, if null, then all events will be included.</param>
         /// <returns>The names of the events</returns>
-        public List<string> GetAvailableEventNames()
+        public List<string> GetAvailableEvents(bool? ifActive= true)
         {
             List<string> names = new List<string>();
 
             foreach(GamingEvent e in _availableEvents)
             {
-                names.Add(e.Name);
+                if (ifActive == null)
+                    names.Add(e.Name);
+                else if (ifActive == e.IsActive)
+                    names.Add(e.Name);
             }
             return names;
         }
@@ -1548,18 +1548,18 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Retrieve a list of persons that we can manage signups for.
         /// </summary>
-        /// <param name="includeInactive">if true, then inactive persons will be included in the list returned</param>
+        /// <param name="ifActive">if true (the default), then only active persons will be included in the list returned, if false, then only inactive ones, if null, then all persons will be included.</param>
         /// <returns></returns>
-        public List<string> GetAvailablePersons(bool includeInactive=false)
+        public List<string> GetAvailablePersons(bool? ifActive=true)
         {
             List<string> personNames = new List<string>();
 
             foreach (Person p in _persons)
             {
-                if (p.IsActive || includeInactive)
-                {
+                if(ifActive==null)
                     personNames.Add(p.Handle);
-                }
+                else if (ifActive==p.IsActive)
+                    personNames.Add(p.Handle);
             }
 
             return personNames;
@@ -1591,17 +1591,18 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Retrieve a list of the games that we can manage signups for.
         /// </summary>
+        /// <param name="ifActive">if true (the default), then only active games will be included in the list returned, if false, then only inactive ones, if null, then all games will be included.</param>
         /// <returns></returns>
-        public List<string> GetAvailableGames()
+        public List<string> GetAvailableGames(bool? ifActive= true)
         {
             List<string> gameNames = new List<string>();
 
             foreach (Game g in _games)
             {
-                if (g.IsActive)
-                {
+                if (ifActive == null)
                     gameNames.Add(g.Name);
-                }
+                else if (ifActive == g.IsActive)
+                    gameNames.Add(g.Name);
             }
 
             return gameNames;
@@ -1643,7 +1644,7 @@ namespace LobsterConnect.VM
                     await Model.DispatcherHelper.SleepAsync(1000);
                     if(CurrentEvent==null && _availableEvents.Count!=0)
                     {
-                        List<string> availableEvents = MainViewModel.Instance.GetAvailableEventNames();
+                        List<string> availableEvents = MainViewModel.Instance.GetAvailableEvents();
                         string eventName = null;
                         // Set the gaming event to a valid value (the first active event in the list, or if no
                         // events are active, the first event on the list

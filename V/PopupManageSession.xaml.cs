@@ -31,6 +31,7 @@ public partial class PopupManageSession : Popup
             this.colDef1.Width = new GridLength(80, GridUnitType.Absolute);
         }
 
+        V.Utilities.StylePopupButtons(this.btnDismiss, null, this.rdefButtons);
     }
 
     public void SetSession(Session s)
@@ -38,7 +39,9 @@ public partial class PopupManageSession : Popup
         this.BindingContext = s;
         if (s != null)
         {
-            if (MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer && MainViewModel.Instance.CurrentEvent.IsActive)
+            bool userIsProposer = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer;
+            bool userIsAdmin = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.IsAdmin;
+            if (userIsProposer || userIsAdmin)
             {
                 this.btnNotes.IsVisible = true;
                 this.btnState.IsVisible = true;
@@ -55,8 +58,6 @@ public partial class PopupManageSession : Popup
                 Grid.SetColumnSpan(this.lblWhatsAppLink, 2);
             }
         }
-
-        V.Utilities.StylePopupButtons(this.btnDismiss, null, this.rdefButtons);
     }
 
     async void btnWhatsAppClicked(object sender, EventArgs e)
@@ -64,7 +65,9 @@ public partial class PopupManageSession : Popup
         try
         {
             Session s = this.BindingContext as Session;
-            if (s != null && MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer)
+            bool userIsProposer = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer;
+            bool userIsAdmin = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.IsAdmin;
+            if (s != null && (userIsProposer || userIsAdmin))
             {
                 string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Manage Gaming Session", "To associate a WhatsApp chat with this game, get an 'invite to group' link for the chat, and paste it here", initialValue: s.WhatsAppLink);
 
@@ -86,9 +89,14 @@ public partial class PopupManageSession : Popup
         try
         {
             Session s = this.BindingContext as Session;
-            if (s != null && MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer)
+            bool userIsProposer = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer;
+            bool userIsAdmin = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.IsAdmin;
+            if (s != null && (userIsProposer|| userIsAdmin))
             {
-                string notes = await MainPage.Instance.DisplayPromptAsync("Manage Gaming Session", "Notes to display on this session", initialValue: s.Notes);
+                string notes =
+                    await MainPage.Instance.DisplayPromptAsync(
+                        "Manage Gaming Session",
+                        "Enter the notes to display on this session.  Do not enter text that is offensive or defamatory, or contains information about any person.", initialValue: s.Notes);
 
                 if (s != null)
                 {
@@ -131,7 +139,46 @@ public partial class PopupManageSession : Popup
                     }
                 }
 
-                if (MainViewModel.Instance.CurrentEvent.IsActive)
+                bool showAdminPopup = false;
+                if (signUps.Count > 0)
+                {
+                    bool userIsProposer = MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer;
+                    bool userIsAdmin = MainViewModel.Instance.LoggedOnUser.IsAdmin;
+                    if (userIsProposer || userIsAdmin)
+                    {
+                        string prompt = "Because you are " + (userIsAdmin ? "an admin" : "the proposer of the session") + " you can remove other people's sign-ups.  Do you want to do this?";
+                        bool confirmation = await MainPage.Instance.DisplayAlert("Remove player from session", prompt, "Yes", "No");
+                        if (confirmation)
+                        {
+                            showAdminPopup = true;
+                        }
+                    }
+                }
+
+                if (showAdminPopup) // show the popup for an admin or the proposer to remove any sign-up
+                {
+                    string personHandle = null;
+                    if (signUps.Count == 1)
+                        personHandle = signUps[0];
+                    else
+                    {
+                        PopupItemsViewer personsViewer = new PopupItemsViewer();
+                        personsViewer.SetItems(signUps);
+                        var popupResult = await MainPage.Instance.ShowPopupAsync(personsViewer, CancellationToken.None);
+                        personHandle = popupResult as string;
+                    }
+                    if(personHandle!=null)
+                    {
+                        string prompt = "Please confirm that you want to remove "+personHandle+"'s sign from the gaming session.";
+                        bool confirmation = await MainPage.Instance.DisplayAlert("Remove player from session", prompt, "Remove", "Don't remove");
+                        if(confirmation)
+                        {
+                            MainViewModel.Instance.CancelSignUp(true, personHandle, s.Id, MainViewModel.Instance.LoggedOnUser.Handle);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "The sign-up for '" + personHandle + "' to play '" + s.ToPlay + "' has been cancelled by '"+ MainViewModel.Instance.LoggedOnUser.Handle);
+                        }
+                    }
+                }
+                else if (MainViewModel.Instance.CurrentEvent.IsActive) // show the popup for a user to manage their own sign-ups and view user details
                 {
                     string signUp = "Sign up to play";
                     string cancelSignUp = "Cancel my sign up";
@@ -196,68 +243,13 @@ public partial class PopupManageSession : Popup
         try
         {
             Session s = this.BindingContext as Session;
-            if (s != null && MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer)
+            bool userIsProposer = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.Handle == s.Proposer;
+            bool userIsAdmin = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.IsAdmin;
+            if (s != null && (userIsProposer || userIsAdmin))
             {
-                if (s.State == "ABANDONED")
-                {
-                    bool res1;
-                    bool res2 = false;
-                    res1 = await MainPage.Instance.DisplayAlert("Gaming Session (Abandoned)", "Session is currently ABANDONED; you can reactivate it by it switching to OPEN or FULL.  Do you want to switch it to OPEN (additional people can join)?", "Yes", "No");
-                    if (!res1) res2 = await MainPage.Instance.DisplayAlert("Gaming Session (Abandoned)", "Do you want to switch it to FULL (game will take place, but no one else can join)?", "Yes", "No");
-
-                    if (res1)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "OPEN");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to OPEN by '" + s.Proposer + "'");
-                    }
-                    else if (res2)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "FULL");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to FULL by '" + s.Proposer + "'");
-                    }
-                }
-                else if (s.State == "OPEN")
-                {
-                    bool res1;
-                    bool res2 = false;
-                    res1 = await MainPage.Instance.DisplayAlert("Gaming Session (Open)", "Session is currently OPEN; you can declare it FULL, or you can ABANDON it.  Do you want to switch it to FULL (game will take place, but no one else can join)?", "Yes", "No");
-                    if (!res1) res2 = await MainPage.Instance.DisplayAlert("Gaming Session (Open)", "Do you want to switch it to ABANDONED (the game will not be happening)?", "Yes", "No");
-
-
-                    if (res1)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "FULL");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to FULL by '" + s.Proposer + "'");
-                    }
-                    else if (res2)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "ABANDONED");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to ABANDONED by '" + s.Proposer + "'");
-                    }
-                }
-                else if (s.State == "FULL")
-                {
-                    bool res1;
-                    bool res2 = false;
-                    res1 = await MainPage.Instance.DisplayAlert("Gaming Session (Full)", "Session is currently FULL; you can re-OPEN it, or you can ABANDON it.  Do you want to switch it to OPEN (additional people can join)?", "Yes", "No");
-                    if (!res1) res2 = await MainPage.Instance.DisplayAlert("Gaming Session (Full)", "Do you want to switch it to ABANDONED (the game will not be happening)?", "Yes", "No");
-
-                    if (res1)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "OPEN");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to OPEN by '" + s.Proposer + "'");
-                    }
-                    else if (res2)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "ABANDONED");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to ABANDONED by '" + s.Proposer + "'");
-                    }
-                }
-                else
-                {
-                    // shouldn't happen
-                    Logger.LogMessage(Logger.Level.ERROR, "PopupManageSession.btnStateClicked", "State string has an illegal value: " + s.State);
-                }
+                var popup = new PopupSetSessionState();
+                popup.SetSession(this.BindingContext as Session);
+                await MainPage.Instance.ShowPopupAsync(popup);
             }
         }
         catch (Exception ex)
