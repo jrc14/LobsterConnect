@@ -8,7 +8,7 @@
     <ContentPage.Resources>
         <local:SeverityToColorConverter x:Key="severityToColor"/>
     </ContentPage.Resources>
-    <Grid RowSpacing="0" ColumnSpacing="0" Background="Black">
+    <Grid RowSpacing="0" ColumnSpacing="0" Background="Black" x:Name="gdMainPage">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
             <RowDefinition Height="30"/>
@@ -69,12 +69,20 @@
         <AbsoluteLayout x:Name="alSlotLabels" Grid.Row="2" Grid.Column="0" HeightRequest="40" BackgroundColor="Black" HorizontalOptions="Start">
             <Grid  x:Name="gdSlotLabels" RowSpacing="0" ColumnSpacing="0" HeightRequest="40"  BackgroundColor="Black"
                    AbsoluteLayout.LayoutBounds="0,0">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer 
+                        Tapped="gridSessionTimeSlotTapped"/>
+                </Grid.GestureRecognizers>
             </Grid>
         </AbsoluteLayout>
 
         
         <ScrollView  Grid.Row="3" Grid.Column="0" x:Name="svSessions" Orientation="Both" VerticalOptions="Fill" HorizontalOptions="Fill" Scrolled="svSessions_Scrolled">
             <Grid x:Name="gdSessions" RowSpacing="0" ColumnSpacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer 
+                        Tapped="gridSessionTimeSlotTapped"/>
+                </Grid.GestureRecognizers>
             </Grid>
         </ScrollView>
 	

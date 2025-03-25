@@ -2,15 +2,6 @@
 using LobsterConnect.Model;
 
 // TO DO
-// Tap on schedule bar or on background should show the add session popup
-// The session grid shouldn't scroll back to 0 unless it needs to (when we've added a session it would be better
-// if it stayed on screen)
-// On first run should ask whether the user is 18 or over - and if not, it should refuse to sync with the cloud.
-// Popups for entering person info should give a privacy warning when first used, and contain a link to the
-// privacy policy page
-// [done] The popups for adding comments to a session should warn you that you mustn't post personally identifying
-// information, or anything offensive.
-// The comment viewer popup should include a link to a 'report inappropriate content'.
 // The app should periodically do a complete download and refresh of its local
 // journal file, so that backend changes are always taken into account (it should only do this when it has
 // access to the internet).
@@ -57,7 +48,10 @@ namespace LobsterConnect.VM
         /// This method also sets up the event handler for PropertyChanged events, to detect situations when the UI
         /// needs to refresh its session list, and to fire SessionsMustBeRefreshed in those situations
         /// </summary>
-        public void Load()
+        /// <param name="ignoreJournalFile">if true, then the contents of the local journal file will ignored (and in due
+        /// course overwritten). You set this value if you want to ensure that the viewmodel loads itself from the
+        /// cloud sync service.</param>
+        public void Load(bool ignoreJournalFile)
         {
             if(_isLoaded)
             {
@@ -86,7 +80,10 @@ namespace LobsterConnect.VM
                 // Reads everything from the local journal file into the viewmodel.
                 // Uncomment the line below, to use the journal from the previous run (which is what
                 // you'll want to do unless you're loading test data above.
-                Journal.LoadJournal(this);
+                if (!ignoreJournalFile)
+                {
+                    Journal.LoadJournal(this);
+                }
             }
 
             // We set this handler after calling SetCurrentEvent above, to avoid a redundant call to
@@ -206,7 +203,7 @@ namespace LobsterConnect.VM
                     LoadSessionsAndSignUps(this._currentEvent.Name);
 
                     // Fire the event that will tell the UI to reload sessions
-                    this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                    this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
                 }
                 return;
             }
@@ -214,7 +211,7 @@ namespace LobsterConnect.VM
             // If the filter is changed, we fire the event that will tell the UI to reload sessions
             if (e.PropertyName=="CurrentFilter")
             {
-                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
                 return;
             }
         }
@@ -245,8 +242,10 @@ namespace LobsterConnect.VM
 
                 SetLoggedOnUser(null);
 
-                Microsoft.Maui.Storage.Preferences.Remove("UserHandle");
-                Microsoft.Maui.Storage.Preferences.Remove("GamingEvent");
+                Preferences.Remove("UserHandle");
+                Preferences.Remove("GamingEvent");
+                Preferences.Remove("AgeConfirmed");
+                Preferences.Remove("LastRefreshedDate");
 
                 this._currentEvent = null;
                 this._availableEvents.Clear();
@@ -271,7 +270,7 @@ namespace LobsterConnect.VM
 
                 V.MainPage.Instance.InitialiseGamingEvent(); // sets the current event to something reasonable
 
-                this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
 
                 LogUserMessage(Logger.Level.WARNING, "... app reset has been completed.");
 
@@ -341,7 +340,7 @@ namespace LobsterConnect.VM
                     }
                     else
                     {
-                        // Put the app back into its 'factory reset' state
+                        // Remove user content
                         SetLoggedOnUser(null);
 
                         Microsoft.Maui.Storage.Preferences.Remove("UserHandle");
@@ -371,7 +370,7 @@ namespace LobsterConnect.VM
 
                         V.MainPage.Instance.InitialiseGamingEvent(); // sets the current event to something reasonable
 
-                        this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                        this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
 
                         LogUserMessage(Logger.Level.WARNING, "... data purge has been completed.");
 
@@ -1469,7 +1468,7 @@ namespace LobsterConnect.VM
         /// The MainViewModel.Loaded method includes logic to decide when to fire this event, in response to
         /// the firing of its PropertyChanged event
         /// </summary>
-        public event EventHandler SessionsMustBeRefreshed;
+        public event EventHandler<SessionsRefreshEventArgs> SessionsMustBeRefreshed;
 
         /// <summary>
         /// Fire the SessionsMustBeRefreshed event after a delay of 500ms.  But if, during those 500ms, there are further
@@ -1484,7 +1483,7 @@ namespace LobsterConnect.VM
             {
                 Model.DispatcherHelper.RunAsyncOnUI(() =>
                 {
-                    this.SessionsMustBeRefreshed?.Invoke(this, new EventArgs());
+                    this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
                 });
             });
         }

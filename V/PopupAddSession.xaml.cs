@@ -49,6 +49,19 @@ public partial class PopupAddSession : Popup
         Model.DispatcherHelper.RunAsyncOnUI(() => this.lvGame.ItemsSource = new ObservableCollection<string>(allGames));
     }
 
+    public void SetTimeSlot(int s)
+    {
+        try
+        {
+            this.pickerStartTime.SelectedIndex = s;
+        }
+        catch(Exception ex)
+        {
+
+            MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error setting time slot index: " + ex.Message);
+        }
+    }
+
     async void OnOkClicked(object sender, EventArgs e)
     {
         //Tuple<string, string, bool> t = new Tuple<string, string, bool>(this.entryUserHandle.Text, this.entryPassword.Text, this.chkRememberMe.IsChecked);
