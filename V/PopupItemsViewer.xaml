@@ -20,6 +20,6 @@
         <Label Grid.Row="1" Grid.Column="0" HeightRequest="50" x:Name="lbPickerItems" Text="Choose an item"></Label>
         <Picker Grid.Row="1" Grid.Column="1" HeightRequest="50" x:Name="pickerItems"></Picker>
 
-        <Button Grid.Row="2" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+        <Button Grid.Row="2" Grid.Column="1" Text="Done" Clicked="OnDoneClicked" Margin="5" x:Name="btnDone" ></Button>
     </Grid>
 </toolkit:Popup>

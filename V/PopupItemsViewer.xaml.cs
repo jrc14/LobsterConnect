@@ -9,7 +9,7 @@ public partial class PopupItemsViewer : Popup
     {
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
+        V.Utilities.StylePopupButtons(null, this.btnDone, this.rdefButtons);
 
         if (MainPage.Instance.Width < 350)
         {
@@ -47,7 +47,7 @@ public partial class PopupItemsViewer : Popup
         }
     }
 
-    async void OnDismissClicked(object sender, EventArgs e)
+    async void OnDoneClicked(object sender, EventArgs e)
     {
         string result = null;
 

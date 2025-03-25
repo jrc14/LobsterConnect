@@ -250,53 +250,64 @@ public partial class MainPage : ContentPage
 
 				if(a == createNewUser)
 				{
-                    var popup1 = new PopupLogIn();
-                    var popupResult1 = await this.ShowPopupAsync(popup1, CancellationToken.None);
-
-                    if (popupResult1 != null && popupResult1 is Tuple<string, string,bool>)
+                    bool confirmation = await MainPage.Instance.DisplayAlert("Create new user",
+                         "Any information you enter here will be visible to other app users (and, potentially, anyone at all).\n"
+                        +"Do not enter sensitive information (such as credit card numbers), do not enter personal information about anyone other than yourself, and do not enter anything defamatory, obscene, offensive or otherwise inappropriate.\n"
+                        +"To see details of how we will use your personal information, tap the 'Review Policy' button below.", "Continue", "Review Policy");
+                    if (!confirmation)
                     {
-                        Tuple<string, string,bool> userAndPassword = (Tuple<string, string,bool>)popupResult1;
+                        var popup = new PopupDataHandling();
+                        var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+                    }
+                    else
+                    {
+                        var popup1 = new PopupLogIn();
+                        var popupResult1 = await this.ShowPopupAsync(popup1, CancellationToken.None);
 
-                        Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
-
-                        if (user != null)
+                        if (popupResult1 != null && popupResult1 is Tuple<string, string, bool>)
                         {
-                            await DisplayAlert("Login", "There is an existing user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
-                            return;
-                        }
+                            Tuple<string, string, bool> userAndPassword = (Tuple<string, string, bool>)popupResult1;
 
-                        if (string.IsNullOrEmpty(userAndPassword.Item1))
-                        {
-                            await DisplayAlert("Login", "You have to provide a user handle", "Dismiss");
-                            return;
-                        }
+                            Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
 
-                        if (userAndPassword.Item1.Contains(','))
-                        {
-                            await DisplayAlert("Login", "A user handle must not contain any commas", "Dismiss");
-                            return;
-                        }
+                            if (user != null)
+                            {
+                                await DisplayAlert("Login", "There is an existing user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
+                                return;
+                            }
 
-						try
-						{
-							MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
+                            if (string.IsNullOrEmpty(userAndPassword.Item1))
+                            {
+                                await DisplayAlert("Login", "You have to provide a user handle", "Dismiss");
+                                return;
+                            }
 
-							MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + userAndPassword.Item1 + "' has been created");
+                            if (userAndPassword.Item1.Contains(','))
+                            {
+                                await DisplayAlert("Login", "A user handle must not contain any commas", "Dismiss");
+                                return;
+                            }
 
-							user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+                            try
+                            {
+                                MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
 
-							MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
+                                MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + userAndPassword.Item1 + "' has been created");
 
-							var popup2 = new PopupPersonDetails();
-							popup2.SetPerson(user);
-							var popupResult2 = await this.ShowPopupAsync(popup2, CancellationToken.None);
-						}
-						catch(Exception ex)
-						{
-                            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error setting up user: " + ex.Message);
+                                user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+
+                                MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
+
+                                var popup2 = new PopupPersonDetails();
+                                popup2.SetPerson(user);
+                                var popupResult2 = await this.ShowPopupAsync(popup2, CancellationToken.None);
+                            }
+                            catch (Exception ex)
+                            {
+                                MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error setting up user: " + ex.Message);
+                            }
                         }
                     }
-                    
                 }
 				else if (a== logIn)
 				{
@@ -545,84 +556,7 @@ public partial class MainPage : ContentPage
 
             if (action2 == "Admin Action")
 			{
-                string action3 = await DisplayActionSheet("Admin Action", "Dismiss", null, "Re-activate user", "Deactivate user", "Re-activate game", "Deactivate game", "Re-activate event", "De-activate event");
-				if(!string.IsNullOrEmpty(action3))
-				{
-					bool? ifActive = null;
-					if (action3.StartsWith("Re-activate"))
-						ifActive = false; // in the items list, include only inactive items
-					else if (action3.StartsWith("Deactivate"))
-						ifActive = true;  // in the items list, include only inactive items
-
-                    List<string> items = null;
-					if(action3.EndsWith("user"))
-					{
-						items = MainViewModel.Instance.GetAvailablePersons(ifActive);
-					}
-					else if(action3.EndsWith("game"))
-					{
-                        items = MainViewModel.Instance.GetAvailableGames(ifActive);
-                    }
-					else if (action3.EndsWith("event"))
-					{
-                        items = MainViewModel.Instance.GetAvailableEvents(ifActive);
-                    }
-					else
-					{
-						Logger.LogMessage(Logger.Level.ERROR, "MainPage.FlyoutMenuAction", "admin action is broken");
-						return;
-					}
-
-					if(items==null || items.Count==0)
-					{
-                        await DisplayAlert("Admin Action", "There aren't any applicable items for this action", "Dismiss");
-                    }
-					else
-					{
-                        items.Sort();
-
-                        var itemsViewer = new PopupItemsViewer();
-                        itemsViewer.SetItems(items);
-                        var popupResult = await MainPage.Instance.ShowPopupAsync(itemsViewer, CancellationToken.None);
-
-						string toChange = popupResult as string;
-						if(!string.IsNullOrEmpty(toChange))
-						{
-                            bool confirmation = await MainPage.Instance.DisplayAlert(action3, "Please confirm you want to proceed to "+action3+" '"+ toChange+"'", "Proceed", "Cancel");
-                            if (confirmation)
-                            {
-								bool toIsActive = true;
-								if (action3.StartsWith("Deactivate"))
-									toIsActive = false;
-
-                                if (action3.EndsWith("user"))
-                                {
-									MainViewModel.Instance.UpdatePerson(true,
-										MainViewModel.Instance.GetPerson(toChange),
-										isActive: toIsActive);
-                                }
-                                else if (action3.EndsWith("game"))
-                                {
-                                    MainViewModel.Instance.UpdateGame(true,
-										MainViewModel.Instance.GetGame(toChange),
-										isActive: toIsActive);
-                                }
-                                else if (action3.EndsWith("event"))
-                                {
-                                    MainViewModel.Instance.UpdateGamingEvent(true,
-                                        MainViewModel.Instance.GetGamingEvent(toChange),
-                                        isActive: toIsActive);
-                                }
-                                else
-                                {
-                                    Logger.LogMessage(Logger.Level.ERROR, "MainPage.FlyoutMenuAction", "admin action is broken");
-                                    return;
-                                }
-                                MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Admin action: " + action3 + " '" + toChange + "' has been completed.");
-                            }
-                        }
-                    }
-				}
+				await ShowAdminActions();
             }
 			else if(action2 == "Email for support")
 			{
@@ -697,5 +631,213 @@ public partial class MainPage : ContentPage
 			Logger.LogMessage(Logger.Level.ERROR, "MainPage.FlyoutMenuAtion", "invalid action: " + action);
 		}
     }
+
+	async Task<bool> ShowAdminActions()
+	{
+        string action3 = await DisplayActionSheet("Admin Action", "Dismiss", null, "Add Gaming Event", "User Management", "De/Re-activate");
+
+        if (string.IsNullOrEmpty(action3))
+        {
+            return false;
+        }
+        else
+        {
+
+            if (action3 == "Add Gaming Event")
+            {
+                string name = await DisplayPromptAsync("New Event", "Enter the name of the new gaming event (preferably as YYYY-MM-DD EVENT NAME)");
+                if (string.IsNullOrEmpty(name))
+                {
+                    return false;
+                }
+                else if (MainViewModel.Instance.CheckEventName(name))
+                {
+                    await DisplayAlert("Error", "An event with that name already exists", "Dismiss");
+                    return false;
+                }
+                else
+                {
+                    string eventType = await DisplayActionSheet("Set event type", "Dismiss", null, "CONVENTION", "DAY", "EVENING");
+                    if (string.IsNullOrEmpty(eventType))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        MainViewModel.Instance.CreateGamingEvent(true, name, eventType, true);
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Gaming event '" + name + "' has been created");
+                        return true;
+                    }
+                }
+            }
+            if (action3 == "User Management")
+            {
+                string action4 = await DisplayActionSheet("User Admin", "Dismiss", null, "Grant Admin Rights", "Change Password", "Edit User Details");
+                if (string.IsNullOrEmpty(action4))
+                {
+                    return false;
+                }
+
+                List<string> personHandles = MainViewModel.Instance.GetAvailablePersons(true);
+                personHandles.Sort();
+                var itemsViewer = new PopupItemsViewer();
+                itemsViewer.SetItems(personHandles);
+                var popupResult = await MainPage.Instance.ShowPopupAsync(itemsViewer, CancellationToken.None);
+                string toChange = popupResult as string;
+                if (string.IsNullOrEmpty(toChange))
+                {
+                    return false;
+                }
+                else
+                {
+                    Person p = MainViewModel.Instance.GetPerson(toChange);
+
+                    if (action4 == "Grant Admin Rights")
+                    {
+                        if (p.IsAdmin)
+                        {
+                            await DisplayAlert("Admin", "'" + p + "' is already an admin", "Dismiss");
+                            return false;
+                        }
+                        else
+                        {
+                            MainViewModel.Instance.UpdatePerson(true, p, isAdmin: true);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Admin rights have been granted to " + toChange);
+                            return true;
+                        }
+                    }
+                    else if (action4 == "Change Password")
+                    {
+                        string newPassword = await DisplayPromptAsync("Password", "Enter the new password for '"+ toChange+"':");
+
+                        if (string.IsNullOrEmpty(newPassword))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            MainViewModel.Instance.UpdatePerson(true, p, password: Model.Utilities.PasswordHash(newPassword));
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Password has been updated for " + toChange);
+                            return true;
+                        }
+                    }
+                    else if (action4 == "Edit User Details")
+                    {
+                        var popup2 = new PopupPersonDetails();
+                        popup2.SetPerson(p);
+                        var popupResult2 = await this.ShowPopupAsync(popup2, CancellationToken.None);
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            else if (action3 == "De/Re-activate")
+            {
+                string action4 = await DisplayActionSheet("Deactivate and Re-activate", "Continue", null, "Re-activate user", "Deactivate user", "Re-activate game", "Deactivate game", "Re-activate event", "Deactivate event");
+
+                if (string.IsNullOrEmpty(action4))
+                {
+                    return false;
+                }
+                else
+                {
+                    bool? ifActive = null;
+                    if (action4.StartsWith("Re-activate"))
+                        ifActive = false; // in the items list, include only inactive items
+                    else if (action4.StartsWith("Deactivate"))
+                        ifActive = true;  // in the items list, include only inactive items
+
+                    List<string> items = null;
+                    if (action4.EndsWith("user"))
+                    {
+                        items = MainViewModel.Instance.GetAvailablePersons(ifActive);
+                    }
+                    else if (action4.EndsWith("game"))
+                    {
+                        items = MainViewModel.Instance.GetAvailableGames(ifActive);
+                    }
+                    else if (action4.EndsWith("event"))
+                    {
+                        items = MainViewModel.Instance.GetAvailableEvents(ifActive);
+                    }
+                    else
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "MainPage.FlyoutMenuAction", "admin action is broken");
+                        return false;
+                    }
+
+                    if (items == null || items.Count == 0)
+                    {
+                        await DisplayAlert("Admin Action", "There aren't any applicable items for this action", "Dismiss");
+                        return false;
+                    }
+                    else
+                    {
+                        items.Sort();
+
+                        var itemsViewer = new PopupItemsViewer();
+                        itemsViewer.SetItems(items);
+                        var popupResult = await MainPage.Instance.ShowPopupAsync(itemsViewer, CancellationToken.None);
+
+                        string toChange = popupResult as string;
+                        if (!string.IsNullOrEmpty(toChange))
+                        {
+                            bool confirmation = await MainPage.Instance.DisplayAlert(action3, "Please confirm you want to proceed to " + action4 + " '" + toChange + "'", "Proceed", "Cancel");
+                            if (confirmation)
+                            {
+                                bool toIsActive = true;
+                                if (action4.StartsWith("Deactivate"))
+                                    toIsActive = false;
+
+                                if (action4.EndsWith("user"))
+                                {
+                                    MainViewModel.Instance.UpdatePerson(true,
+                                        MainViewModel.Instance.GetPerson(toChange),
+                                        isActive: toIsActive);
+                                }
+                                else if (action4.EndsWith("game"))
+                                {
+                                    MainViewModel.Instance.UpdateGame(true,
+                                        MainViewModel.Instance.GetGame(toChange),
+                                        isActive: toIsActive);
+                                }
+                                else if (action4.EndsWith("event"))
+                                {
+                                    MainViewModel.Instance.UpdateGamingEvent(true,
+                                        MainViewModel.Instance.GetGamingEvent(toChange),
+                                        isActive: toIsActive);
+                                }
+                                else
+                                {
+                                    Logger.LogMessage(Logger.Level.ERROR, "MainPage.FlyoutMenuAction", "admin action is broken");
+                                    return false;
+                                }
+                                MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Admin action: " + action4 + " '" + toChange + "' has been completed.");
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "MainPage.SowAdminActions", "invalid action: " + action3);
+                return false;
+            }
+        }
+    }
+
 }
 

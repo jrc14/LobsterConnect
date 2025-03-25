@@ -31,7 +31,7 @@ public partial class PopupManageSession : Popup
             this.colDef1.Width = new GridLength(80, GridUnitType.Absolute);
         }
 
-        V.Utilities.StylePopupButtons(this.btnDismiss, null, this.rdefButtons);
+        V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
     }
 
     public void SetSession(Session s)
@@ -306,5 +306,37 @@ public partial class PopupManageSession : Popup
     async void OnDismissClicked(object sender, EventArgs e)
     {
         await CloseAsync(true, CancellationToken.None);
+    }
+
+    private async void lblReportContentTapped(object sender, TappedEventArgs e)
+    {
+        try
+        {
+            Session s = this.BindingContext as Session;
+
+            if (Email.Default.IsComposeSupported && s != null)
+            {
+
+                EmailMessage message = new EmailMessage()
+                {
+                    Subject = "LobsterConnect Inappropriate Content",
+                    Body = "I note that the session details for "+ s.Id + "("+s.EventName+", "+ s.ToPlay+", "+s.StartAt.ToString()+ ") contain inappropriate content.  Please take the necessary steps to address this concern.",
+                    BodyFormat = EmailBodyFormat.PlainText,
+                    To = new List<string>() { "moderator@turnipsoft.co.uk" }
+                };
+
+                await Email.Default.ComposeAsync(message);
+                await CloseAsync(true, CancellationToken.None);
+            }
+            else
+            {
+                MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sorry, the app cannot create an email for you.  Please send your report to moderator@turnipsoft.co.uk");
+            }
+        }
+        catch (Exception ex)
+        {
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: " + ex.Message);
+        }
+
     }
 }

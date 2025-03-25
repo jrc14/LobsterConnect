@@ -2,10 +2,6 @@
 using LobsterConnect.Model;
 
 // TO DO
-// [done] Session organiser and admin users should be allowed to remove other people's sign-ups
-// [done] Admin user should be allowed to set events, games, and persons to inactive (or back to active).
-// Admin user should be allowed to edit person and game details.
-// [done] Admin user should be allowed to edit session state and contents for any session
 // Tap on schedule bar or on background should show the add session popup
 // The session grid shouldn't scroll back to 0 unless it needs to (when we've added a session it would be better
 // if it stayed on screen)

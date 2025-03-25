@@ -111,4 +111,36 @@ public partial class PopupViewPersons : Popup
             MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Copied text: '" + p.PhoneNumber + "'");
         }
     }
+
+    private async void lblReportContentTapped(object sender, TappedEventArgs e)
+    {
+        try
+        {
+            Person p = this.BindingContext as Person;
+
+            if (Email.Default.IsComposeSupported && p!=null)
+            {
+
+                EmailMessage message = new EmailMessage()
+                {
+                    Subject = "LobsterConnect Inappropriate Content",
+                    Body = "I note that the user details for '"+p.Handle+"' contain inappropriate content.  Please take the necessary steps to address this concern.",
+                    BodyFormat = EmailBodyFormat.PlainText,
+                    To = new List<string>() { "moderator@turnipsoft.co.uk" }
+                };
+
+                await Email.Default.ComposeAsync(message);
+                await CloseAsync(null, CancellationToken.None);
+            }
+            else
+            {
+                MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sorry, the app cannot create an email for you.  Please send your report to moderator@turnipsoft.co.uk");
+            }
+        }
+        catch (Exception ex)
+        {
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: " + ex.Message);
+        }
+
+    }
 }

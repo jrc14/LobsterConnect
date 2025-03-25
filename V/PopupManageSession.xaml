@@ -19,7 +19,8 @@
             <RowDefinition Height="60"/>
             <RowDefinition Height="60"/>
             <RowDefinition Height="60" x:Name="rdefButtons"/>
-            <RowDefinition Height="5"/>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="colDef0" Width="200"/>
@@ -76,11 +77,20 @@
             </Button.ImageSource>
         </Button>
 
-        <Button Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding SignUps}" TextColor="Black" x:Name="btnSignUp" Margin="5" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" VerticalOptions="Center" Clicked="btnSignUpClicked" >
+        <Button Grid.Row="6" Grid.Column="1" Text="{Binding SignUps}" TextColor="Black" x:Name="btnSignUp" Margin="5" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" VerticalOptions="Center" Clicked="btnSignUpClicked" >
             <Button.ImageSource>
                 <FontImageSource Glyph="&#xe906;" Color="Black" FontFamily="FluentSystemIcons-Regular"/>
             </Button.ImageSource>
         </Button>
         <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Text="Dismiss" TextColor="Black" Clicked="OnDismissClicked" Margin="5" VerticalOptions="Center" x:Name="btnDismiss" HorizontalOptions="End"></Button>
+        <ScrollView Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="100" Orientation="Vertical">
+            <Label  TextColor="DarkBlue" FontAttributes="Italic" LineBreakMode="WordWrap" Margin="10"
+               Text="It's a condition of use of this app that you must not enter anything that is defamatory, obscene, offensive or otherwise inappropriate, and you must not enter any personal information about anyone other than yourself. If you see content that violates this condition, you can report it to us by clicking on this link.">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer 
+                Tapped="lblReportContentTapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+        </ScrollView>
     </Grid>
 </toolkit:Popup>

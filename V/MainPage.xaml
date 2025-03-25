@@ -43,7 +43,7 @@
 			<StackLayout  Orientation="Horizontal" HorizontalOptions="End" >
 				<Label Text="{Binding LoggedOnUser.Handle}" TextColor="White" VerticalOptions="Center" Margin="0,5,5,5">					
 				</Label>
-                <Label IsVisible="{Binding LoggedOnUser.IsAdmin}" Text="ADMIN" TextColor="Red" VerticalOptions="Center" Margin="0,5,5,5">
+                <Label IsVisible="{Binding LoggedOnUser.IsAdmin, FallbackValue=False}" Text="ADMIN" TextColor="Red" VerticalOptions="Center" Margin="0,5,5,5">
                 </Label>
                 <ImageButton x:Name="btnUser" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="0,5,5,5"
 							 Clicked="btnUserClicked">
