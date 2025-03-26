@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.Model
 {
+    /// <summary>
+    /// Utility class for interacting with the dispatcher.  Includes methods for running stuff on, or off,
+    /// the UI thread. There are also methods for sleeping in various ways, and for setting timers.
+    /// </summary>
     public static class DispatcherHelper
     {
         public static void RunAsyncOnUI(Action action)

@@ -7,7 +7,9 @@ using System.Runtime.InteropServices;
 namespace LobsterConnect.Model
 {
     /// <summary>
-    /// The journal of changes to the LobsterConnect data store.  By replaying a journal, you bring the datastore up to date.
+    /// The journal of changes to the LobsterConnect local viewmodel (and the remote cloud store).  By replaying a
+    /// journal, you bring the viewmodel up to date.
+    /// 
     /// The types of entity and the available types of changes are:
     /// 
     /// Game (Create and Update only): a game that can be played at a session
@@ -43,7 +45,7 @@ namespace LobsterConnect.Model
     ///         STATE: one of: OPEN = looking for people to play; FULL = no more players are wanted, the game will take place; ABANDONED = the game will not take place
     ///         
     /// SignUp (Create and Delete only): a record that a certain person is going to play in a certain session
-    ///     ID consists of a person ID then ',' and then a Session ID.
+    ///     ID consists of a person handle (ID) then ',' and then a Session ID.
     ///     Journal entries for sign-ups must always include EVENTNAME, the name of the gaming event at which the session happens
     ///     Attributes are:
     ///         EVENTNAME (Mandatory in all journal entries): the name of the gaming event at which the session is happening
@@ -65,6 +67,13 @@ namespace LobsterConnect.Model
     /// </summary>
     public class Journal
     {
+        /// <summary>
+        /// Add an entry to the journal.
+        /// </summary>
+        /// <param name="entityType">The type of entity: GamingEvent, Game, Session, Person or Signup</param>
+        /// <param name="operationType">What is being done to the entity: Create, Update or Delete</param>
+        /// <param name="entityId">ID of the entity</param>
+        /// <param name="journalParameters">an even number of strings parameter name then parameter value</param>
         public static void AddJournalEntry(EntityType entityType, OperationType operationType, string entityId, params string[] journalParameters)
         {
             if (journalParameters == null || journalParameters.Length == 0)
@@ -79,6 +88,13 @@ namespace LobsterConnect.Model
             }
         }
 
+        /// <summary>
+        /// Add an entry to the journal.
+        /// </summary>
+        /// <param name="entityType">The type of entity: GamingEvent, Game, Session, Person or Signup</param>
+        /// <param name="operationType">What is being done to the entity: Create, Update or Delete</param>
+        /// <param name="entityId">ID of the entity</param>
+        /// <param name="journalParameters">an even number of strings parameter name then parameter value</param>
         public static void AddJournalEntry(EntityType entityType, OperationType operationType, string entityId, List<string> journalParameters)
         {
             if (journalParameters.Count % 2 == 1)
@@ -122,9 +138,10 @@ namespace LobsterConnect.Model
         }
 
         /// <summary>
-        /// Returns a string containing a prettily formatted printout of all the journal entries that match the predicate.
+        /// Returns a string containing a prettily formatted printout of all the journal entries in the viewmodel that match the predicate.
         /// </summary>
         /// <param name="pred">entries for which this predicate is true will be included</param>
+        /// <param name="vm">the viewmodel use for looking up entities (e.g. the actual names/times of games for signups and sessions)</param>
         /// <returns></returns>
         public static string PrettyPrint(Predicate<JournalEntry> pred, MainViewModel vm)
         {
@@ -140,11 +157,19 @@ namespace LobsterConnect.Model
             }
             return returnValue;
         }
+
+        /// <summary>
+        /// The types of entity that can be included in journal entries
+        /// </summary>
         public enum EntityType
         {
             Game, Person, Session, SignUp, GamingEvent
         }
 
+        /// <summary>
+        /// The operations that can be performed on entities; not all combinations of operation type and entity type
+        /// are valid; refer to the comment at the top of Journal.cs
+        /// </summary>
         public enum OperationType
         {
             Create, Update, Delete
@@ -155,7 +180,17 @@ namespace LobsterConnect.Model
         /// </summary>
         public static event EventHandler SyncCompleted;
 
+        /// <summary>
+        /// The in-memory copy of this device's journal.  The journal worker thread will make sure that it
+        /// gets written to file every second, and will sync it with the cloud sync service every minute
+        /// (or more often if something is added to the local journal).
+        /// </summary>
         private static List<JournalEntry> _LocalJournal = new List<JournalEntry>();
+
+        /// <summary>
+        /// The local sequence number that we will give to the next entry to be added to the journal as a resul
+        /// of a change made on this device.
+        /// </summary>
         private static Int32 _LocalJournalNextSeq = 1;
 
 
@@ -164,12 +199,42 @@ namespace LobsterConnect.Model
         // before locking JournalFileLock
         private static LobsterLock JournalLock = new LobsterLock();
 
+        /// <summary>
+        /// An entry in the journal.  For explanation of entity type and operation type, refer to the comment block at
+        /// the top of Journal.cs.
+        /// A journal entry represents a change that can be made to the viewmodel.  An entry might originate from a 
+        /// UI action on this machine, or on another machine - in which case, it will get to this machine through the
+        /// cloud sync service.
+        /// A journal entry will have:
+        ///  - Installation ID: a GUID identifying which machine it originated from
+        ///  - Local Sequence Number: the sequence number, on the originating machine, of the entry.  Entries
+        ///    created on any one machine ought to begin with sequence number 1, and go on from that increading by 1
+        ///    each time that machine originates another entry.
+        ///  - Cloud Sequence Number: Numbers, beginning at 1 and increasing by 1 each time another entry is notified
+        ///    to the cloud sync service.  If a journal entry has a 0 cloud sequence number it means that it hasn't
+        ///    yet been notified to the cloud sync service (to be precise, it means that the local machine hasn't yey
+        ///    processed an acknowledgement from the cloud sync server, saying that this local entry has been recorded
+        ///    in the cloud data store).
+        /// </summary>
         public class JournalEntry : IComparable
         {
+            /// <summary>
+            /// Do not call the no-argument ctor
+            /// </summary>
             public JournalEntry()
             {
             }
 
+            /// <summary>
+            /// Construct an entry, doing some validation on various parameters (illegal characters get replaced by '_')
+            /// </summary>
+            /// <param name="cloudSeq">cloud sequence number</param>
+            /// <param name="localSeq">local sequence number on the originating machine</param>
+            /// <param name="installationId">the id of the originating machine</param>
+            /// <param name="e">entity type</param>
+            /// <param name="o">the operation performed on the entity</param>
+            /// <param name="i">the id of the entitiy</param>
+            /// <param name="p">parameters for the operation, an even number of strings being parameter name then parameter value</param>
             public JournalEntry(Int32 cloudSeq, Int32 localSeq, string installationId, EntityType e, OperationType o, string i, List<string> p) : this()
             {
                 _cloudSeq = cloudSeq;
@@ -247,7 +312,13 @@ namespace LobsterConnect.Model
                     }
                 }
             }
-
+            /// <summary>
+            /// Constructs an entry from a string. The string contains ctor attributes (see the seven-argument ctor) separated
+            /// by '\' characters; The last of them is the parameters list, which may be empty, but if is not, will consist
+            /// of an even number of strings separated by '|' characters.
+            /// </summary>
+            /// <param name="s"></param>
+            /// <exception cref="Exception"></exception>
             public JournalEntry(string s) 
             {
                 if (string.IsNullOrEmpty(s))
@@ -375,6 +446,11 @@ namespace LobsterConnect.Model
                 }
             }
 
+            /// <summary>
+            /// Converts self into a string that ought to work as an argument for the JournalEntry(string) ctor.
+            /// </summary>
+            /// <returns>string reoresentation of self</returns>
+            /// <exception cref="Exception"></exception>
             public override string ToString()
             {
                 string cloudSeqString = _cloudSeq.ToString("X8");
@@ -409,7 +485,9 @@ namespace LobsterConnect.Model
 
             /// <summary>
             /// Returns true if this entry relates to the given user (in the sense that the content of the entry
-            /// might constitute personal data for that user, from a privacy perspective).
+            /// might constitute personal data for that user, from a privacy perspective).  That means person entries
+            /// for this person, or sessions proposed by this person, or signups involving this person or modified by this
+            /// person.
             /// </summary>
             /// <param name="handle"></param>
             /// <returns></returns>
@@ -436,6 +514,14 @@ namespace LobsterConnect.Model
                 }
                 else return false;
             }
+
+            /// <summary>
+            /// Prints, over several lines, a human-readable description of this entry
+            /// </summary>
+            /// <param name="vm">a viewmodel to use for looking up things, so ids can be given less
+            /// opaque descriptons</param>
+            /// <returns>a human-readable description of self</returns>
+            /// <exception cref="Exception"></exception>
             public string PrettyPrint(MainViewModel vm)
             {
                 string cloudSeqString = _cloudSeq.ToString("X8");
@@ -510,10 +596,10 @@ namespace LobsterConnect.Model
             /// do this after initially loading the local journal file, and also whenever you've fetched more journal entries
             /// from the cloud.  Note that this method will make various calls to the vm.SyncCheck... methods, which will
             /// detect changes needing a notification to the logged on user (and also changes to the 'event selection' drop
-            /// down menu).  If you want to suppress the notifications to the logged on user, you shoud ensure that, when
-            /// you call the Replay method, vm.LoggedOnUser is set to null.
+            /// down menu).  These notifications will generally use the LogSyncMessage method on the viewmodel (and can be
+            /// suppressed by setting the member variable suppressSyncMessages)
             /// </summary>
-            /// <param name="vm">the viewmodel to be updated accordingly to the content of this journal entry</param>
+            /// <param name="vm">the viewmodel to be updated according to the content of this journal entry</param>
             /// <exception cref="Exception"></exception>
             public void Replay(MainViewModel vm)
             {
@@ -915,7 +1001,7 @@ namespace LobsterConnect.Model
 
             /// <summary>
             /// Change the cloud sequence number on this entry.  The appropriate time to do this is when the cloud sync
-            /// services has acknlowledged that the entry has been uploaded, and has given us a new sequence number for it.
+            /// services has acknowledged that the entry has been uploaded, and has given us a new sequence number for it.
             /// </summary>
             /// <param name="c"></param>
             public void SetCloudSeq(Int32 c)
@@ -1038,17 +1124,17 @@ namespace LobsterConnect.Model
                 }
             }
             if (_LocalJournalNextSeq == 1)
-                return false;
+                return false; // meaning that, after loading, the journal was empty
             else
-                return true;
+                return true; // meaning that we have got some entries in the local journal, now we have loaded it.
         }
 
 
         /// <summary>
-        /// Call this on the UI thread (or any other thread except the worker thread for BackgroundJournalWriter),
-        /// to add a new journal entry to the queue.  It will, some time in the next 1,000ms, be picked up from the queue, and written
-        /// to the local journal file (i.e. saved to disc).  Some time later, it will be uploaded to the
-        /// cloud sync service.
+        /// Call this on the UI thread (or any other thread except the worker thread for the journal worker),
+        /// to add a new journal entry to the queue.  It will, some time in the next 1,000ms, be picked up from
+        /// the queue, and written to the local journal file (i.e. saved to disc).  Some time later, it will
+        /// be uploaded to the cloud sync service.
         /// </summary>
         /// <param name="e"></param>
         public static void AddEntryToQueue(JournalEntry e)
@@ -1061,6 +1147,9 @@ namespace LobsterConnect.Model
             }
         }
 
+        /// <summary>
+        /// The queue of entries waiting to be picked up by the journal worker.  Lock QLock while accessing it.
+        /// </summary>
         private static List<JournalEntry> Q = new List<JournalEntry>();
 
         /// <summary>
@@ -1081,14 +1170,14 @@ namespace LobsterConnect.Model
         /// <summary>
         /// The journal worker will set this variable when it's in the process of doing a journal save or sync cycle,
         /// so as to discourage another cycle from starting.  Maybe some day we could link this to a UI indicator showing
-        /// when the app was busy.
+        /// when the app is busy.
         /// </summary>
         public static bool DoingJournalWork = false;
 
         public static bool SuspendJournalSync = false;
 
         /// <summary>
-        /// Do a cycle of save and sync work.  Every time it's called, this method will empty the queue and write it's entries
+        /// Do a cycle of save and sync work.  Every time it's called, this method will empty the queue and write its entries
         /// to the local journal file.  We expect that to happen every second.
         /// Whenever it's called with an interation number having mod 60 == 1 (or if CloudSyncRequested is true) it will
         /// sync the current journal with the cloud store.  That means that all local journal entries that haven't yet been
@@ -1172,7 +1261,7 @@ namespace LobsterConnect.Model
                 }
 
                 // Perform the cloud sync
-                if (iteration % 60 == 1 || CloudSyncRequested) // iteration = number of seconds - so this runs every minute.
+                if (iteration % 60 == 1 || CloudSyncRequested) // iteration = number of seconds - so this runs every minute, or sooner if  requested.
                 {
                     CloudSyncRequested = false;
 
@@ -1255,7 +1344,7 @@ namespace LobsterConnect.Model
                     {
                         System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
 
-                        // Ask the backend to send us every record with a higher Cloud Seq Number than syncFrom (the highest one that we have seen so far)
+                        // Ask the cloud sync service to send us every record with a higher Cloud Seq Number than syncFrom (the highest one that we have seen so far)
                         // and send it all the local journal records that so far have not been given a Cloud Seq Number).
                         string nonce = System.Random.Shared.Next().ToString("X8");
                         string signature = Utilities.GetHashCodeForString(syncFrom.ToString("X8")+ Model.Utilities.InstallationId + nonce).ToString("X8");
@@ -1280,7 +1369,9 @@ namespace LobsterConnect.Model
                             // cloud journal.  Records that need updating will be ones which existed only in the local journal and had no
                             // cloud seq number; these will be updated by putting a cloud seq number on them.  Records that must be added to the local
                             // journal (and must be replayed, to load them into the viewmodel) will be the ones coming from other devices (i.e.
-                            // having an installation id different from the local installation id).
+                            // having an installation id different from the local installation id).  If the local journal file has been cleared,
+                            // then there is edge case in which we will see entries having the local machine's installation id but not present
+                            // in the local journal, and we will need to add these entries too.
                             string content = response.Content.ReadAsStringAsync().Result;
                             int contentCount = 0;
                             if (string.IsNullOrEmpty(content))
@@ -1365,6 +1456,7 @@ namespace LobsterConnect.Model
                                     {
                                         Monitor.Exit(JournalLock);
                                     }
+
                                     // Log a message to the UI if the sync actually changed anything
                                     if (toBeSent.Count != 0 || contentCount != 0)
                                     {
@@ -1403,7 +1495,7 @@ namespace LobsterConnect.Model
         /// <summary>
         /// Deals with a line of text received in the response from the cloud sync service.  The line is either an
         /// acknowledgement of a local journal entry that we uploaded (now being sent back to us, with a cloud seq
-        /// number applied to it) or it is an updated originating from some othher device that needs to be applied to
+        /// number applied to it) or it is an update (normally originating from some ohher device) that needs to be applied to
         /// this device to bring it up to date.
         /// NB: This method doesn't itself lock JournalLock, but the calling method should make sure that
         /// it does hold that lock, as there can otherwise be inconsistent updates to the journal.
@@ -1425,12 +1517,22 @@ namespace LobsterConnect.Model
 
                     if (local == null)
                     {
+                        // This is an edge case that we get to, if the local journal is out of date, or it is missing (or we
+                        // have been told to ignore it) and so the cloud store has more up-to-date information about the state of the
+                        // local machine than does the local machine.
                         Logger.LogMessage(Logger.Level.INFO, "Journal.SyncCloudEntry: no local entry was found, having local seq number " + remote.LocalSeq.ToString("X8")+": a local journal entry will be created");
                         _LocalJournal.Add(remote);
+
+                        // We need to make sure that any subsequent UI updates to the local journal will use a higher
+                        // sequence number than the one on this newly added record.
+                        if(remote.LocalSeq>=_LocalJournalNextSeq)
+                        {
+                            _LocalJournalNextSeq = remote.LocalSeq + 1;
+                        }
                     }
                     else if (local.CloudSeq != 0)
                     {
-                        Logger.LogMessage(Logger.Level.DEBUG, "Journal.SyncCloudEntry: local entry having local seq number " + remote.LocalSeq.ToString("X8") + " has already been given a cloud seq number");
+                        Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudEntry: local entry having local seq number " + remote.LocalSeq.ToString("X8") + " has already been given a cloud seq number");
                     }
                     else
                     {
@@ -1446,7 +1548,7 @@ namespace LobsterConnect.Model
 
                     if (localDuplicate != null)
                     {
-                        Logger.LogMessage(Logger.Level.DEBUG, "Journal.SyncCloudEntry: there is already a local entry having cloud seq number " + remote.CloudSeq.ToString("X8") + ", so the corresponding cloud record will not be replayed");
+                        Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudEntry: there is already a local entry having cloud seq number " + remote.CloudSeq.ToString("X8") + ", so the corresponding cloud record will not be replayed");
                     }
                     else
                     {
@@ -1476,7 +1578,7 @@ namespace LobsterConnect.Model
 
                         if (!waitResult) // the sync did not get signalled; it timed out
                         {
-                            Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudEntry", "time out has expired without the action replay being complete.  Proceeding anyway.");
+                            Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudEntry", "time out has expired without the replay being complete.  Proceeding anyway.");
                         }
                     }
 
@@ -1620,7 +1722,7 @@ namespace LobsterConnect.Model
         /// <summary>
         /// Call this method to start the journal save and sync worker thread safely - if the thread is running
         /// already, the method will do nothing, otherwise it will start the worker thread.  If you call it twice in
-        /// ve3ry quick succession, you will get a race condition, so don't do that.
+        /// very quick succession, you will get a race condition, so don't do that.
         /// </summary>
         /// <returns></returns>
         public static bool EnsureJournalWorkerRunning()

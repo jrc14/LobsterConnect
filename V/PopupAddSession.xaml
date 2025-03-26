@@ -31,7 +31,7 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate  x:DataType="x:String">
-                        <Label Text="{Binding}" LineBreakMode="TailTruncation" WidthRequest="235"></Label>
+                        <Label Text="{Binding}" LineBreakMode="TailTruncation" ></Label>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

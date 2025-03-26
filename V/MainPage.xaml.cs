@@ -16,7 +16,7 @@ public partial class MainPage : ContentPage
 
         // After 30 days, we want the app to insist on loading its content from the cloud sync service,
         // and writing a new local journal file, to make sure that any changes to the cloud data (such as
-        // purges of user data) will make it into the local journal.
+        // purges of user data) will make it into the local journal eventually.
         double days = DateTime.UtcNow.Subtract(new DateTime(2025, 1, 1)).TotalDays;
         double lastRefreshed = Preferences.Get("LastRefreshedDate", 0.0);
         bool fullSync = false;
@@ -28,8 +28,6 @@ public partial class MainPage : ContentPage
                 Preferences.Set("LastRefreshedDate", days);
             }
         }
-
-        fullSync = true;
 
         // Load the view model - which may involve replaying the journal from the local file (if it exists)
         // or may, if fullSync is set, mean waiting for the journal sync worker to fetch all the journal
@@ -336,19 +334,26 @@ public partial class MainPage : ContentPage
 
                             if (user != null)
                             {
-                                await DisplayAlert("Login", "There is an existing user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
+                                await DisplayAlert("New User", "There is an existing user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
                                 return;
                             }
 
                             if (string.IsNullOrEmpty(userAndPassword.Item1))
                             {
-                                await DisplayAlert("Login", "You have to provide a user handle", "Dismiss");
+                                await DisplayAlert("New User", "You have to provide a user handle", "Dismiss");
                                 return;
                             }
 
                             if (userAndPassword.Item1.Contains(','))
                             {
-                                await DisplayAlert("Login", "A user handle must not contain any commas", "Dismiss");
+                                await DisplayAlert("New User", "A user handle must not contain any commas", "Dismiss");
+                                return;
+                            }
+
+                            string password2 = await DisplayPromptAsync("New User", "Please enter the password again", keyboard: Keyboard.Password);
+                            if(password2!= userAndPassword.Item2)
+                            {
+                                await DisplayAlert("New User", "The passwords did not match", "Dismiss");
                                 return;
                             }
 
