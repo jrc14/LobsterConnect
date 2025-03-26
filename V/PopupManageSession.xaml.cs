@@ -15,20 +15,24 @@ public partial class PopupManageSession : Popup
     {
         InitializeComponent();
 
-        if (MainPage.Instance.Width < 350)
+        try
         {
-            this.colDef0.Width = new GridLength(160, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(60, GridUnitType.Absolute);
+            if (MainPage.Instance.Width > 450)
+            {
+                this.colDef0.Width = new GridLength(300, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+            }
+            else
+            {
+                double ww = 450 - MainPage.Instance.Width;
+
+                this.colDef0.Width = new GridLength(300 - ww / 3, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+            }
         }
-        else if (MainPage.Instance.Width < 400)
+        catch (Exception ex)
         {
-            this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(80, GridUnitType.Absolute);
-        }
-        else
-        {
-            this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(80, GridUnitType.Absolute);
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupManageSession ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
 
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);

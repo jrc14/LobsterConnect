@@ -150,6 +150,11 @@ namespace LobsterConnect.Model
             Create, Update, Delete
         }
 
+        /// <summary>
+        /// The sync worker will fire this event (on the UI thread) whenever it completes a sync operation
+        /// </summary>
+        public static event EventHandler SyncCompleted;
+
         private static List<JournalEntry> _LocalJournal = new List<JournalEntry>();
         private static Int32 _LocalJournalNextSeq = 1;
 
@@ -961,13 +966,14 @@ namespace LobsterConnect.Model
         /// Call this on the UI thread to read the current local journal file from disc, and replay (i.e. apply) all the
         /// journalled actions in it (loading them all into the viewmodel).
         /// </summary>
-        public static void LoadJournal(MainViewModel vm)
+        /// <returns>true if any records were loaded from the journal file, false otherwise.</returns>
+        public static bool LoadJournal(MainViewModel vm)
         {
             if(!DispatcherHelper.UIDispatcherHasThreadAccess)
             {
                 Logger.LogMessage(Logger.Level.ERROR, "Journal.LoadJournal", "Must be called from the UI thread ");
                 DispatcherHelper.RunAsyncOnUI(() => LoadJournal(vm));
-                return;
+                return false;
             }
 
             List<JournalEntry> toReplay = new List<JournalEntry>();
@@ -1031,6 +1037,10 @@ namespace LobsterConnect.Model
                     Logger.LogMessage(Logger.Level.ERROR, "Journal.LoadJournal", ex, "while replaying: " + entry.ToString());
                 }
             }
+            if (_LocalJournalNextSeq == 1)
+                return false;
+            else
+                return true;
         }
 
 
@@ -1365,7 +1375,10 @@ namespace LobsterConnect.Model
                                     }
                                 }
                             }
-
+                            Model.DispatcherHelper.RunAsyncOnUI(() =>
+                            {
+                                SyncCompleted?.Invoke(null, new EventArgs());
+                            });
                             Logger.LogMessage(Logger.Level.INFO, "Journal.DoJournalWork", "iteration number " + iteration.ToString() + ": journal sync completed");
                         }
                     }
@@ -1412,7 +1425,8 @@ namespace LobsterConnect.Model
 
                     if (local == null)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "Journal.SyncCloudEntry: no local entry was found, having local seq number " + remote.LocalSeq.ToString("X8"));
+                        Logger.LogMessage(Logger.Level.INFO, "Journal.SyncCloudEntry: no local entry was found, having local seq number " + remote.LocalSeq.ToString("X8")+": a local journal entry will be created");
+                        _LocalJournal.Add(remote);
                     }
                     else if (local.CloudSeq != 0)
                     {

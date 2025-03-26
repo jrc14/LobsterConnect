@@ -9,23 +9,27 @@ public partial class PopupItemsViewer : Popup
     {
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(null, this.btnDone, this.rdefButtons);
+        try
+        {
+            if (MainPage.Instance.Width > 350)
+            {
+                this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            }
+            else
+            {
+                double ww = 350 - MainPage.Instance.Width;
 
-        if (MainPage.Instance.Width < 350)
-        {
-            this.colDef0.Width = new GridLength(125, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(125, GridUnitType.Absolute);
+                this.colDef0.Width = new GridLength(150 - ww / 2, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150 - ww / 2, GridUnitType.Absolute);
+            }
         }
-        else if (MainPage.Instance.Width < 400)
+        catch (Exception ex)
         {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupItemsViewer ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
-        else
-        {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-        }
+
+        V.Utilities.StylePopupButtons(null, this.btnDone, this.rdefButtons);
     }
 
     public void SetItems(List<string> items)

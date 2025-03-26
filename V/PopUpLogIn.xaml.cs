@@ -7,8 +7,6 @@ public partial class PopupLogIn : Popup
 	{
 		InitializeComponent();
 
-        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
-
         string defaultUserName = "";
         if (Microsoft.Maui.Storage.Preferences.ContainsKey("UserHandle"))
         {
@@ -19,24 +17,31 @@ public partial class PopupLogIn : Popup
             }
         }
 
-        if (MainPage.Instance.Width < 350)
+        try
         {
-            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
-            this.entryUserHandle.WidthRequest = 80;
-            this.entryPassword.WidthRequest = 80;
+            if (MainPage.Instance.Width > 400)
+            {
+                this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(200, GridUnitType.Absolute);
+                this.entryUserHandle.WidthRequest = 180;
+                this.entryPassword.WidthRequest = 180;
+            }
+            else
+            {
+                double ww = 400 - MainPage.Instance.Width;
+
+                this.colDef0.Width = new GridLength(150 - ww / 2, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(250 - ww / 2, GridUnitType.Absolute);
+                this.entryUserHandle.WidthRequest = 180 - ww / 2;
+                this.entryPassword.WidthRequest = 180 - ww / 2;
+            }
         }
-        else if (MainPage.Instance.Width < 400)
+        catch(Exception ex)
         {
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-            this.entryUserHandle.WidthRequest = 130;
-            this.entryPassword.WidthRequest = 130;
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupLogin ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
-        else
-        {
-            this.colDef1.Width = new GridLength(200, GridUnitType.Absolute);
-            this.entryUserHandle.WidthRequest = 180;
-            this.entryPassword.WidthRequest = 180;
-        }
+
+        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
     }
 
     async void OnOkClicked(object sender, EventArgs e)

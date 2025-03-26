@@ -9,17 +9,27 @@ public partial class PopupChooseEvent : Popup
     {
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
+        try
+        {
+            if (MainPage.Instance.Width > 350)
+            {
+                this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            }
+            else
+            {
+                double ww = 350 - MainPage.Instance.Width;
 
-        if (MainPage.Instance.Width < 350)
-        {
-            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
- 
+                this.colDef0.Width = new GridLength(150 - ww / 2, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150 - ww / 2, GridUnitType.Absolute);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupChooseEvent ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
+
+        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
     }
 
     public void SetEventList(List<string> eventNames, string initialEvent)

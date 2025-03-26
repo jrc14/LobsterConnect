@@ -8,37 +8,41 @@ public partial class PopupManageFilter : Popup
     {
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(this.btnSave, this.btnCancel, this.rdefButtons);
+        try
+        {
+            if (MainPage.Instance.Width > 400)
+            {
+                this.colDef0.Width = new GridLength(100, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(250, GridUnitType.Absolute);
+                this.pickerProposer.WidthRequest = 150;
+                this.entryProposer.WidthRequest = 80;
+                this.pickerSignUps.WidthRequest = 150;
+                this.entrySignUps.WidthRequest = 80;
+            }
+            else
+            {
+                double ww = 400 - MainPage.Instance.Width;
 
-        if (MainPage.Instance.Width < 350)
-        {
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-            this.pickerProposer.WidthRequest = 100;
-            this.entryProposer.WidthRequest = 40;
-            this.pickerSignUps.WidthRequest = 100;
-            this.entrySignUps.WidthRequest = 40;
+                this.colDef0.Width = new GridLength(100-ww/3, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(250-2*ww/3, GridUnitType.Absolute);
+                this.pickerProposer.WidthRequest = 150 - ww / 3;
+                this.entryProposer.WidthRequest = 80 - ww / 3;
+                this.pickerSignUps.WidthRequest = 150 - ww / 3;
+                this.entrySignUps.WidthRequest = 80 - ww / 3;
+            }
         }
-        else if (MainPage.Instance.Width < 400)
+        catch (Exception ex)
         {
-            this.colDef1.Width = new GridLength(200, GridUnitType.Absolute);
-            this.pickerProposer.WidthRequest = 130;
-            this.entryProposer.WidthRequest = 60;
-            this.pickerSignUps.WidthRequest = 130;
-            this.entrySignUps.WidthRequest = 60;
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupManageFilter ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
-        else
-        {
-            this.colDef1.Width = new GridLength(250, GridUnitType.Absolute);
-            this.pickerProposer.WidthRequest = 150;
-            this.entryProposer.WidthRequest = 80;
-            this.pickerSignUps.WidthRequest = 150;
-            this.entrySignUps.WidthRequest = 80;
-        }
+
+
+        V.Utilities.StylePopupButtons(this.btnSave, this.btnCancel, this.rdefButtons);
     }
 
     public void SetFilter(SessionFilter f)
     {
-        List<string> persons = MainViewModel.Instance.GetAvailablePersons(false);
+        List<string> persons = MainViewModel.Instance.GetAvailablePersons(true); // active persons only
         persons.Sort();
 
         persons.Insert(0, "[Any Person]");

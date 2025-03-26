@@ -8,32 +8,33 @@ public partial class PopupPersonDetails : Popup
 	{
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
+        try
+        {
+            if (MainPage.Instance.Width > 450)
+            {
+                this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(200, GridUnitType.Absolute);
+                this.entryFullName.WidthRequest = 180;
+                this.entryPhoneNumber.WidthRequest = 180;
+                this.entryEmail.WidthRequest = 180;
+            }
+            else
+            {
+                double ww = 450 - MainPage.Instance.Width;
 
-        if (MainPage.Instance.Width < 350)
-        {
-            this.colDef0.Width = new GridLength(100, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
-            this.entryFullName.WidthRequest = 80;
-            this.entryPhoneNumber.WidthRequest = 80;
-            this.entryEmail.WidthRequest = 80;
+                this.colDef0.Width = new GridLength(200 - ww/2, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(200 - ww/2, GridUnitType.Absolute);
+                this.entryFullName.WidthRequest = 180 - ww/2;
+                this.entryPhoneNumber.WidthRequest = 180 - ww/2;
+                this.entryEmail.WidthRequest = 180 - ww/2;
+            }
         }
-        else if (MainPage.Instance.Width < 400)
+        catch (Exception ex)
         {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-            this.entryFullName.WidthRequest = 130;
-            this.entryPhoneNumber.WidthRequest = 130;
-            this.entryEmail.WidthRequest = 130;
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupPersonDetails ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
-        else
-        {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-            this.entryFullName.WidthRequest = 130;
-            this.entryPhoneNumber.WidthRequest = 130;
-            this.entryEmail.WidthRequest = 130;
-        }
+
+        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
     }
 
     public void SetPerson(Person person)

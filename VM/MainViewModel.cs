@@ -1,15 +1,6 @@
 ﻿using System.ComponentModel;
 using LobsterConnect.Model;
 
-// TO DO
-// The app should periodically do a complete download and refresh of its local
-// journal file, so that backend changes are always taken into account (it should only do this when it has
-// access to the internet).
-// A nice icon and splash screen are needed.
-// I'll need to write a manual, and a landing page on www.turnipsoft.com/lobsterconnect
-// I need to put the connection string in a secret, Git-and-FOSS-compatible place.
-
-
 namespace LobsterConnect.VM
 {
     /// <summary>
@@ -77,12 +68,21 @@ namespace LobsterConnect.VM
             }
             else
             {
-                // Reads everything from the local journal file into the viewmodel.
-                // Uncomment the line below, to use the journal from the previous run (which is what
-                // you'll want to do unless you're loading test data above.
+                // Reads everything from the local journal file into the viewmodel.  If ignoreJournalFile is set
+                // then we won't load any data from the journal file, and will instead wait for the journal sync
+                // worker to fetch the journal entries from the cloud sync service.
+                this.suppressSyncMessages = true; // don't show sync messages until the initial load is completed
                 if (!ignoreJournalFile)
                 {
-                    Journal.LoadJournal(this);
+                    bool loaded = Journal.LoadJournal(this);
+                    if(loaded)
+                        this.suppressSyncMessages = false; // now the journal is loaded, we can start showing sync messages
+                    else
+                        Journal.SyncCompleted += OnJournalInitialSyncCompleted; // the journal was empty, so we need to wait for the initial cloud sync to complete before we start showing sync messages
+                }
+                else
+                {
+                    Journal.SyncCompleted += OnJournalInitialSyncCompleted; // start showing sync messages once the first cloud sync has finished
                 }
             }
 
@@ -91,6 +91,17 @@ namespace LobsterConnect.VM
             this.PropertyChanged += MainViewModel_PropertyChanged;
         }
         private bool _isLoaded = false;
+
+        /// <summary>
+        /// Event handler to be used if we want to hide sync messages until after the first cloud sync has completed.
+        /// </summary>
+        /// <param name="o"></param>
+        /// <param name="e"></param>
+        public void OnJournalInitialSyncCompleted(object o, EventArgs e)
+        {
+            Journal.SyncCompleted -= OnJournalInitialSyncCompleted;
+            this.suppressSyncMessages = false;
+        }
 
         /// <summary>
         /// Call this to load just the sessions and signups that relate to a certain gaming event.  This method isn't doing anything
@@ -737,7 +748,7 @@ namespace LobsterConnect.VM
                     }
                     else
                     {
-                        LogUserMessage(Logger.Level.WARNING, "Create Session: creating a session for an inactive game: '" + gameNameToPlay + "'");
+                        LogSyncMessage(Logger.Level.WARNING, "Create Session: creating a session for an inactive game: '" + gameNameToPlay + "'");
                     }
                 }
 
@@ -750,7 +761,7 @@ namespace LobsterConnect.VM
                     }
                     else
                     {
-                        LogUserMessage(Logger.Level.WARNING, "Create Session: creating a session proposed by an inactive person: '" + proposerHandle + "'");
+                        LogSyncMessage(Logger.Level.WARNING, "Create Session: creating a session proposed by an inactive person: '" + proposerHandle + "'");
                     }
                 }
 
@@ -856,7 +867,7 @@ namespace LobsterConnect.VM
                         }
                         else
                         {
-                            LogUserMessage(Logger.Level.WARNING, "Sign-up: an inactive person '" + personHandle + "' is being signed up to play '" + session.ToPlay + "'");
+                            LogSyncMessage(Logger.Level.WARNING, "Sign-up: an inactive person '" + personHandle + "' is being signed up to play '" + session.ToPlay + "'");
                         }
                     }
                 }
@@ -869,7 +880,7 @@ namespace LobsterConnect.VM
                     }
                     else
                     {
-                        LogUserMessage(Logger.Level.WARNING, "Sign-up: '" + personHandle + "' is being signed up to play a non-OPEN session of '" + session.ToPlay + "'");
+                        LogSyncMessage(Logger.Level.WARNING, "Sign-up: '" + personHandle + "' is being signed up to play a non-OPEN session of '" + session.ToPlay + "'");
                     }
                 }
                 if (personHandle == "#deleted") // allow duplicate sign-ups for the 'deleted' user because more than one user may be deleted
@@ -1624,7 +1635,7 @@ namespace LobsterConnect.VM
             {
                 if (eventName == CurrentEvent.Name && toIsActive == false)
                 {
-                    LogUserMessage(Logger.Level.WARNING, "Sync: the current event '" + eventName + "' has been DEACTIVATED");
+                    LogSyncMessage(Logger.Level.WARNING, "Sync: the current event '" + eventName + "' has been DEACTIVATED");
                 }
             }
             else
@@ -1667,7 +1678,7 @@ namespace LobsterConnect.VM
             {
                 if (personHandle == LoggedOnUser.Handle && toIsActive == false)
                 {
-                    LogUserMessage(Logger.Level.WARNING, "Sync: the current user '" + personHandle + "' has been DEACTIVATED");
+                    LogSyncMessage(Logger.Level.WARNING, "Sync: the current user '" + personHandle + "' has been DEACTIVATED");
                 }
             }
         }
@@ -1680,32 +1691,32 @@ namespace LobsterConnect.VM
                 {
                     if (toState == "ABANDONED")
                     {
-                        LogUserMessage(Logger.Level.WARNING, "Sync: a game of '" + session.ToPlay + "' organised by you has been ABANDONED");
+                        LogSyncMessage(Logger.Level.WARNING, "Sync: a game of '" + session.ToPlay + "' organised by you has been ABANDONED");
                     }
                     else if (toState == "FULL")
                     {
-                        LogUserMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' organised by you has been declared FULL");
+                        LogSyncMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' organised by you has been declared FULL");
                     }
 
                     if(toNotes!=null)
                     {
-                        LogUserMessage(Logger.Level.INFO, "Sync: new NOTES have been added to a game of '" + session.ToPlay + "' organised by you");
+                        LogSyncMessage(Logger.Level.INFO, "Sync: new NOTES have been added to a game of '" + session.ToPlay + "' organised by you");
                     }
                 }
                 else if (session.IsSignedUp(LoggedOnUser.Handle))
                 {
                     if (toState == "ABANDONED")
                     {
-                        LogUserMessage(Logger.Level.WARNING, "Sync: a game of '" + session.ToPlay + "' involving you has been ABANDONED");
+                        LogSyncMessage(Logger.Level.WARNING, "Sync: a game of '" + session.ToPlay + "' involving you has been ABANDONED");
                     }
                     else if (toState == "FULL")
                     {
-                        LogUserMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' involving you has been declared FULL");
+                        LogSyncMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' involving you has been declared FULL");
                     }
 
                     if (toNotes != null)
                     {
-                        LogUserMessage(Logger.Level.INFO, "Sync: new NOTES have been added to a game of '" + session.ToPlay + "' involving you");
+                        LogSyncMessage(Logger.Level.INFO, "Sync: new NOTES have been added to a game of '" + session.ToPlay + "' involving you");
                     }
                 }
             }
@@ -1722,22 +1733,22 @@ namespace LobsterConnect.VM
             {
                 if (session.State == "OPEN")
                 {
-                    LogUserMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has signed up to play your game of '" + session.ToPlay + "'");
+                    LogSyncMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has signed up to play your game of '" + session.ToPlay + "'");
 
                     if (session.NumSignUps > session.SitsMaximum)
                     {
-                        LogUserMessage(Logger.Level.WARNING, "Sync: your game of '" + session.ToPlay + "' is OVERSUBSCRIBED");
+                        LogSyncMessage(Logger.Level.WARNING, "Sync: your game of '" + session.ToPlay + "' is OVERSUBSCRIBED");
                     }
                 }
                 else
                 {
-                    LogUserMessage(Logger.Level.WARNING, "Sync: '" + personHandle + "' has signed up to play your " + session.State + " game of '" + session.ToPlay + "'");
+                    LogSyncMessage(Logger.Level.WARNING, "Sync: '" + personHandle + "' has signed up to play your " + session.State + " game of '" + session.ToPlay + "'");
                 }
             }
 
             if (LoggedOnUser.Handle==personHandle && modifiedBy != personHandle)
             {
-                LogUserMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has signed you up to play a game of '" + session.ToPlay + "'");
+                LogSyncMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has signed you up to play a game of '" + session.ToPlay + "'");
             }
         }
 
@@ -1750,18 +1761,39 @@ namespace LobsterConnect.VM
 
             if (LoggedOnUser.Handle == session.Proposer && session.Proposer != personHandle)
             {
-                LogUserMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has cancelled their sign-up to play your game of '" + session.ToPlay + "'");
+                LogSyncMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has cancelled their sign-up to play your game of '" + session.ToPlay + "'");
             }
 
             if (LoggedOnUser.Handle == personHandle && modifiedBy != personHandle)
             {
-                LogUserMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has cancelled your sign-up up to play a game of '" + session.ToPlay + "'");
+                LogSyncMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has cancelled your sign-up up to play a game of '" + session.ToPlay + "'");
             }
         }
 
         /// <summary>
-        /// Emit a message into a list that the UI will show to the user.  Expect them to be shown in a viewable list,
-        /// but not to produce a popup that would disturb the user's activities.
+        /// If true, then LogSycMessages will do nothing (you'll want to set this message during the initial sync
+        /// or journal load process, because sync warnings produced during then are old news, and we don't
+        /// want to show them to the user again.
+        /// </summary>
+        private bool suppressSyncMessages=false;
+
+        /// <summary>
+        /// Emits a message about synchronisation state into a list that the UI will show to the user. Expect
+        /// these messages to be shown in a viewable list,but not to produce a popup that would disturb the user's
+        /// activities.  This method will generally  call LogUserMessage, but during app initialisation, the viewmodel may decide to suppress
+        /// sync messages.
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="message"></param>
+        public void LogSyncMessage(Logger.Level level, string message)
+        {
+            if(!suppressSyncMessages)
+                LogUserMessage(level, message);
+        }
+
+        /// <summary>
+        /// Emit a message into a list that the UI will show to the user.  Expect these messages to be shown in a
+        /// viewable list, but not to produce a popup that would disturb the user's activities.
         /// </summary>
         /// <param name="level"></param>
         /// <param name="message"></param>

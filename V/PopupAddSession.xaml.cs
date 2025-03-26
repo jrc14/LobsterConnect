@@ -10,8 +10,6 @@ public partial class PopupAddSession : Popup
     {
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
-
         List<string> allGames = MainViewModel.Instance.GetAvailableGames();
         allGames.Sort();
         allGames.Insert(0, ADD_GAME_TEXT);
@@ -26,24 +24,30 @@ public partial class PopupAddSession : Popup
 
         this.pickerStartTime.ItemsSource = timeSlotLabels;
 
-        if (MainPage.Instance.Width < 350)
+        try
         {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.entryGameFilter.WidthRequest = 50;
-            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
+            if (MainPage.Instance.Width > 450)
+            {
+                this.colDef0.Width = new GridLength(250, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+                this.entryGameFilter.WidthRequest = 90;
+            }
+            else
+            {
+                double ww = 450 - MainPage.Instance.Width;
+
+                this.colDef0.Width = new GridLength(250 - ww / 2, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150 - ww / 2, GridUnitType.Absolute);
+
+                this.entryGameFilter.WidthRequest = 50;
+            }
         }
-        else if (MainPage.Instance.Width<400)
+        catch (Exception ex)
         {
-            this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
-            this.entryGameFilter.WidthRequest = 50;
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupAddSession ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
-        else
-        {
-            this.colDef0.Width = new GridLength(250, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-            this.entryGameFilter.WidthRequest = 90;
-        }
+
+        V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
 
         // Do this later because it takes a while
         Model.DispatcherHelper.RunAsyncOnUI(() => this.lvGame.ItemsSource = new ObservableCollection<string>(allGames));
@@ -142,6 +146,8 @@ public partial class PopupAddSession : Popup
                 this.lvGame.ItemsSource = new ObservableCollection<string>(existingGames);
 
             }
+            /* REMOVED THIS CUNNING OPTIMISATION BECAUSE, ON IPHONE, REMOVING ELEMENTS FROM AN OBSERVABLE COLLECTION
+             * IS A HORRIBLY SLOW OPERATION
             else if (string.IsNullOrEmpty(currentGameNameFilter) || newFilter.Contains(currentGameNameFilter, StringComparison.InvariantCultureIgnoreCase))
             {
                 // if the name filter is set to a value that is more specific than the existing name filter,
@@ -163,6 +169,7 @@ public partial class PopupAddSession : Popup
 
                 currentGameNameFilter = newFilter;
             }
+            */
             else
             {
                 // The game filter is a new value, not contained within the old filter.  We must reload the

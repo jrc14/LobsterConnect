@@ -9,23 +9,27 @@ public partial class PopupViewPersons : Popup
     {
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
+        try
+        {
+            if (MainPage.Instance.Width > 450)
+            {
+                this.colDef0.Width = new GridLength(200, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(200, GridUnitType.Absolute);
+            }
+            else
+            {
+                double ww = 450 - MainPage.Instance.Width;
 
-        if (MainPage.Instance.Width < 350)
-        {
-            this.colDef0.Width = new GridLength(125, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(125, GridUnitType.Absolute);
+                this.colDef0.Width = new GridLength(200 - ww / 2, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(200 - ww / 2, GridUnitType.Absolute);
+            }
         }
-        else if (MainPage.Instance.Width < 400)
+        catch (Exception ex)
         {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupViewPersons ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
-        else
-        {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-        }
+
+        V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
     }
 
     public void SetPersons(List<string> personHandles)

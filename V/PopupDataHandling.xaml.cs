@@ -23,33 +23,37 @@ public partial class PopupDataHandling : Popup
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons, this.btnViewPolicy, this.btnViewPersonalData, this.btnPurgePersonalData);
 
         this.lbTextViewer.Text = _PolicyText;
-            
-        if (MainPage.Instance.Width < 350)
-        {
-            this.colDef0.Width = new GridLength(80, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(80, GridUnitType.Absolute);
-            this.colDef2.Width = new GridLength(80, GridUnitType.Absolute);
-        }
-        else if (MainPage.Instance.Width < 400)
-        {
-            this.colDef0.Width = new GridLength(100, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(100, GridUnitType.Absolute);
-            this.colDef2.Width = new GridLength(100, GridUnitType.Absolute);
-        }
-        else
-        {
-            this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
-            this.colDef2.Width = new GridLength(150, GridUnitType.Absolute);
-        }
 
-        if(MainPage.Instance.Height>600)
+        try
         {
-            this.rdefTextViewer.Height = new GridLength(400, GridUnitType.Absolute);
+
+            if (MainPage.Instance.Width > 500)
+            {
+                this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150, GridUnitType.Absolute);
+                this.colDef2.Width = new GridLength(150, GridUnitType.Absolute);
+            }
+            else
+            {
+                double ww = 500 - MainPage.Instance.Width;
+
+                this.colDef0.Width = new GridLength(150 - ww / 3, GridUnitType.Absolute);
+                this.colDef1.Width = new GridLength(150 - ww / 3, GridUnitType.Absolute);
+                this.colDef2.Width = new GridLength(150 - ww / 3, GridUnitType.Absolute);
+            }
+
+            if (MainPage.Instance.Height > 650)
+            {
+                this.rdefTextViewer.Height = new GridLength(400, GridUnitType.Absolute);
+            }
+            else
+            {
+                this.rdefTextViewer.Height = new GridLength(MainPage.Instance.Height - 250, GridUnitType.Absolute);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            this.rdefTextViewer.Height = new GridLength(MainPage.Instance.Height - 200, GridUnitType.Absolute);
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupDataHandling ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
 
         if (MainViewModel.Instance.LoggedOnUser == null)

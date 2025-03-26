@@ -15,31 +15,37 @@ public partial class PopupLegalTerms : Popup
     {
         InitializeComponent();
 
-        V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
-
         this.lbTextViewer.Text = _LegalText;
 
-        if (MainPage.Instance.Width < 350)
+        try
         {
-            this.colDef0.Width = new GridLength(240, GridUnitType.Absolute);
+            if (MainPage.Instance.Width > 500)
+            {
+                this.colDef0.Width = new GridLength(450, GridUnitType.Absolute);
+            }
+            else
+            {
+                double ww = 500 - MainPage.Instance.Width;
+
+                this.colDef0.Width = new GridLength(450 - ww, GridUnitType.Absolute);
+            }
+
+            if (MainPage.Instance.Height > 600)
+            {
+                this.rdefTextViewer.Height = new GridLength(400, GridUnitType.Absolute);
+            }
+            else
+            {
+                this.rdefTextViewer.Height = new GridLength(MainPage.Instance.Height - 250, GridUnitType.Absolute);
+            }
         }
-        else if (MainPage.Instance.Width < 400)
+        catch (Exception ex)
         {
-            this.colDef0.Width = new GridLength(300, GridUnitType.Absolute);
-        }
-        else
-        {
-            this.colDef0.Width = new GridLength(450, GridUnitType.Absolute);
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupLegalTerms ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
 
-        if (MainPage.Instance.Height > 600)
-        {
-            this.rdefTextViewer.Height = new GridLength(400, GridUnitType.Absolute);
-        }
-        else
-        {
-            this.rdefTextViewer.Height = new GridLength(MainPage.Instance.Height - 200, GridUnitType.Absolute);
-        }
+
+        V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
     }
 
     async void OnDismissClicked(object sender, EventArgs e)

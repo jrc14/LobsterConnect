@@ -13,8 +13,8 @@
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="colDef0" Width="150"/>
-            <ColumnDefinition x:Name="colDef1" Width="150"/>
+            <ColumnDefinition x:Name="colDef0" Width="200"/>
+            <ColumnDefinition x:Name="colDef1" Width="200"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Person Details" x:Name="lbPersonDetails" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
         <Label Grid.Row="1" Grid.Column="0" Text="Full name:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
