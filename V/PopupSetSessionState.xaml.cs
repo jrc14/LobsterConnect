@@ -5,6 +5,13 @@ namespace LobsterConnect.V;
 
 public partial class PopupSetSessionState : Popup
 {
+    /// <summary>
+    /// Popup for changing the state of a session between OPEN, FULL and ABANDONED.  To associate
+    /// the popup with a certain session, call the SetSession method afte constructing the dialog.
+    /// The buttons on the popup change the session state immediately by calling
+    /// MainViewModel.Instance.UpdateSession.  There is no 'undo' function - if you want to change
+    /// a session back to the previous state, then just tap on the button for that state.
+    /// </summary>
     public PopupSetSessionState()
     {
         InitializeComponent();
@@ -72,73 +79,4 @@ public partial class PopupSetSessionState : Popup
     {
         await CloseAsync(null, CancellationToken.None);
     }
-
-
-
-    /*
-     
-
-    
-                if (s.State == "ABANDONED")
-                {
-                    bool res1;
-                    bool res2 = false;
-                    res1 = await MainPage.Instance.DisplayAlert("Gaming Session (Abandoned)", "Session is currently ABANDONED; you can reactivate it by it switching to OPEN or FULL.  Do you want to switch it to OPEN (additional people can join)?", "Yes", "No");
-                    if (!res1) res2 = await MainPage.Instance.DisplayAlert("Gaming Session (Abandoned)", "Do you want to switch it to FULL (game will take place, but no one else can join)?", "Yes", "No");
-
-                    if (res1)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "OPEN");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to OPEN by '" + s.Proposer + "'");
-                    }
-                    else if (res2)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "FULL");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to FULL by '" + s.Proposer + "'");
-                    }
-                }
-                else if (s.State == "OPEN")
-                {
-                    bool res1;
-                    bool res2 = false;
-                    res1 = await MainPage.Instance.DisplayAlert("Gaming Session (Open)", "Session is currently OPEN; you can declare it FULL, or you can ABANDON it.  Do you want to switch it to FULL (game will take place, but no one else can join)?", "Yes", "No");
-                    if (!res1) res2 = await MainPage.Instance.DisplayAlert("Gaming Session (Open)", "Do you want to switch it to ABANDONED (the game will not be happening)?", "Yes", "No");
-
-
-                    if (res1)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "FULL");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to FULL by '" + s.Proposer + "'");
-                    }
-                    else if (res2)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "ABANDONED");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to ABANDONED by '" + s.Proposer + "'");
-                    }
-                }
-                else if (s.State == "FULL")
-                {
-                    bool res1;
-                    bool res2 = false;
-                    res1 = await MainPage.Instance.DisplayAlert("Gaming Session (Full)", "Session is currently FULL; you can re-OPEN it, or you can ABANDON it.  Do you want to switch it to OPEN (additional people can join)?", "Yes", "No");
-                    if (!res1) res2 = await MainPage.Instance.DisplayAlert("Gaming Session (Full)", "Do you want to switch it to ABANDONED (the game will not be happening)?", "Yes", "No");
-
-                    if (res1)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "OPEN");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to OPEN by '" + s.Proposer + "'");
-                    }
-                    else if (res2)
-                    {
-                        MainViewModel.Instance.UpdateSession(true, s, state: "ABANDONED");
-                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "' set to ABANDONED by '" + s.Proposer + "'");
-                    }
-                }
-                else
-                {
-                    // shouldn't happen
-                    Logger.LogMessage(Logger.Level.ERROR, "PopupManageSession.btnStateClicked", "State string has an illegal value: " + s.State);
-                }
-
-     */
 }

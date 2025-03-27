@@ -16,6 +16,13 @@ public partial class PopupDataHandling : Popup
             "The Privacy and Data Handling menu option in the app will allow you to see all the personal data that is held about you, and get it removed it from our on-line database.  Alternatively, you can email data access or deletion requests to us at dataprotection@turnipsoft.co.uk.\n" +
             "You should not depend upon us to preserve any data for you; any data may be removed from the app at any time for technical reasons, without notice.\n" +
             "If your account is inactive (you don't propose or sign up to any games) for more that five years, then your personal data will be removed from our on-line database.\n";
+
+    /// <summary>
+    /// Popup to display the privacy and data management policy.  It contains additiona controls to
+    /// display what personal information is held for the current user (using the PrettyPrint method
+    /// on the local journal, and the RelatesToUser method on JournalEntry) and to purge that data
+    /// from the cloud sync service, using MainViewModel.Instance.PurgeUserData.
+    /// </summary>
     public PopupDataHandling()
     {
         InitializeComponent();
@@ -64,17 +71,32 @@ public partial class PopupDataHandling : Popup
         }
     }
 
+    /// <summary>
+    /// Close the popup
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     async void OnDismissClicked(object sender, EventArgs e)
     {
         await CloseAsync(true, CancellationToken.None);
     }
 
+    /// <summary>
+    /// Display the data management policy in the scrollable view
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     void OnViewPolicyClicked(object sender, EventArgs e)
     {
         this.svTextViewer.ScrollToAsync(0, 0, false);
         this.lbTextViewer.Text = _PolicyText;
     }
 
+    /// <summary>
+    /// Display the current user's personal data in the scrollable view
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     void OnViewPersonalDataClicked(object sender, EventArgs e)
     {
         this.svTextViewer.ScrollToAsync(0, 0, false);
@@ -90,6 +112,11 @@ public partial class PopupDataHandling : Popup
         }
     }
 
+    /// <summary>
+    /// Purge personal data for the current user, after displaying a suitably scary warning
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     async void OnPurgePersonalDataClicked(object sender, EventArgs e)
     {
         if (MainViewModel.Instance.LoggedOnUser != null)

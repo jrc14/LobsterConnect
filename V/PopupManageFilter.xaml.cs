@@ -2,6 +2,17 @@ using CommunityToolkit.Maui.Views;
 using LobsterConnect.VM;
 namespace LobsterConnect.V;
 
+/// <summary>
+/// Popup for managing the filter that is used to restrict the game sessions shown in the
+/// table in the main UI.  To set the initial value for the controls (proposer, game name,
+/// people signed up, session state) pass a suitable SessionFilter to the SetFilter method on the
+/// popup.  If the user clicks the save button, then the popup will return a result consisting of 
+/// a new filter, populated according to the values now in the controls (proposer, game name,
+/// people signed up, session state).
+/// The proposer and signups controls are pickers for choosing person names.  Because there
+/// could be a lot of person names to go through, each of these controls is accompanied by a text
+/// entry field that can be used to find the right person.
+/// </summary>
 public partial class PopupManageFilter : Popup
 {
     public PopupManageFilter()
@@ -40,6 +51,10 @@ public partial class PopupManageFilter : Popup
         V.Utilities.StylePopupButtons(this.btnSave, this.btnCancel, this.rdefButtons);
     }
 
+    /// <summary>
+    /// Pass in a filter whose contents will be read to set up the controls on the popup.
+    /// </summary>
+    /// <param name="f"></param>
     public void SetFilter(SessionFilter f)
     {
         List<string> persons = MainViewModel.Instance.GetAvailablePersons(true); // active persons only
@@ -113,6 +128,12 @@ public partial class PopupManageFilter : Popup
         await CloseAsync(false, CancellationToken.None);
     }
 
+    /// <summary>
+    /// When the proposer text entry field is changed, scroll the proposer picker to the first
+    /// item that matches the text.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void entryProposer_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (string.IsNullOrEmpty(e.NewTextValue))
@@ -135,6 +156,12 @@ public partial class PopupManageFilter : Popup
         }
     }
 
+    /// <summary>
+    /// When the signups text entry field is changed, scroll the signups picker to the first
+    /// item that matches the text.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void entrySignUps_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (string.IsNullOrEmpty(e.NewTextValue))

@@ -6,8 +6,19 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.V
 {
+    /// <summary>
+    /// Utilities for doing things with app UI
+    /// </summary>
     public static class Utilities
     {
+        /// <summary>
+        /// Set the visual attributes of popup buttons to make them a bit closer to the right look
+        /// and feel for the particular kind of device the app is running on
+        /// </summary>
+        /// <param name="btnOk">The OK button or null if there is no OK button</param>
+        /// <param name="btnCancel">The Cancel button or null if there is no Cancel button</param>
+        /// <param name="rdefButtons">The grid row containing the OK and Cancel buttons</param>
+        /// <param name="buttons">All the other buttons whose appearance you want to adjust</param>
         public static void StylePopupButtons(Button btnOk, Button btnCancel, RowDefinition rdefButtons, params Button[] buttons)
         {
 #if ANDROID

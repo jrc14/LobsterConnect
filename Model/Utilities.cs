@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.Model
 {
+    /// <summary>
+    /// Utility methods for getting an id that uniquely represents this installation, and for hashing strings,
+    /// and hashing the password in particular, and for doing various file management operations.
+    /// </summary>
     static public class Utilities
     {
         /// <summary>
@@ -64,6 +68,9 @@ namespace LobsterConnect.Model
         /// <returns></returns>
         public static string PasswordHash(string p)
         {
+            if (string.IsNullOrEmpty(p))
+                return "";
+
             string h = "";
 
             for(int i=0; i<p.Length;i++)

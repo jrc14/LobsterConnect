@@ -6,6 +6,14 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.Model
 {
+    /// <summary>
+    /// A background worker. Start one of them by calling RunWorkerAsync, and tell it what to do by
+    /// implementing a handler for the DoWork event.  It will raise RunWorkerCompleted when the work is
+    /// finished (i.e. after the DoWork event handler exits).  It's copied from some code on the internet
+    /// downloaded way back when (and AFAIR covered by an MIT licence).
+    /// This app uses two background workers, one to maintain the log file, and one to manage the
+    /// journal (saving it periodically, and syncing it with the cloud sync service)
+    /// </summary>
     public class LobsterWorker
     {
         public LobsterWorker()

@@ -11,13 +11,16 @@ using System.Threading.Tasks;
 namespace LobsterConnect.VM
 {
     /// <summary>
-    /// A filter that the UI can use to select a subset of sessions according to some criteria.  It implements INotifyPropertyChanged
-    /// so you can bind it to a UI.  Warning: since it raises PropertyChanged events every time any criterion is changed, you
-    /// probably want to be a bit careful about triggering a complete UI refresh in response to every such event, because you
-    /// will end up doing that refresh operation a lot, if the filter is bound to XAML elements that the user is typing into.
-    /// At present, the code doesn't pay any attention to these events at all, and handles changing the current filter
-    /// by always just re-assigning MainViewModel.Instance.CurrentFilter to a whole new filter object, and handling the
-    /// OnPropertyChanged event for MainViewModel.CurrentFilter to kick off the UI refresh. 
+    /// A filter that the UI can use to select a subset of sessions according to some criteria.  It
+    /// implements INotifyPropertyChanged so you can bind it to a UI.  Warning: since it raises
+    /// PropertyChanged events every time any criterion is changed, you  probably want to be a bit
+    /// careful about triggering a complete UI refresh in response to every such event, because you
+    /// will end up doing that refresh operation a lot, if the filter is bound to XAML elements that
+    /// the user is typing into.
+    /// At present, the code doesn't pay any attention to these events at all, and handles changing
+    /// the current filter by always just re-assigning MainViewModel.Instance.CurrentFilter to a whole
+    /// new filter object, and handling the OnPropertyChanged event for MainViewModel.CurrentFilter
+    /// to kick off the UI refresh. 
     /// </summary>
     public class SessionFilter : LobsterConnect.VM.BindableBase
     {
@@ -57,6 +60,12 @@ namespace LobsterConnect.VM
             }
         }
 
+        /// <summary>
+        /// Predicate that is true if the filter matches the given session.  Null or empty values in the
+        /// attributes are treated as wildcards that match any session.
+        /// </summary>
+        /// <param name="s">the session to test for a match</param>
+        /// <returns></returns>
         public bool Matches(Session s)
         {
             if (!string.IsNullOrEmpty(this.Proposer))
@@ -82,6 +91,9 @@ namespace LobsterConnect.VM
             return true;
         }
 
+        /// <summary>
+        /// A text string that loosely represents the contents of the filter
+        /// </summary>
         public string Description
         {
             get
@@ -124,8 +136,11 @@ namespace LobsterConnect.VM
                 }
             }
         }
+
         /// <summary>
-        /// Person handle of the person proposing this gaming session.  The set accessor does not check whether it is a valid, active person.
+        /// Person handle of the person proposing this gaming session.  The set accessor does not
+        /// check whether it is a valid, active person.
+        /// A null or empty value will match any proposer.
         /// </summary>
         public string Proposer
         {
@@ -156,7 +171,9 @@ namespace LobsterConnect.VM
         private string _proposer="";
 
         /// <summary>
-        /// A string to be compared (using case-insensitive Contains()) with the full name of the game that is to be played.
+        /// A string to be compared (using case-insensitive Contains()) with the full name of
+        /// the game that is to be played.
+        /// A null or empty value will match any game
         /// </summary>
         public string ToPlay
         {
@@ -188,6 +205,7 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// A person handle to be searched for in the list of sign-ups for the session
+        /// A null or empty value will match any signup list
         /// /// </summary>
         public string SignUpsInclude
         {
@@ -223,6 +241,7 @@ namespace LobsterConnect.VM
         /// OPEN = players are permitted to sign up
         /// FULL = no more slots are available (the game is full); sign up attempts will fail
         /// ABANDONED = the session has been abandoned; sign up attempts will fail
+        /// Null or Empty = all states will match the filter
         /// </summary>
         public string State
         {

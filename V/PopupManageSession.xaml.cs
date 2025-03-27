@@ -324,7 +324,7 @@ public partial class PopupManageSession : Popup
                 EmailMessage message = new EmailMessage()
                 {
                     Subject = "LobsterConnect Inappropriate Content",
-                    Body = "I note that the session details for "+ s.Id + "("+s.EventName+", "+ s.ToPlay+", "+s.StartAt.ToString()+ ") contain inappropriate content.  Please take the necessary steps to address this concern.",
+                    Body = "I note that the session details for "+ s.Id + "("+s.EventName+", "+ s.ToPlay+", #"+s.StartAt.Ordinal.ToString()+ ") contain inappropriate content.  Please take the necessary steps to address this concern.",
                     BodyFormat = EmailBodyFormat.PlainText,
                     To = new List<string>() { "moderator@turnipsoft.co.uk" }
                 };

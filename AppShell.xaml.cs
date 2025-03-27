@@ -3,13 +3,18 @@ using LobsterConnect.V;
 
 namespace LobsterConnect;
 
+/// <summary>
+/// The boilerplate code for app shell UI setup.  A new menu template is added to make the flyout menu style
+/// acceptable, and a method is added to pass flyout menu actions to the MainPage, where they belong.
+/// </summary>
 public partial class AppShell : Shell
 {
     public AppShell()
     {
         InitializeComponent();
 
-        
+        // Display flyout menu items in a way that is at least legible, which is more than you can say
+        // for the out-of-the-box defaults provided by MAUI.
         this.MenuItemTemplate = new DataTemplate(() =>
         {
             return new Grid()
@@ -69,18 +74,27 @@ public partial class AppShell : Shell
         
     }
 
+    /// <summary>
+    /// Some day we might decide to do things when the main title bar is tapped
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void AppShell_Tapped(object sender, TappedEventArgs e)
     {
 
     }
 
+    /// <summary>
+    /// Taps on flyout menu items come here, and are handed off the the main page.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void AppShell_MenuItemClicked(object sender, EventArgs e)
     {
         this.FlyoutIsPresented = false;
 
         if (sender is MenuItem)
         {
-
             MainPage.Instance.FlyoutMenuAction(((MenuItem)sender).CommandParameter as string);
         }
     }

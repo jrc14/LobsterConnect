@@ -10,6 +10,15 @@ namespace LobsterConnect.V;
 
 public partial class MainPage : ContentPage
 {
+    /// <summary>
+    /// There is only one content page in the app; it's this one.  It consists of a menu bar at the top
+    /// including controls for logging on, for adding a session, for applying a filter and for
+    /// selecting gaming events; below that is the main table of planned sessions, and at the bottom is 
+    /// a window showing logged messages (most recent message at the top).
+    /// There is a hamburger menu and a title bar heading - but these are defined in the AppShell.xaml file.
+    /// 
+    /// For design notes conncering the app as a whole, please refer to App.xaml.cs.
+    /// </summary>
 	public MainPage()
 	{
         MainPage.Instance = this;
@@ -41,6 +50,8 @@ public partial class MainPage : ContentPage
 		Journal.EnsureJournalWorkerRunning();
         MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Cloud sync service has been started");
 
+        // "UserHandle" preference contains the name of a person; if present, this person
+        // will be automatically logged on at startup, without any need to enter a password.
         if (Preferences.ContainsKey("UserHandle"))
         {
             string defaultUserName = Preferences.Get("UserHandle", "");
@@ -49,7 +60,6 @@ public partial class MainPage : ContentPage
 				Person defaultUser= MainViewModel.Instance.GetPerson(defaultUserName);
                 if(defaultUser != null)
 				{
-                    //MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '"+ defaultUserName+"' has been logged in automatically");
 					MainViewModel.Instance.SetLoggedOnUser(defaultUser, true);
                 }
             }
@@ -70,8 +80,7 @@ public partial class MainPage : ContentPage
         }
 
         // As long as this page is loaded, we need to respond to a 'sessions must be refreshed' event raised
-        // by the view model, by refreshing the main UI grid that shows all the sessions
-
+        // by the view model, by refreshing the main UI grid that shows all the sessions.
         this.Loaded += (o, e) =>
 		{
 			MainViewModel.Instance.SessionsMustBeRefreshed += RefreshSessionsGrid;
@@ -83,8 +92,10 @@ public partial class MainPage : ContentPage
             MainViewModel.Instance.SessionsMustBeRefreshed -= RefreshSessionsGrid;
         };
 
+        // Standard XAML-loading stuff.
         InitializeComponent();
 
+        // populate the main table of session details (the two null parameters don't mean anything)
 		RefreshSessionsGrid(null, null);
     }
 
@@ -94,6 +105,7 @@ public partial class MainPage : ContentPage
 	{
 		base.OnAppearing();
 
+        // Ridiculous workaround for the fact that MAUI doesn't deal properly with status bar colours.
 #if __ANDROID__
         try
         {
@@ -116,11 +128,18 @@ public partial class MainPage : ContentPage
 #endif
     }
 
+    /// <summary>
+    /// Show a message to confirm the user is an adult.  Note that this method is called in response to ParentChanged
+    /// events on the main page (because this is the earliest indication we get that we have a UI that's capable
+    /// of displaying a message).
+    /// </summary>
+    /// <param name="o"></param>
+    /// <param name="e"></param>
     public void AgeVerification(object o, EventArgs e)
     {
-        if (this.Parent != null)
+        if (this.Parent != null) // i.e. if the parent of MainPage has been set to something real.
         {
-            this.ParentChanged -= AgeVerification;
+            this.ParentChanged -= AgeVerification; // remove this handler because we don't want to call it again
 
             DispatcherHelper.RunAsyncOnUI(async () =>
             {
@@ -129,24 +148,28 @@ public partial class MainPage : ContentPage
                 bool confirmation = await DisplayAlert("Age Verification",
                     "Because the app allows you to enter personal data and to create and view user-created content, it is not suitable for persons under 18 years of age; such persons must not use the app. Are you under 18 years of age?",
                     "No", "Yes");
-
+                // If the user is not over 18, hide the UI (the user won't be able to do anything more with the app).
                 if (!confirmation)
                 {
                     this.gdMainPage.IsVisible = false;
                 }
-                else
+                else // If the user is 18 or over, save True into the app's preferences, so we don't ask again.
                 {
                     Preferences.Set("AgeConfirmed", true);
 
-                    // We didn't do this at the time, because we need to ensure that only one alert is displayed at a time.
+                    // We didn't do this at the time, because we need to ensure that only one alert is displayed
+                    // at a time.
                     InitialiseGamingEvent();
                 }
             });
-
-            
         }
     }
 
+    /// <summary>
+    /// Reload the contents of the table of sessions
+    /// </summary>
+    /// <param name="o"></param>
+    /// <param name="a"></param>
     public void RefreshSessionsGrid(object o, SessionsRefreshEventArgs a)
 	{
         List<Session>[] sessions;
@@ -186,6 +209,8 @@ public partial class MainPage : ContentPage
 		for(int s=0; s<sessions.Count(); s++)
 		{
 			SessionTime t = new SessionTime(s);
+
+            // a heading for this column, containing the label for the session time slot
 			slSlotLabels.Children.Add(
 				new Label() {
 					WidthRequest = 100,
@@ -197,6 +222,7 @@ public partial class MainPage : ContentPage
 			this.gdSessions.ColumnDefinitions.Add(new ColumnDefinition() { Width = 100 });
 			if (sessions[s]!=null)
 			{
+                // a stacklayout to hold all the sessions that belong in this time slot column
 				this.gdSessions.Add(
 					new StackLayout() {
 						HeightRequest = 75 * sessions[s].Count(),
@@ -207,8 +233,10 @@ public partial class MainPage : ContentPage
 					}
 					.Assign(out StackLayout slSessions)
 					.Invoke(sl => Grid.SetColumn(sl,s)));
+
 				foreach (Session session in sessions[s])
 				{
+                    // a border containing all the information about the session
 					slSessions.Children.Add(
 						new Border()
 						{
@@ -228,17 +256,17 @@ public partial class MainPage : ContentPage
 								Padding=1,
 								Children =
 								{
-									new Label() {
+									new Label() { // name of the game
 										HeightRequest = 22,
 										WidthRequest = 92,
-										LineBreakMode = LineBreakMode.NoWrap,
+										LineBreakMode = LineBreakMode.TailTruncation,
                                         Text = session.ToPlay },
-                                    new Label() {
+                                    new Label() { // state of the session (OPEN/FULL/ABANDONED)
                                         HeightRequest = 22,
                                         WidthRequest = 92,
                                         LineBreakMode = LineBreakMode.NoWrap,
                                         }.Assign(out Label lbState),
-                                    new StackLayout {
+                                    new StackLayout { // number of signups, compared with available seats
                                         HeightRequest = 22,
                                         WidthRequest = 92,
                                         Orientation = StackOrientation.Horizontal,
@@ -282,6 +310,7 @@ public partial class MainPage : ContentPage
                     lbSitsMaximum.BindingContext = session;
                     lbSitsMaximum.Bind(Label.TextProperty, "SitsMaximum");
 
+                    // Tapping on the session box will open the session management popup
 					TapGestureRecognizer tr = new TapGestureRecognizer();
 					tr.BindingContext = session;
                     tr.Tapped += (object sender, TappedEventArgs e)=>
@@ -299,6 +328,11 @@ public partial class MainPage : ContentPage
 		}
     }
 
+    /// <summary>
+    /// Handle the a tap on the user button by offering the user options (log in, set up user, edit user, log out)
+    /// </summary>
+    /// <param name="o">ignored</param>
+    /// <param name="e">ignored</param>
     async void btnUserClicked(Object o, EventArgs e)
 	{
 		try
@@ -323,6 +357,7 @@ public partial class MainPage : ContentPage
                     }
                     else
                     {
+                        // Capture name and password for the new user
                         var popup1 = new PopupLogIn();
                         var popupResult1 = await this.ShowPopupAsync(popup1, CancellationToken.None);
 
@@ -331,6 +366,8 @@ public partial class MainPage : ContentPage
                             Tuple<string, string, bool> userAndPassword = (Tuple<string, string, bool>)popupResult1;
 
                             Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
+
+                            // check the input was valid
 
                             if (user != null)
                             {
@@ -350,6 +387,7 @@ public partial class MainPage : ContentPage
                                 return;
                             }
 
+                            // get them to re-enter the password, and fail if it does not match.
                             string password2 = await DisplayPromptAsync("New User", "Please enter the password again", keyboard: Keyboard.Password);
                             if(password2!= userAndPassword.Item2)
                             {
@@ -359,14 +397,16 @@ public partial class MainPage : ContentPage
 
                             try
                             {
+                                // Create a new user using the details provided
                                 MainViewModel.Instance.CreatePerson(true, userAndPassword.Item1, password: Model.Utilities.PasswordHash(userAndPassword.Item2));
 
                                 MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "User '" + userAndPassword.Item1 + "' has been created");
 
+                                // Log in using the new user details
                                 user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
-
                                 MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
 
+                                // Show a popup for entering all the attributes of the new user.
                                 var popup2 = new PopupPersonDetails();
                                 popup2.SetPerson(user);
                                 var popupResult2 = await this.ShowPopupAsync(popup2, CancellationToken.None);
@@ -382,6 +422,7 @@ public partial class MainPage : ContentPage
 				{
 					try
 					{
+                        // Capture user name and password
 						var popup = new PopupLogIn();
 						var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
 
@@ -391,17 +432,22 @@ public partial class MainPage : ContentPage
 
 							Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
 
+                            
 							if (user == null)
-							{
-								await DisplayAlert("Login", "There isn't any user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
+                            // check the user exists
+                            {
+                                await DisplayAlert("Login", "There isn't any user having user handle '" + userAndPassword.Item1 + "'", "Dismiss");
 								return;
 							}
-							else if (user.Password != Model.Utilities.PasswordHash(userAndPassword.Item2))
+                            else if (user.Password != Model.Utilities.PasswordHash(userAndPassword.Item2))
+                            // check the password matches the one stored in the viewmodel
 							{
+
 								await DisplayAlert("Login", "That is the wrong password for user '" + userAndPassword.Item1 + "'", "Dismiss");
 								return;
 							}
 
+                            // log the user in
 							MainViewModel.Instance.SetLoggedOnUser(user, userAndPassword.Item3);
 						}
 					}
@@ -411,7 +457,7 @@ public partial class MainPage : ContentPage
                     }
                 }
             }
-			else
+			else // the case where there is a user logged in at the moment
 			{
 				const string editUser = "Edit user details";
 				const string changePassword = "Change password";
@@ -421,12 +467,14 @@ public partial class MainPage : ContentPage
 
 				if (a == editUser)
 				{
+                    // use a PopupPersonDetails to edit the user's attributes
                     var popup = new PopupPersonDetails();
                     popup.SetPerson(MainViewModel.Instance.LoggedOnUser);
                     var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
                 }
 				else if (a == changePassword)
 				{
+                    // capture existing password and new password (twice), then update the viewmodel.
 					try
 					{
 						if (!string.IsNullOrEmpty(MainViewModel.Instance.LoggedOnUser.Password))
@@ -471,6 +519,12 @@ public partial class MainPage : ContentPage
             MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error updating person: "+ex.Message);
         }
 	}
+
+    /// <summary>
+    /// Add a new session using a PopupAddSession
+    /// </summary>
+    /// <param name="o">ignored</param>
+    /// <param name="e">ignored</param>
     async void btnAddSessionClicked(Object o, EventArgs e)
     {
 		try
@@ -496,6 +550,11 @@ public partial class MainPage : ContentPage
             MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error adding session: " + ex.Message);
         }
     }
+    /// <summary>
+    /// Manage the current filter using a PopupManageFilter
+    /// </summary>
+    /// <param name="o">ignored</param>
+    /// <param name="e">ignored</param>
     async void btnFilterClicked(Object o, EventArgs e)
     {
         var popup = new PopupManageFilter();
@@ -508,6 +567,11 @@ public partial class MainPage : ContentPage
 		}
     }
 
+    /// <summary>
+    /// Present the session management popup
+    /// </summary>
+    /// <param name="s"></param>
+    /// <returns></returns>
 	async Task<bool> ShowSessionManagementPopup(Session s)
 	{
         var popup = new PopupManageSession();
@@ -517,12 +581,23 @@ public partial class MainPage : ContentPage
         return true;
 	}
 
+    /// <summary>
+    /// When the sessions scrollview is scrolled, we need to reposition the slot labels above it, to be displaced
+    /// by the same amount.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void svSessions_Scrolled(object sender, ScrolledEventArgs e)
     {
-        //this.alSlotLabels.WidthRequest = this.Width;
         this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(-e.ScrollX, 0, gdSlotLabels.WidthRequest, 30));
 	}
 
+    /// <summary>
+    /// When the gaming event label is tapped, present a chooser for selecting switching between the available
+    /// gaming events.
+    /// </summary>
+    /// <param name="sender">ignored</param>
+    /// <param name="e">ignored</param>
     private async void lblEventTapped(object sender, TappedEventArgs e)
     {
         var popup = new PopupChooseEvent();
@@ -540,12 +615,19 @@ public partial class MainPage : ContentPage
         }
     }
 
+    /// <summary>
+    /// When the main table of sessions is tapped (in a region not containing a session) or when the header
+    /// containing the slot labels is tapped, show a popup for creating a new session, figuring out what
+    /// session time slot to pick initially by looking at the X coordinate of the tap gesture.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private async void gridSessionTimeSlotTapped(object sender, TappedEventArgs e)
     {
         // Position relative to the container view
         Point? pt = e.GetPosition((View)sender);
 
-        int sessionTimeSlot = (int)(pt.Value.X / 100);
+        int sessionTimeSlot = (int)(pt.Value.X / 100); // session items are 100 pixels wide
 
         if (sessionTimeSlot >= SessionTime.NumberOfTimeSlots)
             sessionTimeSlot = SessionTime.NumberOfTimeSlots - 1;
@@ -554,7 +636,7 @@ public partial class MainPage : ContentPage
             sessionTimeSlot = 0;
 
         var popup = new PopupAddSession();
-        popup.SetTimeSlot(sessionTimeSlot);
+        popup.SetTimeSlot(sessionTimeSlot); // set the initial selected value in the time slot picker in the popup
         var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
     }
 
@@ -565,7 +647,7 @@ public partial class MainPage : ContentPage
     public void InitialiseGamingEvent()
 	{
         List<string> availableEvents = MainViewModel.Instance.GetAvailableEvents();
-        if (availableEvents.Count == 0)
+        if (availableEvents.Count == 0) // the event list hasn't been fetched from the cloud sync service yet
         {
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
@@ -609,34 +691,41 @@ public partial class MainPage : ContentPage
         }
     }
 
+    /// <summary>
+    /// Handle the various things that can be done on the flyout menu (defined in AppShell.xaml).
+    /// Note that there is a special check to disable all the actions if the user has not yet verified 
+    /// that they are an adult.
+    /// </summary>
+    /// <param name="action"></param>
 	public async void FlyoutMenuAction(string action)
 	{
         if (!Preferences.ContainsKey("AgeConfirmed"))
             return;
 
-        if (action=="event")
+        if (action=="event") // choose a gaming event
 		{
 			lblEventTapped(this, new TappedEventArgs(null));
         }
-		else if (action=="people")
+		else if (action=="people") // view a list of all persons
 		{
 			List<string> allPersons = MainViewModel.Instance.GetAvailablePersons();
             PopupViewPersons personsViewer = new PopupViewPersons();
             personsViewer.SetPersons(allPersons);
             var popupResult = await MainPage.Instance.ShowPopupAsync(personsViewer, CancellationToken.None);
         }
-		else if (action == "addsession")
+		else if (action == "addsession") // add a new gaming session
 		{
 			btnAddSessionClicked(this, new EventArgs());
         }
-		else if (action == "filter")
+		else if (action == "filter") // modify the filter settings
 		{
 			btnFilterClicked(this, new EventArgs());
 		}
-		else if (action == "support")
+		else if (action == "support") // show the support actions
 		{
 			string action2 = null;
 			
+            // Only if the user is an admin do we include the 'Admin Actions' items
 			if(MainViewModel.Instance.LoggedOnUser!=null && MainViewModel.Instance.LoggedOnUser.IsAdmin)
 				action2 = await DisplayActionSheet("Support", "Dismiss", null, "Admin Action", "Email for support", "Reset App");
 			else
@@ -720,6 +809,10 @@ public partial class MainPage : ContentPage
 		}
     }
 
+    /// <summary>
+    /// Diplay the possible actions that an admin can perform
+    /// </summary>
+    /// <returns></returns>
 	async Task<bool> ShowAdminActions()
 	{
         string action3 = await DisplayActionSheet("Admin Action", "Dismiss", null, "Add Gaming Event", "User Management", "De/Re-activate");
@@ -763,7 +856,7 @@ public partial class MainPage : ContentPage
                 string action4 = await DisplayActionSheet("User Admin", "Dismiss", null, "Grant Admin Rights", "Change Password", "Edit User Details");
                 if (string.IsNullOrEmpty(action4))
                 {
-                    return false;
+                    return false; // the admin cancelled the action sheet
                 }
 
                 List<string> personHandles = MainViewModel.Instance.GetAvailablePersons(true);
@@ -774,7 +867,7 @@ public partial class MainPage : ContentPage
                 string toChange = popupResult as string;
                 if (string.IsNullOrEmpty(toChange))
                 {
-                    return false;
+                    return false; // the admin exited the person chooser popup without choosing a person
                 }
                 else
                 {
@@ -817,7 +910,7 @@ public partial class MainPage : ContentPage
 
                         return true;
                     }
-                    else
+                    else // unrecognised action - we do not expect to end up here
                     {
                         return false;
                     }
@@ -825,9 +918,10 @@ public partial class MainPage : ContentPage
             }
             else if (action3 == "De/Re-activate")
             {
+                // Care: don't change the strings on this action sheet without looking at the logic further down, which depends on particular string values
                 string action4 = await DisplayActionSheet("Deactivate and Re-activate", "Continue", null, "Re-activate user", "Deactivate user", "Re-activate game", "Deactivate game", "Re-activate event", "Deactivate event");
 
-                if (string.IsNullOrEmpty(action4))
+                if (string.IsNullOrEmpty(action4)) // the admin cancelled the action sheet
                 {
                     return false;
                 }
@@ -909,12 +1003,12 @@ public partial class MainPage : ContentPage
                             }
                             else
                             {
-                                return false;
+                                return false; // the admin didn't confirm the deactivate/re-activate action
                             }
                         }
                         else
                         {
-                            return false;
+                            return false; // the admin didn't choose an item to perform the action on
                         }
                     }
                 }

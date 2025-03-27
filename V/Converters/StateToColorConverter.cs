@@ -1,5 +1,10 @@
 ﻿namespace LobsterConnect.V
 {
+    /// <summary>
+    /// For labels showing the state of a game session object (on the table in the main page UI).  It colours OPEN
+    /// in dark green, FULL in dark blue, ABANDONED in dark red, and anything else (there should not be anything
+    /// else) in black.
+    /// </summary>
     public sealed class StateToColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo ci)

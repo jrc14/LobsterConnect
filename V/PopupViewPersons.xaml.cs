@@ -5,6 +5,16 @@ namespace LobsterConnect.V;
 
 public partial class PopupViewPersons : Popup
 {
+    /// <summary>
+    /// Popup for displaying a list of person handles, and for viewing their personal details.
+    /// To set up the list of person handles, call the SetPersons method after constructing
+    /// the popup.  When a person is selected from the list, their details will be shown in
+    /// the controls on the popup.  This is accomplished by binding to the properties of the
+    /// relevant Person object (since the binding is one way from the Person to the control, this
+    /// is a safe thing to do).
+    /// The popup, when dismissed, will return the person handle of the selected person (if a person
+    /// was selected).
+    /// </summary>
     public PopupViewPersons()
     {
         InitializeComponent();
@@ -32,6 +42,10 @@ public partial class PopupViewPersons : Popup
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
     }
 
+    /// <summary>
+    /// Set the list of persons that the dialog will display
+    /// </summary>
+    /// <param name="personHandles"></param>
     public void SetPersons(List<string> personHandles)
     {
         try
@@ -63,6 +77,11 @@ public partial class PopupViewPersons : Popup
         }
     }
 
+    /// <summary>
+    /// When dismissed, look at the picker and if a person handle is selected, return it.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     async void OnDismissClicked(object sender, EventArgs e)
     {
         string result = null;
@@ -74,6 +93,12 @@ public partial class PopupViewPersons : Popup
         await CloseAsync(result, CancellationToken.None);
     }
 
+    /// <summary>
+    /// When the picker selection is changed, change the binding context on self, so that the
+    /// person's details are displayed in the appropriate fields.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void pickerPersons_SelectedIndexChanged(object sender, EventArgs e)
     {
         try
@@ -96,6 +121,11 @@ public partial class PopupViewPersons : Popup
 
     }
 
+    /// <summary>
+    /// Copy the selected person's email to the clipboard
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void btnCopyEmail_Clicked(object sender, EventArgs e)
     {
         Person p = this.BindingContext as Person;
@@ -106,6 +136,11 @@ public partial class PopupViewPersons : Popup
         }
     }
 
+    /// <summary>
+    /// Copy the selected person's phone number to the clipboard
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void btnCopyPhoneNumber_Clicked(object sender, EventArgs e)
     {
         Person p = this.BindingContext as Person;
@@ -116,6 +151,12 @@ public partial class PopupViewPersons : Popup
         }
     }
 
+    /// <summary>
+    /// The dialog contains a warning about what content would be inappropriate.  This label allows
+    /// the user to report inappropriate content by sending an email to the developer.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private async void lblReportContentTapped(object sender, TappedEventArgs e)
     {
         try

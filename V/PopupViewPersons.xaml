@@ -14,8 +14,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto" x:Name="rdefButtons"/>
             <RowDefinition Height="100" />
+            <RowDefinition Height="Auto" x:Name="rdefButtons"/>
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -41,8 +41,7 @@
                 <FontImageSource Glyph="&#xf381;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
             </Button.ImageSource>
         </Button>
-        <Button Grid.Row="6" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
-        <ScrollView Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="100" Orientation="Vertical">
+        <ScrollView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="100" Orientation="Vertical">
             <Label  TextColor="DarkBlue" FontAttributes="Italic" LineBreakMode="WordWrap" Margin="10"
                Text="It's a condition of use of this app that you must not enter anything that is defamatory, obscene, offensive or otherwise inappropriate, and you must not enter any personal information about anyone other than yourself. If you see content that violates this condition, you can report it to us by clicking on this link.">
                 <Label.GestureRecognizers>
@@ -51,6 +50,7 @@
                 </Label.GestureRecognizers>
             </Label>
         </ScrollView>
+        <Button Grid.Row="7" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
 
     </Grid>
 </toolkit:Popup>

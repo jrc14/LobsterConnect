@@ -26,6 +26,7 @@
                 BackgroundColor="Red"
                 TextColor="White"
                 FontSize="Title"
+                Margin="5,5,0,0"
                 Padding="2,2,2,2">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer 

@@ -3,6 +3,12 @@ using LobsterConnect.Model;
 using LobsterConnect.VM;
 namespace LobsterConnect.V;
 
+/// <summary>
+/// A popup for choosing between gaming events.  After constructing it, call
+/// SetEventList(eventNames, initialEvent) to supply a list of events to choose between
+/// and an initial selection for the picker control.  If a selection is made and OK is clicked
+/// then the popup's return value will be the chosen event.
+/// </summary>
 public partial class PopupChooseEvent : Popup
 {
     public PopupChooseEvent()
@@ -32,6 +38,11 @@ public partial class PopupChooseEvent : Popup
         V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
     }
 
+    /// <summary>
+    /// Set the list of events to choose between and the initial value
+    /// </summary>
+    /// <param name="eventNames">list of event names to choose between</param>
+    /// <param name="initialEvent">the event name that will be selected initially</param>
     public void SetEventList(List<string> eventNames, string initialEvent)
     {
         this.pickerEvents.ItemsSource = eventNames;

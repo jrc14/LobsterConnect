@@ -4,6 +4,14 @@ using LobsterConnect.VM;
 using System.Collections.ObjectModel;
 namespace LobsterConnect.V;
 
+/// <summary>
+/// Popup for entering the details of a new gaming session.  Once you've created it, call
+/// SetTimeSlot if you want the time slot selection control to have an initial value.
+/// If OK is clicked the popup will create a new session using MainViewModel.Instance.CreateSession,
+/// and then close the popup.
+/// The user can also use the game selection picker to create a new game if they need to; in that
+/// case the MainViewModel.Instance.CreateGame method will be used to create it.
+/// </summary>
 public partial class PopupAddSession : Popup
 {
     public PopupAddSession()
@@ -16,7 +24,10 @@ public partial class PopupAddSession : Popup
 
         List<string> timeSlotLabels = new List<string>();
 
-        for(int s=0;s<SessionTime.NumberOfTimeSlots; s++)
+        // Note: SessionTime.NumberOfTimeSlots will vary depending on what kind of event
+        // the vm's current event is.  We don't have to worry about that; the vm and the
+        // SessionTime class will take care of this between them.
+        for (int s=0;s<SessionTime.NumberOfTimeSlots; s++)
         {
             SessionTime t = new SessionTime(s);
             timeSlotLabels.Add(t.ToString());
@@ -49,10 +60,14 @@ public partial class PopupAddSession : Popup
 
         V.Utilities.StylePopupButtons(this.btnOk, this.btnCancel, this.rdefButtons);
 
-        // Do this later because it takes a while
+        // Populate the games list view (do this later because it takes a while to finish)
         Model.DispatcherHelper.RunAsyncOnUI(() => this.lvGame.ItemsSource = new ObservableCollection<string>(allGames));
     }
 
+    /// <summary>
+    /// Set the position of the time slot selection picker.
+    /// </summary>
+    /// <param name="s"></param>
     public void SetTimeSlot(int s)
     {
         try
@@ -68,8 +83,6 @@ public partial class PopupAddSession : Popup
 
     async void OnOkClicked(object sender, EventArgs e)
     {
-        //Tuple<string, string, bool> t = new Tuple<string, string, bool>(this.entryUserHandle.Text, this.entryPassword.Text, this.chkRememberMe.IsChecked);
-
         List<string> timeSlotLabels = this.pickerStartTime.ItemsSource as List<string>;
         string selectedTimeSlotLabel = this.pickerStartTime.SelectedItem as string;
         int selectedTimeIndex = timeSlotLabels.IndexOf(selectedTimeSlotLabel);
@@ -87,6 +100,7 @@ public partial class PopupAddSession : Popup
             {
                 string gameName;
 
+                // this.addedGameName gets set if the user has chosen to add a new game in this popup
                 if (this.lvGame.SelectedItem as string ==null)
                     gameName = this.addedGameName;
                 else
@@ -128,11 +142,17 @@ public partial class PopupAddSession : Popup
         await CloseAsync(false, CancellationToken.None);
     }
 
+    /// <summary>
+    /// Call this method to set the filter string that is used to restrict the list of
+    /// available game names.  Don't call it too often because it does a lot of work on the UI
+    /// thread.  Use the method ThrottledSetGameNameFilter instead of calling this one directly
+    /// in order to avoid calling this method too often
+    /// </summary>
+    /// <param name="newFilter"></param>
     private void SetGameNameFilter(string newFilter)
     {
         try
         {
-            //Model.Logger.LogMessage(Model.Logger.Level.DEBUG, "SetGameNameFilter:", "'" + newFilter + "'");
             if (string.IsNullOrEmpty(newFilter))
             {
                 // if the name filter is cleared, then reload the picker's items source
@@ -199,27 +219,39 @@ public partial class PopupAddSession : Popup
         ThrottledSetGameNameFilter(e.NewTextValue);
     }
 
-    System.Threading.Timer filterTimer = null;
-    private string _pendingNewFilter = null;
+
+    /// <summary>
+    /// Set the filter string that is used to restrict the list of available game names, but do so
+    /// via a timer, which avoids actually changing the filter more often that two times per second.
+    /// </summary>
+    /// <param name="newFilter"></param>
     private void ThrottledSetGameNameFilter(string newFilter)
     {
-        //Model.Logger.LogMessage(Model.Logger.Level.DEBUG, "new:", "'" + newFilter + "'");
-
         _pendingNewFilter = newFilter;
 
         Model.DispatcherHelper.StartTimer(ref filterTimer, 500, () =>
         {
             Model.DispatcherHelper.RunAsyncOnUI(() =>
             {
-                //Model.Logger.LogMessage(Model.Logger.Level.DEBUG, "applying:", "'" + _pendingNewFilter + "'");
                 SetGameNameFilter(_pendingNewFilter);
             });
         });
     }
+    System.Threading.Timer filterTimer = null;
+    private string _pendingNewFilter = null;
 
+    // The string for the 'add another game' item at the top of the game picker.
     private const string ADD_GAME_TEXT = "[Add a game not in the list below]";
-    private string addedGameName = null;
+    private string addedGameName = null; // if the user chooses the 'add another game' option, this will be its name
 
+    /// <summary>
+    /// If the user selects the top item in the game picker, and it still contains the 'add a new game'
+    /// prompt text, then prompt the user create a new game, and put its name at the top of the game
+    /// picker (also set this.addedGameName to the name, so that it will be used for creating a
+    /// new session, unless a different game was subsequently chosen using the picker control)
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private async void lvGame_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.Count==1 && e.CurrentSelection[0] as string == ADD_GAME_TEXT) // Selected the entry with the "[add a game ..." label

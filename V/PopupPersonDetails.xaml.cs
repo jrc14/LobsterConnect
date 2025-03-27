@@ -4,7 +4,15 @@ namespace LobsterConnect.V;
 
 public partial class PopupPersonDetails : Popup
 {
-	public PopupPersonDetails()
+    /// <summary>
+    /// Popup for managing details of a person.  Before showing it, call SetPerson to load the popup
+    /// controls with the person's details.  When OK is clicked, the popup will write the changes
+    /// (if any) back to the viewmodel (and the journal) by calling MainViewModel.Instance.UpdatePerson.
+    /// It checks before doing this, to see if, while the popup was open, the sync process made
+    /// changes to any of the person attributes and if it finds any such changes it displays a
+    /// warning message instead of making the update to that attribute.
+    /// </summary>
+    public PopupPersonDetails()
 	{
         InitializeComponent();
 

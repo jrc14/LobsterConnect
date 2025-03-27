@@ -3,6 +3,12 @@ namespace LobsterConnect.V;
 
 public partial class PopupLogIn : Popup
 {
+    /// <summary>
+    /// Popup for capturing login information for the app.  It captures user name and password, and if
+    /// OK is pressed it returns them in a tuple of two strings.  It doesn't validate them, but
+    /// it does initialise the user name to the value saved in the 'UserHandle' app preference
+    /// if one is saved.
+    /// </summary>
 	public PopupLogIn()
 	{
 		InitializeComponent();

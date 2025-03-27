@@ -11,6 +11,9 @@ public partial class PopupLegalTerms : Popup
                 + "If you see any content that violates this condition, you may report it to us at moderator@turnipsoft.co.uk.\n"
                 + "Because the app allows you to enter personal data and to create and view user-created content, it is not suitable for persons under 18 years of age; such persons must not use the app.\n"
                 + "If you have any queries regarding any of our terms, please contact us.";
+    /// <summary>
+    /// Popup for displaying the legal terms associated with the app.
+    /// </summary>
     public PopupLegalTerms()
     {
         InitializeComponent();

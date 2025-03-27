@@ -7,7 +7,11 @@ namespace LobsterConnect.VM
     /// Note that its member variables have public set accessors and are bindable
     /// but UI code should not use those accessors to change their values, because doing so will
     /// bypass the journal mechanism (so changes won't be saved and won't be propagated to the
-    /// cloud storage). 
+    /// cloud storage).  Instead you should use the UpdateGamingEvent method on the viewmodel.
+    /// Note that the EventType member can't be changed this way; this is because changing
+    /// the event type is a bad idea (because the range of valid time slot indexes on a session is
+    /// different depending on event type, changes to a game event's type could invalidate existing
+    /// sessions in a way that would be painful to manage)
     /// You should create and modify instances of this class only on the UI thread; it is not thread-safe
     /// </summary>
     public class GamingEvent : LobsterConnect.VM.BindableBase

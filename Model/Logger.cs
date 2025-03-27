@@ -2,7 +2,7 @@
 namespace LobsterConnect.Model
 {
     /// <summary>
-    /// Methods for writing to the app log file, which is logfile.txt in the app's working directyory.
+    /// Methods for writing to the app log file, which is logfile.txt in the app's working directory.
     /// The log file is maintained by a background worker thread, so log operations
     /// don't block the UI thread.  It is not allowed to grow beyond 3MB in size; when it does,
     /// a new log file is started and the old one is renamed (to a name incorporating a GUID).
@@ -201,7 +201,7 @@ namespace LobsterConnect.Model
                                         {
                                             Utilities.FileDeleteIfExists(logFilePath);
                                         }
-                                        else if (fileLength > 3L * 1024L * 1024L)
+                                        else if (fileLength > 3L * 1024L * 1024L) // if the file has grown to 3 MB, move it to a new file, and start a fresh log file
                                         {
                                             string moveFilePath = Path.Combine(App.ProgramFolder, "logfile" + Guid.NewGuid().ToString("N") + ".txt");
 

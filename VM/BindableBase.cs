@@ -5,7 +5,7 @@ using LobsterConnect.Model;
 namespace LobsterConnect.VM
 {
     /// <summary>
-    /// Implementation of <see cref="INotifyPropertyChanged"/> to simplify models.
+    /// Implementation of <see cref="INotifyPropertyChanged"/> to simplify viewmodel implementation.
     /// </summary>
     public abstract class BindableBase : INotifyPropertyChanged
     {
@@ -66,5 +66,4 @@ namespace LobsterConnect.VM
             }
         }
     }
-
 }

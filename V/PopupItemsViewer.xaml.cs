@@ -5,6 +5,14 @@ namespace LobsterConnect.V;
 
 public partial class PopupItemsViewer : Popup
 {
+    /// <summary>
+    /// Popup for displaying a generic list of items and choosing one of them.  After constructing
+    /// the popup, call SetItems to set the list.  Its return value will be a string, being the item
+    /// selected, if one is selected.
+    /// It doesn't contain a helpful label or any error checking, so it's not really for use in the
+    /// mainstream UI (it's used in admin UI functions, as we hope admin users will put up with]
+    /// a worse user experience).
+    /// </summary>
     public PopupItemsViewer()
     {
         InitializeComponent();

@@ -11,6 +11,12 @@ namespace LobsterConnect.VM
     /// any of these collections, or their members, directly (even though they are exposed as public members for binding
     /// purposes).  Instead, you should access them using the methods on this class with names like Create..., Update...,
     /// Get..., Check... and ...SignUp.
+    /// 
+    /// For design notes conncering the app as a whole, please refer to App.xaml.cs.
+    /// 
+    /// App startup and the initial loading of the viewmodel are managed in the contructor of the main
+    /// page - see MainPage.xaml.cs.
+    /// 
     /// </summary>
     public class MainViewModel : LobsterConnect.VM.BindableBase
     {
@@ -799,7 +805,9 @@ namespace LobsterConnect.VM
                         "EVENTNAME", eventName,
                         "PROPOSER", proposerHandle,
                         "TOPLAY", gameNameToPlay,
-                        "STARTAT", startAt.ToString()+":"+startAt.Ordinal.ToString(),
+                        "STARTAT", startAt.ToString()+":"+startAt.Ordinal.ToString(), // the stuff before the : is ignored, and is just to make the journal text easier to read
+                                                                                      // It's a bit dangerous really, because interpreting it correctly depends on
+                                                                                      // having the right gaming event type currently loaded (see SessionTime.ToString())
                         "NOTES", notes,
                         "WHATSAPPLINK", whatsAppLink,
                         "BGGLINK", bggLink,
@@ -1477,7 +1485,7 @@ namespace LobsterConnect.VM
         /// of a session doesn't necessarily require a refresh of the sessions table in the UI, because we expect
         /// the UI to bind to the relevant session attributes, so it will see such changes anyway.
         /// The MainViewModel.Loaded method includes logic to decide when to fire this event, in response to
-        /// the firing of its PropertyChanged event
+        /// the firing of the viewmodel's PropertyChanged event
         /// </summary>
         public event EventHandler<SessionsRefreshEventArgs> SessionsMustBeRefreshed;
 

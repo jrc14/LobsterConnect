@@ -7,6 +7,15 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.VM
 {
+    /// <summary>
+    /// A session time - i.e. a time slot in which a gaming session can start.  Internally it is
+    /// just an integer, 0 for the first time slot in a gaming event, going up to
+    /// N-1 where N is the number of valid time slots for that gaming event (held in the static
+    /// member variable NumberOfTimeSlots and adjusted as necessary when the viewmodel calls
+    /// SessionTime.SetEventType, typically in response to changes to which gaming
+    /// events is the current event).
+    /// 
+    /// </summary>
     public class SessionTime : IComparable
     {
         public SessionTime(int timeSlotNumber=0)
@@ -14,7 +23,12 @@ namespace LobsterConnect.VM
             this._timeSlotNumber = timeSlotNumber;
         }
 
-
+        /// <summary>
+        /// Turn self into a string.  Care: the result will depend on the labels set up
+        /// by the most recent call to SessionTime.SetUpLabelsAndTimeSlots perhaps via
+        /// a call to SessionTime.SetEventType.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             if (string.IsNullOrEmpty(this.DayLabel))
@@ -23,6 +37,8 @@ namespace LobsterConnect.VM
                 return this.DayLabel + " " + this.TimeLabel;
         }
 
+        /// Gets the 'day' part of the label for self.  Care: the result will depend on the labels set up
+        /// by the most recent call to SessionTime.SetUpLabelsAndTimeSlots
         public string DayLabel
         {
             get
@@ -33,6 +49,9 @@ namespace LobsterConnect.VM
                     return _DayLabels[_timeSlotNumber];
             }
         }
+
+        /// Gets the 'time' part of the label for self.  Care: the result will depend on the labels set up
+        /// by the most recent call to SessionTime.SetUpLabelsAndTimeSlots
         public string TimeLabel
         {
             get
@@ -118,6 +137,13 @@ namespace LobsterConnect.VM
             return this._timeSlotNumber.CompareTo((that as SessionTime)._timeSlotNumber);
         }
 
+        /// <summary>
+        /// Change the event type that will be used for turning instances of SessionTime into
+        /// string descriptions.  Note that changing the event type doesn't actually change
+        /// the value of the SessionTime (it's always just an int) but it does change the
+        /// string representation.
+        /// </summary>
+        /// <param name="eventType"></param>
         public static void SetEventType(string eventType)
         {
             SetUpLabelsAndTimeSlots(eventType);
