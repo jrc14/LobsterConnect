@@ -38,6 +38,15 @@
 
 	<PropertyGroup>
 		<UseInterpreter Condition="$(TargetFramework.EndsWith('-ios'))">true</UseInterpreter>
+		<GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
+		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+		<AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+		<AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+		<AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+		<GenerateTestArtifacts>True</GenerateTestArtifacts>
+		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+		<DefaultLanguage>en</DefaultLanguage>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
@@ -72,6 +81,26 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <MauiImage Remove="Resources\Images\lobster150x150.scale-100.png" />
+	  <MauiImage Remove="Resources\Images\lobster310x150.scale-100.png" />
+	  <MauiImage Remove="Resources\Images\lobster310x310.scale-100.png" />
+	  <MauiImage Remove="Resources\Images\lobster44x44.scale-100.png" />
+	  <MauiImage Remove="Resources\Images\lobster50x50.scale-100.png" />
+	  <MauiImage Remove="Resources\Images\lobster620x300.scale-100.png" />
+	  <MauiImage Remove="Resources\Images\lobster71x71.scale-100.png" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Content Include="Resources\Images\lobster150x150.scale-100.png" />
+	  <Content Include="Resources\Images\lobster310x150.scale-100.png" />
+	  <Content Include="Resources\Images\lobster310x310.scale-100.png" />
+	  <Content Include="Resources\Images\lobster44x44.scale-100.png" />
+	  <Content Include="Resources\Images\lobster50x50.scale-100.png" />
+	  <Content Include="Resources\Images\lobster620x300.scale-100.png" />
+	  <Content Include="Resources\Images\lobster71x71.scale-100.png" />
 	</ItemGroup>
 
 	<ItemGroup>
