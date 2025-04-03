@@ -13,6 +13,8 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
+        /* COMMENTED OUT BECAUSE IT LOOKS LIKE THEY MIGHT HAVE FIXED THE ISSUE
+         * 
         // Display flyout menu items in a way that is at least legible, which is more than you can say
         // for the out-of-the-box defaults provided by MAUI.
         this.MenuItemTemplate = new DataTemplate(() =>
@@ -71,7 +73,7 @@ public partial class AppShell : Shell
                 }
             };
         });
-        
+        */
     }
 
     /// <summary>

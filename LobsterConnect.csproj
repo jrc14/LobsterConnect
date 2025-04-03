@@ -51,7 +51,7 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
 		<ProvisioningType>automatic</ProvisioningType>
-		<ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
@@ -59,45 +59,45 @@
 	  <CodesignProvision>2025-03-28 LobsterConnect AppStore Provisioning</CodesignProvision>
 	  <CodesignKey>Apple Distribution: Turnipsoft Limited (92QS772DRV)</CodesignKey>
 	  <ProvisioningType>manual</ProvisioningType>
-	  <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
 	  <ProvisioningType>manual</ProvisioningType>
 	  <CodesignKey>Apple Distribution: Turnipsoft Limited (92QS772DRV)</CodesignKey>
-	  <CodesignProvision>2025-03-28 LobsterConnect AppStore Provisioning</CodesignProvision>
+	  <CodesignProvision>2024-04-02(2) Turnipsoft LobsterConnect</CodesignProvision>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 	  <TrimMode>link</TrimMode>
-	  <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 	  <TrimMode>link</TrimMode>
-	  <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-maccatalyst|AnyCPU'">
-	  <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows10.0.19041.0|AnyCPU'">
-	  <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-maccatalyst|AnyCPU'">
-	  <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
-	  <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.3</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	
@@ -132,6 +132,28 @@
 	
 	
 	<ItemGroup Condition="$(TargetFramework.EndsWith('-windows'))">
+	  <Content Include="Resources\Images\lobster150x150.scale-100.png" />
+	  <Content Include="Resources\Images\lobster310x150.scale-100.png" />
+	  <Content Include="Resources\Images\lobster310x310.scale-100.png" />
+	  <Content Include="Resources\Images\lobster44x44.scale-100.png" />
+	  <Content Include="Resources\Images\lobster50x50.scale-100.png" />
+	  <Content Include="Resources\Images\lobster620x300.scale-100.png" />
+	  <Content Include="Resources\Images\lobster71x71.scale-100.png" />
+	</ItemGroup>
+	
+	
+	<ItemGroup>
+	  <None Remove="Resources\Images\lobster150x150.scale-100.png" />
+	  <None Remove="Resources\Images\lobster310x150.scale-100.png" />
+	  <None Remove="Resources\Images\lobster310x310.scale-100.png" />
+	  <None Remove="Resources\Images\lobster44x44.scale-100.png" />
+	  <None Remove="Resources\Images\lobster50x50.scale-100.png" />
+	  <None Remove="Resources\Images\lobster620x300.scale-100.png" />
+	  <None Remove="Resources\Images\lobster71x71.scale-100.png" />
+	</ItemGroup>
+	
+	
+	<ItemGroup>
 	  <Content Include="Resources\Images\lobster150x150.scale-100.png" />
 	  <Content Include="Resources\Images\lobster310x150.scale-100.png" />
 	  <Content Include="Resources\Images\lobster310x310.scale-100.png" />
