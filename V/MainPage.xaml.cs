@@ -160,6 +160,10 @@ public partial class MainPage : ContentPage
                     // We didn't do this at the time, because we need to ensure that only one alert is displayed
                     // at a time.
                     InitialiseGamingEvent();
+
+                    // Show the 'first run' message, with the quick-start notes for the app.
+                    Popup popup = new PopupFirstRunMessage();
+                    var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
                 }
             });
         }
@@ -727,55 +731,60 @@ public partial class MainPage : ContentPage
 			
             // Only if the user is an admin do we include the 'Admin Actions' items
 			if(MainViewModel.Instance.LoggedOnUser!=null && MainViewModel.Instance.LoggedOnUser.IsAdmin)
-				action2 = await DisplayActionSheet("Support", "Dismiss", null, "Admin Action", "Email for support", "Reset App");
+				action2 = await DisplayActionSheet("Support", "Dismiss", null, "Admin Action", "Show First Run Message", "Email for support", "Reset App");
 			else
-                action2 = await DisplayActionSheet("Support", "Dismiss", null, "Email for support", "Reset App");
+                action2 = await DisplayActionSheet("Support", "Dismiss", null, "Show First Run Message", "Email for support", "Reset App");
 
             if (action2 == "Admin Action")
 			{
 				await ShowAdminActions();
             }
-			else if(action2 == "Email for support")
-			{
-				try
-				{
-					if (Email.Default.IsComposeSupported)
-					{
-						string fromPath = Logger.LogFilePath;
-						string toPath = Path.Combine(FileSystem.CacheDirectory, "logfile" + Guid.NewGuid().ToString("N") + ".txt");
-						lock (Logger.LogFileLock)
-						{
-							Model.Utilities.FileCopy(fromPath, toPath);
-						}
-						EmailAttachment attachment = new EmailAttachment(Logger.LogFilePath);
-						EmailMessage message = new EmailMessage()
-						{
-							Subject = "LobsterConnect Support",
-							Body = "\n\n I'm having trouble with LobsterConnect, please can you help out.  I attach the log file\n",
-							BodyFormat = EmailBodyFormat.PlainText,
-							To = new List<string>() { "lobsterconnect@turnipsoft.co.uk" },
-							Attachments = new List<EmailAttachment> { attachment }
-						};
+            else if (action2 == "Show First Run Message")
+            {
+                Popup popup = new PopupFirstRunMessage();
+                var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+            }
+            else if (action2 == "Email for support")
+            {
+                try
+                {
+                    if (Email.Default.IsComposeSupported)
+                    {
+                        string fromPath = Logger.LogFilePath;
+                        string toPath = Path.Combine(FileSystem.CacheDirectory, "logfile" + Guid.NewGuid().ToString("N") + ".txt");
+                        lock (Logger.LogFileLock)
+                        {
+                            Model.Utilities.FileCopy(fromPath, toPath);
+                        }
+                        EmailAttachment attachment = new EmailAttachment(Logger.LogFilePath);
+                        EmailMessage message = new EmailMessage()
+                        {
+                            Subject = "LobsterConnect Support",
+                            Body = "\n\n I'm having trouble with LobsterConnect, please can you help out.  I attach the log file\n",
+                            BodyFormat = EmailBodyFormat.PlainText,
+                            To = new List<string>() { "lobsterconnect@turnipsoft.co.uk" },
+                            Attachments = new List<EmailAttachment> { attachment }
+                        };
 
-						await Email.Default.ComposeAsync(message);
-					}
-					else
-					{
+                        await Email.Default.ComposeAsync(message);
+                    }
+                    else
+                    {
                         MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sorry, the app cannot create an email for you.  Please send your request to lobsterconnect@turnipsoft.co.uk");
                     }
-				}
-				catch (Exception ex)
-				{
-					MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: "+ex.Message);
-				}
+                }
+                catch (Exception ex)
+                {
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: " + ex.Message);
+                }
             }
-			else if (action2 == "Reset App")
-			{
-				bool confirmation = await MainPage.Instance.DisplayAlert("Reset the application", "Please confirm you want to reset the application.  This will restore the application to its initial state and reload all game information from the internet.  Any recent changes that haven't synced yet will be lost.", "Reset", "Don't reset");
-				if(confirmation)
-				{
-					await MainViewModel.Instance.ResetApp();
-				}
+            else if (action2 == "Reset App")
+            {
+                bool confirmation = await MainPage.Instance.DisplayAlert("Reset the application", "Please confirm you want to reset the application.  This will restore the application to its initial state and reload all game information from the internet.  Any recent changes that haven't synced yet will be lost.", "Reset", "Don't reset");
+                if (confirmation)
+                {
+                    await MainViewModel.Instance.ResetApp();
+                }
             }
 
         }

@@ -79,7 +79,7 @@ namespace LobsterConnect;
 /// 
 /// App startup and the initial loading of the viewmodel are managed in the contructor of the main
 /// page - see MainPage.xaml.cs.
-///      
+/// 
 /// </summary>
 public partial class App : Application
 {

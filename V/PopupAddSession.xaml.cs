@@ -101,10 +101,18 @@ public partial class PopupAddSession : Popup
                 string gameName;
 
                 // this.addedGameName gets set if the user has chosen to add a new game in this popup
-                if (this.lvGame.SelectedItem as string ==null)
+                if (this.lvGame.SelectedItem as string == null)
+                {
                     gameName = this.addedGameName;
+                }
+                else if (this.lvGame.SelectedItem as string == ADD_GAME_TEXT && this.addedGameName != null)
+                {
+                    gameName = this.addedGameName;
+                }
                 else
+                {
                     gameName = this.lvGame.SelectedItem as string;
+                }
 
                 string notes = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "Please add any note that you want to display on this session. Do not enter text that is offensive or defamatory, or contains information about any person.");
 
@@ -156,7 +164,7 @@ public partial class PopupAddSession : Popup
             if (string.IsNullOrEmpty(newFilter))
             {
                 // if the name filter is cleared, then reload the picker's items source
-                currentGameNameFilter = "";
+                //currentGameNameFilter = ""; not needed because the optimisation below is commented out
 
                 List<string> existingGames = MainViewModel.Instance.GetAvailableGames();
                 existingGames.Sort();
@@ -212,7 +220,7 @@ public partial class PopupAddSession : Popup
             MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error setting filter: " + ex.Message);
         }
     }
-    private string currentGameNameFilter="";
+    //private string currentGameNameFilter="";
 
     private void entryGameFilter_TextChanged(object sender, TextChangedEventArgs e)
     {
