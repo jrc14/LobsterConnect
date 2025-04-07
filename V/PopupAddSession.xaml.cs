@@ -154,73 +154,45 @@ public partial class PopupAddSession : Popup
     /// Call this method to set the filter string that is used to restrict the list of
     /// available game names.  Don't call it too often because it does a lot of work on the UI
     /// thread.  Use the method ThrottledSetGameNameFilter instead of calling this one directly
-    /// in order to avoid calling this method too often
+    /// in order to avoid calling this method too often.
+    /// Note BTW that there is, in theory, a clever optimisation you could use, whereby, when the filter
+    /// extended ("Bob" becomes "Bobby" for instance) you filter in place the exisitng contents of 
+    /// this.lvGame.ItemsSource rather then generating them all again.  In practice this doesn't work because the
+    /// operation of removing elements from an observable collection is horribly slow on iOS.
     /// </summary>
     /// <param name="newFilter"></param>
     private void SetGameNameFilter(string newFilter)
     {
         try
         {
-            if (string.IsNullOrEmpty(newFilter))
-            {
-                // if the name filter is cleared, then reload the picker's items source
-                //currentGameNameFilter = ""; not needed because the optimisation below is commented out
+            List<string> existingGames = MainViewModel.Instance.GetAvailableGames();
+            existingGames.Sort();
 
-                List<string> existingGames = MainViewModel.Instance.GetAvailableGames();
-                existingGames.Sort();
-
-                existingGames.Insert(0, ADD_GAME_TEXT);
-
-                this.lvGame.ItemsSource = new ObservableCollection<string>(existingGames);
-
-            }
-            /* REMOVED THIS CUNNING OPTIMISATION BECAUSE, ON IPHONE, REMOVING ELEMENTS FROM AN OBSERVABLE COLLECTION
-             * IS A HORRIBLY SLOW OPERATION
-            else if (string.IsNullOrEmpty(currentGameNameFilter) || newFilter.Contains(currentGameNameFilter, StringComparison.InvariantCultureIgnoreCase))
-            {
-                // if the name filter is set to a value that is more specific than the existing name filter,
-                // then weed out elments of the picker's existing item source.
-
-                ObservableCollection<string> existingFilteredGames = (ObservableCollection<string>)this.lvGame.ItemsSource as ObservableCollection<string>;
-
-                if (existingFilteredGames != null && existingFilteredGames.Count() > 0) // no good reason for it to be null or empty, but best be careful
-                {
-                    // Count backwards from the last element of the list, removing strings that don't match the new
-                    // filter.  Count backwards because removing the last item doesn't change the index
-                    // of any earlier item in the list; stop before 1 because we want to keep the "[add a game ..." label in position 0.
-                    for (int i = existingFilteredGames.Count() - 1; i > 0; i--)
-                    {
-                        if (!existingFilteredGames[i].Contains(newFilter, StringComparison.InvariantCultureIgnoreCase))
-                            existingFilteredGames.RemoveAt(i);
-                    }
-                }
-
-                currentGameNameFilter = newFilter;
-            }
-            */
+            string firstItem;
+            if (string.IsNullOrEmpty(this.addedGameName))
+                firstItem = ADD_GAME_TEXT;
             else
+                firstItem = this.addedGameName;
+
+            existingGames.Insert(0, firstItem);
+
+            if (!string.IsNullOrEmpty(newFilter))
             {
-                // The game filter is a new value, not contained within the old filter.  We must reload the
-                // item source.
-                List<string> existingFilteredGames = MainViewModel.Instance.GetAvailableGames();
-                existingFilteredGames.Sort();
-
-                existingFilteredGames.Insert(0, ADD_GAME_TEXT);
-                for (int i = existingFilteredGames.Count - 1; i > 0; i--)
+                for (int i = existingGames.Count - 1; i > 0; i--) // work down from the top, so we can can remove items as we go
                 {
-                    if (!existingFilteredGames[i].Contains(newFilter, StringComparison.InvariantCultureIgnoreCase))
-                        existingFilteredGames.RemoveAt(i);
+                    if (!existingGames[i].Contains(newFilter, StringComparison.InvariantCultureIgnoreCase))
+                        existingGames.RemoveAt(i);
                 }
-
-                this.lvGame.ItemsSource = new ObservableCollection<string>(existingFilteredGames);
             }
+
+            this.lvGame.ItemsSource = new ObservableCollection<string>(existingGames);
+
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error setting filter: " + ex.Message);
         }
     }
-    //private string currentGameNameFilter="";
 
     private void entryGameFilter_TextChanged(object sender, TextChangedEventArgs e)
     {
