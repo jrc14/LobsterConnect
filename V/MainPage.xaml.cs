@@ -17,7 +17,7 @@ public partial class MainPage : ContentPage
     /// a window showing logged messages (most recent message at the top).
     /// There is a hamburger menu and a title bar heading - but these are defined in the AppShell.xaml file.
     /// 
-    /// For design notes conncering the app as a whole, please refer to App.xaml.cs.
+    /// For design notes concerning the app as a whole, please refer to App.xaml.cs.
     /// </summary>
 	public MainPage()
 	{
@@ -824,8 +824,11 @@ public partial class MainPage : ContentPage
     /// <returns></returns>
 	async Task<bool> ShowAdminActions()
 	{
+#if DEBUG
+        string action3 = await DisplayActionSheet("Admin Action", "Dismiss", null, "Add Gaming Event", "User Management", "De/Re-activate", "Add Test Data");
+#else
         string action3 = await DisplayActionSheet("Admin Action", "Dismiss", null, "Add Gaming Event", "User Management", "De/Re-activate");
-
+#endif
         if (string.IsNullOrEmpty(action3))
         {
             return false;
@@ -860,7 +863,7 @@ public partial class MainPage : ContentPage
                     }
                 }
             }
-            if (action3 == "User Management")
+            else if (action3 == "User Management")
             {
                 string action4 = await DisplayActionSheet("User Admin", "Dismiss", null, "Grant Admin Rights", "Change Password", "Edit User Details");
                 if (string.IsNullOrEmpty(action4))
@@ -898,7 +901,7 @@ public partial class MainPage : ContentPage
                     }
                     else if (action4 == "Change Password")
                     {
-                        string newPassword = await DisplayPromptAsync("Password", "Enter the new password for '"+ toChange+"':");
+                        string newPassword = await DisplayPromptAsync("Password", "Enter the new password for '" + toChange + "':");
 
                         if (string.IsNullOrEmpty(newPassword))
                         {
@@ -1022,9 +1025,34 @@ public partial class MainPage : ContentPage
                     }
                 }
             }
+#if DEBUG
+            else if (action3 == "Add Test Data")
+            {
+                string action4 = await DisplayActionSheet("Test Data", "Dismiss", null, "Add Persons", "Add Sessions");
+                if (string.IsNullOrEmpty(action4))
+                {
+                    return false; // the admin cancelled the action sheet
+                }
+                if (action4 == "Add Persons")
+                {
+                    MainViewModel.Instance.AddTestPersons(true);
+                    return true;
+                }
+                else if (action4 == "Add Sessions")
+                {
+                    GamingEvent e = MainViewModel.Instance.CurrentEvent;
+                    MainViewModel.Instance.AddTestSessionsAndSignUps(e, true);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+#endif
             else
             {
-                Logger.LogMessage(Logger.Level.ERROR, "MainPage.SowAdminActions", "invalid action: " + action3);
+                Logger.LogMessage(Logger.Level.ERROR, "MainPage.ShowAdminActions", "invalid action: " + action3);
                 return false;
             }
         }

@@ -37,7 +37,7 @@ namespace LobsterConnect.Model
     ///         PROPOSER: the handle of the person who's organising the session (mandatory and immutable)
     ///         TOPLAY: the name of the game that will be played (mandatory and immutable)
     ///         STARTAT: the day/time of the session; it's a label string, then ':', then a number which is the session number in the event
-    ///         WHATSAPPLINK: a link to a WhatsApp chat for discussing the game session
+    ///         WHATSAPPLINK: a link to a chat (on WhatsApp or elsewhere) for discussing the game session
     ///         BGGLINK: a link to the BGG site describing the game
     ///         NOTES: explanatory notes written by the person organising the session
     ///         SITSMINIMUM: an integer, the lowest number of people who are being sought to play the game at this session

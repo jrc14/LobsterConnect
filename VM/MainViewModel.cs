@@ -119,15 +119,9 @@ namespace LobsterConnect.VM
 
         }
 
-        private void LoadTestEventsGamesAndPersons(bool informJournal)
+        /*
+        private void LoadTestPersons(bool informJournal)
         {
-            CreateGamingEvent(informJournal, "LoBsterCon XXVIII", "CONVENTION",true);
-            CreateGamingEvent(informJournal, "2025-03-02 Sun", "DAY", true);
-            CreateGamingEvent(informJournal, "2025-03-03 Mon", "EVENING", true);
-            CreateGamingEvent(informJournal, "2025-03-04 Tue", "EVENING", true);
-
-            CreatePerson(informJournal, "jrc14", "James Robertson Chapman", "+44 7956 322 226", "jim@turnipsoft.co.uk", Model.Utilities.PasswordHash("jrc14"), true, true);
-
             // Create 10 random pixies
             for (int i=0; i<10; i++)
             {
@@ -166,25 +160,75 @@ namespace LobsterConnect.VM
                 }
             }    
         }
+        */
 
-        private void LoadTestSessionsAndSignUps(string eventName, bool informJournal)
+#if DEBUG
+        /// <summary>
+        /// For debugging - add a bunch of test persons.  Use with caution as 
+        /// if informJournal is true, the test data will end up being written to the production
+        /// cloud sync service.
+        /// </summary>
+        /// <param name="informJournal"></param>
+        public void AddTestPersons(bool informJournal)
         {
-            this._sessions.Clear();
+            // Create 50 random pixies
+            for (int i = 0; i < 50; i++)
+            {
+                int p;
+                string name;
+                string handle;
+                switch (i % 5)
+                {
+                    case 0: name = "Bobby"; break;
+                    case 1: name = "Susan"; break;
+                    case 2: name = "Steve"; break;
+                    case 3: name = "Jack"; break;
+                    default: name = "Mick"; break;
+                }
 
-            int numSessions = 15;
-            if (eventName == "LoBsterCon XXVIII")
-                numSessions = 100;
+                do
+                {
+                    p = System.Random.Shared.Next(0, 1000);
+                    handle = name.ToLower() + p.ToString();
+                }
+                while (CheckPersonHandleExists(handle));
+
+                CreatePerson(informJournal, handle, name+" the Magic Pixie number " + p.ToString(),
+                            "+44-20-555-" + p.ToString("D4"),
+                            handle + "@pixienet.com",
+                            Model.Utilities.PasswordHash(handle));
+            }
+        }
+
+        /// <summary>
+        /// For debugging - add a bunch of test sessions and signups.  Use with caution as 
+        /// if informJournal is true, the test data will end up being written to the production
+        /// cloud sync service.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="informJournal"></param>
+        public void AddTestSessionsAndSignUps(GamingEvent e, bool informJournal)
+        {
+            int numSessions = 5;
+            if (e.EventType== "CONVENTION")
+                numSessions = 20;
 
             for(int s=0; s<numSessions; s++)
             {
-                string proposer = this._persons[System.Random.Shared.Next(0, this._persons.Count)].Handle;
+                string proposer = "";
+                do
+                {
+                    proposer = this._persons[System.Random.Shared.Next(0, this._persons.Count)].Handle;
+                }
+                while (proposer == "#deleted");
+
                 string toPlay = this._games[System.Random.Shared.Next(0, this._games.Count)].Name;
                 int sitsMinimum = System.Random.Shared.Next(2, 6);
                 int sitsMaximum = sitsMinimum+ System.Random.Shared.Next(0, 4);
                 int sessionTime = System.Random.Shared.Next(0, SessionTime.NumberOfTimeSlots);
 
                 string sessionId = Guid.NewGuid().ToString();
-                CreateSession(informJournal, sessionId, proposer, toPlay, eventName, new SessionTime(sessionTime), false, "Here are some notes for session number " + s.ToString(),
+                CreateSession(informJournal, sessionId, proposer, toPlay, e.Name, new SessionTime(sessionTime), false, "Here are some notes for session number " + s.ToString(),
                     sitsMinimum: sitsMinimum, sitsMaximum: sitsMaximum);
 
                 Session session = GetSession(sessionId);
@@ -192,8 +236,14 @@ namespace LobsterConnect.VM
                 {
                     if (System.Random.Shared.Next(0, 2) == 0)
                     {
-                        string person = this._persons[System.Random.Shared.Next(0, this._persons.Count)].Handle;
-                        if(!session.IsSignedUp(person))
+                        string person = "";
+                        do
+                        {
+                            person = this._persons[System.Random.Shared.Next(0, this._persons.Count)].Handle;
+                        }
+                        while (person == "#deleted");
+
+                        if (!session.IsSignedUp(person))
                         {
                             SignUp(informJournal, person, sessionId, false);
                         }
@@ -201,6 +251,7 @@ namespace LobsterConnect.VM
                 }
             }
         }
+#endif
 
         /// <summary>
         /// Special treatment for any properties of the viewmodel where we want application-specific things to happen
@@ -686,7 +737,7 @@ namespace LobsterConnect.VM
         /// inactive game or inactive person. If calling this method from the UI, 'true' is appropriate; if you're replaying a
         /// journal from the cloud store, 'false' might be a better choice.</param>
         /// <param name="notes">optional, defaulted to "NO NOTES"</param>
-        /// <param name="whatsAppLink">optional, defaulted to "NO WHATSAPP CHAT"</param>
+        /// <param name="whatsAppLink">optional, defaulted to "NO CHAT LINK"</param>
         /// <param name="bggLink">optional, defaulted to the BGG text for the game"</param>
         /// <param name="sitsMinimum">optional, defaulted to 0</param>
         /// <param name="sitsMaximum">optional, defaulted to 0</param>
@@ -712,7 +763,7 @@ namespace LobsterConnect.VM
 
                 if (whatsAppLink == null)
                 {
-                    whatsAppLink = "NO WHATSAPP CHAT";
+                    whatsAppLink = "NO CHAT LINK";
                 }
 
                 if(state==null)

@@ -116,10 +116,10 @@ public partial class PopupAddSession : Popup
 
                 string notes = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "Please add any note that you want to display on this session. Do not enter text that is offensive or defamatory, or contains information about any person.");
 
-                string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "If you want to associate a WhatsApp chat with this game, please get an 'invite to group' link for the chat, and paste it here");
+                string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Add Gaming Session", "If you want to associate a chat with this game, add the linke here (for a WhatsApp chat, get an 'invite to group' link for the chat, and paste it here).");
 
                 if (string.IsNullOrEmpty(notes)) notes = "NO NOTES";
-                if (string.IsNullOrEmpty(whatsAppLink)) whatsAppLink = "NO WHATSAPP LINK";
+                if (string.IsNullOrEmpty(whatsAppLink)) whatsAppLink = "NO CHAT LINK";
 
                 int sitsMinimum = (int)Double.Round(this.stpMinimum.Value);
                 int sitsMaximum = (int)Double.Round(this.stpMaximum.Value);
