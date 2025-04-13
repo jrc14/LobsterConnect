@@ -31,14 +31,12 @@
 	<key>CFBundleIdentifier</key>
 	<string></string>
 	<key>CFBundleShortVersionString</key>
-	<string>1015</string>
+	<string>1021</string>
 	<key>MinimumOSVersion</key>
 	<string>14.2</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
 	</array>
-	<key>CFBundleVersion</key>
-	<string>5</string>
 </dict>
 </plist>

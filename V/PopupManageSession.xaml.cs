@@ -73,18 +73,18 @@ public partial class PopupManageSession : Popup
             bool userIsAdmin = MainViewModel.Instance.LoggedOnUser != null && MainViewModel.Instance.LoggedOnUser.IsAdmin;
             if (s != null && (userIsProposer || userIsAdmin))
             {
-                string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Manage Gaming Session", "To associate a WhatsApp chat with this game, get an 'invite to group' link for the chat, and paste it here", initialValue: s.WhatsAppLink);
+                string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Manage Gaming Session", "To associate a chat with this game, get a link for the chat, and paste it here", initialValue: s.WhatsAppLink);
 
                 if (s != null)
                 {
                     MainViewModel.Instance.UpdateSession(true, s, whatsAppLink: whatsAppLink);
-                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': WhatsApp link has been updated to '" + whatsAppLink + "'");
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': Chat link has been updated to '" + whatsAppLink + "'");
                 }
             }
         }
         catch(Exception ex)
         {
-            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error setting WhatsApp details: " + ex.Message);
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error setting chat details: " + ex.Message);
         }
     }
 
@@ -290,12 +290,12 @@ public partial class PopupManageSession : Popup
             {
                 if(!await Browser.Default.OpenAsync(s.WhatsAppLink))
                 {
-                    MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Failed to launch WhatsApp using link '" + s.WhatsAppLink+"'");
+                    MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Failed to access chat using link '" + s.WhatsAppLink+"'");
                 }
             }
             catch(Exception ex)
             {
-                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Failed to launch WhatsApp using link '" + s.WhatsAppLink + "': "+ex.Message);
+                MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Failed to access chat using link '" + s.WhatsAppLink + "': "+ex.Message);
             }
         }
     }
