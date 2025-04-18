@@ -576,7 +576,7 @@ public partial class MainPage : ContentPage
     /// </summary>
     /// <param name="s"></param>
     /// <returns></returns>
-	async Task<bool> ShowSessionManagementPopup(Session s)
+	public async Task<bool> ShowSessionManagementPopup(Session s)
 	{
         var popup = new PopupManageSession();
 		popup.SetSession(s);

@@ -12,7 +12,7 @@
     <Grid RowSpacing="0" ColumnSpacing="0" Padding="10" >
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>            
             <RowDefinition Height="60"/>
             <RowDefinition Height="60"/>
             <RowDefinition Height="60"/>
@@ -26,10 +26,16 @@
             <ColumnDefinition x:Name="colDef0" Width="300"/>
             <ColumnDefinition x:Name="colDef1" Width="100"/>
         </Grid.ColumnDefinitions>
-        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Gaming Session Details" x:Name="lbSessionDetails" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
-        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="{Binding Proposer}" x:Name="lbProposer" Margin="0" HorizontalOptions="End" VerticalOptions="Center"></Label>
-        <Label Grid.Row="1" Grid.Column="0"  HeightRequest="50" Text="{Binding ToPlay}" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
-        <Label Grid.Row="1" Grid.Column="1"  HeightRequest="50" Text="{Binding StartAt}" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Label Grid.Row="0" Grid.Column="0"  HeightRequest="50" Text="Gaming Session Details" x:Name="lbSessionDetails" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        <Label Grid.Row="0" Grid.Column="0"  HeightRequest="50" Text="{Binding Proposer}" x:Name="lbProposer" Margin="0" HorizontalOptions="End" VerticalOptions="Center"></Label>
+        <Button Grid.Row="0" Grid.Column="1" x:Name="btnShare"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Black"  BorderWidth="1" BackgroundColor="Transparent" CornerRadius="5"
+							  Clicked="btnShareClicked">
+            <Button.ImageSource>
+                <FontImageSource Glyph="&#xf6B0;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </Button.ImageSource>
+        </Button>
+        <Label Grid.Row="1" Grid.Column="0"  HeightRequest="50" Text="{Binding ToPlay}" HorizontalOptions="Start" Margin="5,10,5,0" VerticalOptions="Center"></Label>
+        <Label Grid.Row="1" Grid.Column="1"  HeightRequest="50" Text="{Binding StartAt}" HorizontalOptions="Start" Margin="5,10,5,0" VerticalOptions="Center"></Label>
         <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"  HeightRequest="60" Text="{Binding BggLink}" HorizontalOptions="Start" x:Name="lblBggLink" Margin="5" VerticalOptions="Center" TextColor="DarkBlue">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer 

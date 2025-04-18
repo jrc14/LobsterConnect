@@ -6,7 +6,7 @@
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   IgnorableNamespaces="uap rescap mp">
 
-  <Identity Name="5957Turnipsoft.25552173DF010" Publisher="CN=B62C87CB-2ED8-49A1-B55B-A2ECC5314803" Version="1.2.1.0" />
+  <Identity Name="5957Turnipsoft.25552173DF010" Publisher="CN=B62C87CB-2ED8-49A1-B55B-A2ECC5314803" Version="1.2.2.0" />
 
   <Properties>
     <DisplayName>LobsterConnect</DisplayName>
@@ -38,6 +38,13 @@
         </uap:DefaultTile >
         <uap:SplashScreen  BackgroundColor="#400000"  Image="Resources\Images\lobster620x300.png"/>
       </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="lobsterconnect">
+            <uap:DisplayName>LobsterConnect</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
 

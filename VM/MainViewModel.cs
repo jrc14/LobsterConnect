@@ -12,7 +12,7 @@ namespace LobsterConnect.VM
     /// purposes).  Instead, you should access them using the methods on this class with names like Create..., Update...,
     /// Get..., Check... and ...SignUp.
     /// 
-    /// For design notes conncering the app as a whole, please refer to App.xaml.cs.
+    /// For design notes concerning the app as a whole, please refer to App.xaml.cs.
     /// 
     /// App startup and the initial loading of the viewmodel are managed in the contructor of the main
     /// page - see MainPage.xaml.cs.
@@ -252,6 +252,55 @@ namespace LobsterConnect.VM
             }
         }
 #endif
+
+        /// <summary>
+        /// Respond to an activation of the app using an app-specific URI link, lobsterconnect://SESSIONID
+        /// by trying to open the session viewer popup, and show the relevant session.
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        public async Task<bool> OpenSessionFromUrl(string url)
+        {
+            if (url.Contains('/'))
+                url = url.Split('/').Last();
+
+            Session s = GetSession(url);
+            if (s == null)
+            {
+                await Model.DispatcherHelper.SleepAsync(1000);
+
+                s = GetSession(url);
+            }
+            if(s==null)
+            { 
+
+                Journal.CloudSyncRequested = true;
+
+                await Model.DispatcherHelper.SleepAsync(5000);
+
+                s = GetSession(url);
+            }
+
+            if(s==null)
+            {
+                LogUserMessage(Logger.Level.ERROR, "Failed to open session from link: " + url);
+            }
+
+            if(s.EventName!=CurrentEvent.Name)
+            {
+                LogUserMessage(Logger.Level.INFO, "Switching event to view sesion at event " + s.EventName);
+                SetCurrentEvent(s.EventName);
+            }
+
+            LogUserMessage(Logger.Level.INFO, "Displaying info for session " + s.Id);
+
+#pragma warning disable 4014 // the method below will run asynchronously, but I am fine to let the method exit in the meantime
+            V.MainPage.Instance.ShowSessionManagementPopup(s);
+#pragma warning restore 4014
+
+            return false;
+
+        }
 
         /// <summary>
         /// Special treatment for any properties of the viewmodel where we want application-specific things to happen

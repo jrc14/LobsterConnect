@@ -307,6 +307,20 @@ public partial class PopupManageSession : Popup
             await MainPage.Instance.DisplayAlert("Notes", s.Notes, "Dismiss");
     }
 
+    void btnShareClicked(object sender, EventArgs e)
+    {
+        Session s = this.BindingContext as Session;
+
+        string shareUrl = "lobsterconnect:///" + s.Id;
+
+        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Sharing link has been copied: '" + shareUrl + "'");
+
+#pragma warning disable 4014 // the method below will run asynchronously, but I am fine to let the method exit in the meantime
+        Microsoft.Maui.ApplicationModel.DataTransfer.Clipboard.Default.SetTextAsync(shareUrl);
+        MainPage.Instance.DisplayAlert("Sharing", "A link to this session has been copied. Please paste it into a chat session, message or email to share it.", "Dismiss");
+#pragma warning restore 4014
+    }
+
     async void OnDismissClicked(object sender, EventArgs e)
     {
         await CloseAsync(true, CancellationToken.None);
@@ -341,6 +355,5 @@ public partial class PopupManageSession : Popup
         {
             MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: " + ex.Message);
         }
-
     }
 }
