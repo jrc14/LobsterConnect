@@ -256,49 +256,59 @@ namespace LobsterConnect.VM
         /// <summary>
         /// Respond to an activation of the app using an app-specific URI link, lobsterconnect://SESSIONID
         /// by trying to open the session viewer popup, and show the relevant session.
-        /// 
         /// </summary>
         /// <param name="url"></param>
         public async Task<bool> OpenSessionFromUrl(string url)
         {
-            if (url.Contains('/'))
-                url = url.Split('/').Last();
-
-            Session s = GetSession(url);
-            if (s == null)
+            try
             {
-                await Model.DispatcherHelper.SleepAsync(1000);
+                Logger.LogMessage(Logger.Level.INFO, "MainViewModel.OpenSessionFromUrl", "opening session for URL " + url);
 
-                s = GetSession(url);
-            }
-            if(s==null)
-            { 
+                if (url.Contains('/'))
+                    url = url.Split('/').Last();
 
-                Journal.CloudSyncRequested = true;
+                Session s = GetSession(url);
+                if (s == null)
+                {
+                    await Model.DispatcherHelper.SleepAsync(1000);
 
-                await Model.DispatcherHelper.SleepAsync(5000);
+                    s = GetSession(url);
+                }
+                if (s == null)
+                {
 
-                s = GetSession(url);
-            }
+                    Journal.CloudSyncRequested = true;
 
-            if(s==null)
-            {
-                LogUserMessage(Logger.Level.ERROR, "Failed to open session from link: " + url);
-            }
+                    await Model.DispatcherHelper.SleepAsync(5000);
 
-            if(s.EventName!=CurrentEvent.Name)
-            {
-                LogUserMessage(Logger.Level.INFO, "Switching event to view sesion at event " + s.EventName);
-                SetCurrentEvent(s.EventName);
-            }
+                    s = GetSession(url);
+                }
 
-            LogUserMessage(Logger.Level.INFO, "Displaying info for session " + s.Id);
+                if (s == null)
+                {
+                    LogUserMessage(Logger.Level.ERROR, "Failed to open session from link: " + url);
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.OpenSessionFromUrl", "Failed to open session from link: " + url);
+
+                }
+
+                if (s.EventName != CurrentEvent.Name)
+                {
+
+                    LogUserMessage(Logger.Level.INFO, "Switching event to view sesion at event " + s.EventName);
+                    SetCurrentEvent(s.EventName);
+                }
+
+                LogUserMessage(Logger.Level.INFO, "Displaying info for session " + s.Id);
 
 #pragma warning disable 4014 // the method below will run asynchronously, but I am fine to let the method exit in the meantime
-            V.MainPage.Instance.ShowSessionManagementPopup(s);
+                V.MainPage.Instance.ShowSessionManagementPopup(s);
 #pragma warning restore 4014
-
-            return false;
+            }
+            catch(Exception ex)
+            {
+                LogUserMessage(Logger.Level.ERROR, "Error while tryign to open session from link: "+ex.Message);
+            }
+            return false;           
 
         }
 

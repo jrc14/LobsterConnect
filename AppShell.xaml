@@ -63,6 +63,11 @@
             <FontImageSource Glyph="&#xf407;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
     </MenuItem>
+    <MenuItem Text="Open link" Clicked="AppShell_MenuItemClicked" CommandParameter="openlink">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xe777;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
     <MenuItem Text="Support" Clicked="AppShell_MenuItemClicked" CommandParameter="support">
             <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xee88;" FontFamily="FluentSystemIcons-Regular"/>

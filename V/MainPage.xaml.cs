@@ -152,6 +152,8 @@ public partial class MainPage : ContentPage
                 if (!confirmation)
                 {
                     this.gdMainPage.IsVisible = false;
+
+                    await this.DisplayAlert("Age Verification", "Because you answered YES to the age verification question, you will not be able to run the app.  Please close it now", "Dismiss");
                 }
                 else // If the user is 18 or over, save True into the app's preferences, so we don't ask again.
                 {
@@ -725,7 +727,15 @@ public partial class MainPage : ContentPage
 		{
 			btnFilterClicked(this, new EventArgs());
 		}
-		else if (action == "support") // show the support actions
+        else if (action == "openlink") // open a session link (an app url like lobsterconnect:///<session-id>)
+        {
+            string s = await DisplayPromptAsync("Open Link to a Session", "If you've been sent a link to a session (some text beginning 'lobsterconnect://') enter it here, to open the gaming session");
+            if(!string.IsNullOrEmpty(s))
+            {
+                await MainViewModel.Instance.OpenSessionFromUrl(s);
+            }
+        }
+        else if (action == "support") // show the support actions
 		{
 			string action2 = null;
 			

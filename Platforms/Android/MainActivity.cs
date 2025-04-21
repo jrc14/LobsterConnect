@@ -32,8 +32,9 @@ public class MainActivity : MauiAppCompatActivity
             }
             */
 
-            Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+            Model.DispatcherHelper.RunAsyncOnUI(async () =>
             {
+                await Model.DispatcherHelper.SleepAsync(2000);
                 VM.MainViewModel.Instance.OpenSessionFromUrl(uri.ToString());
             });
         }
