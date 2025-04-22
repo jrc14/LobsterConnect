@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
-using Foundation;
 using Microsoft.Maui.LifecycleEvents;
 
 namespace LobsterConnect;
@@ -30,6 +29,10 @@ public static class MauiProgram
             .ConfigureLifecycleEvents(lifecycle =>
             {
 #if IOS || MACCATALYST
+                // For whatever reason, none of this actually seems to work (perhaps because I am
+                // using the older 'App Link' approach rather than the now preferred 'Universal Link'
+                // setup).  The only way that iOS is actually asking my
+                // app to activate using a URL link is through the invocation of AppDelegate.OpenUrl.
                 lifecycle.AddiOS(ios =>
                 {
                     // Universal link delivered to FinishedLaunching after app launch.
@@ -37,7 +40,6 @@ public static class MauiProgram
                     {
                         try
                         {
-                            Model.Logger.LogMessage(Model.Logger.Level.INFO, "FinishedLaunching lifecycle handler");
                             if(app!=null && app.UserActivity!=null && app.UserActivity.WebPageUrl!=null)
                             {
                                 Model.Logger.LogMessage(Model.Logger.Level.INFO, "FinishedLaunching lifecycle handler","WebPageUrl=" + app.UserActivity.WebPageUrl.AbsoluteString);
@@ -56,7 +58,6 @@ public static class MauiProgram
                     {
                         try
                         {
-                            Model.Logger.LogMessage(Model.Logger.Level.INFO, "ContinueUserActivity lifecycle handler");
                             if(userActivity != null && userActivity.WebPageUrl != null)
                             {
                                 Model.Logger.LogMessage(Model.Logger.Level.INFO, "ContinueUserActivity lifecycle handler","WebPageUrl=" + userActivity.WebPageUrl.AbsoluteString);
@@ -78,15 +79,14 @@ public static class MauiProgram
                         {
                             try
                             {
-                                Model.Logger.LogMessage(Model.Logger.Level.INFO, "SceneWillConnect lifecycle handler");
-
                                 var userActivity = sceneConnectionOptions.UserActivities.ToArray().FirstOrDefault(a => a.ActivityType == Foundation.NSUserActivityType.BrowsingWeb);
                                 if (userActivity != null && userActivity.WebPageUrl != null)
                                 {
                                     Model.Logger.LogMessage(Model.Logger.Level.INFO, "SceneWillConnect lifecycle handler", "WebPageUrl=" + userActivity.WebPageUrl.AbsoluteString);
+                                    HandleAppLink(userActivity);
                                 }
 
-                                HandleAppLink(userActivity);
+
                             }
                             catch (Exception ex)
                             {
@@ -99,12 +99,13 @@ public static class MauiProgram
                         {
                             try
                             {
-                                Model.Logger.LogMessage(Model.Logger.Level.INFO, "SceneContinueUserActivity lifecycle handler");
                                 if (userActivity != null && userActivity.WebPageUrl != null)
                                 {
                                     Model.Logger.LogMessage(Model.Logger.Level.INFO, "SceneContinueUserActivity lifecycle handler", "WebPageUrl=" + userActivity.WebPageUrl.AbsoluteString);
+                                    return HandleAppLink(userActivity);
                                 }
-                                return HandleAppLink(userActivity);
+                                else
+                                    return true;
                             }
                             catch (Exception ex)
                             {
@@ -130,10 +131,10 @@ public static class MauiProgram
     static bool HandleAppLink(Foundation.NSUserActivity userActivity)
     {
         if (userActivity is not null
-        /*&& userActivity.ActivityType == Foundation.NSUserActivityType.BrowsingWeb*/
+        && userActivity.ActivityType == Foundation.NSUserActivityType.BrowsingWeb
         && userActivity.WebPageUrl is not null)
         {
-            Model.Logger.LogMessage(Model.Logger.Level.INFO, "MauiProgram.HandleAppLink", "entered");
+            //Model.Logger.LogMessage(Model.Logger.Level.INFO, "MauiProgram.HandleAppLink", "entered");
 
             string url = userActivity.WebPageUrl?.ToString();
             // use the url to extract any query parameters with values if needed

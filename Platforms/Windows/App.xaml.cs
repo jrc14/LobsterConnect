@@ -1,4 +1,5 @@
 ﻿using Microsoft.Windows.AppLifecycle;
+using System.Data.SqlTypes;
 using Windows.ApplicationModel.Activation;
 
 
@@ -18,6 +19,11 @@ public partial class App : MauiWinUIApplication
     /// </summary>
     public App()
     {
+        // The intention is to use the key to keep track of whether there is another instance running, because if there 
+        // is, we want to shut down without doing anything more than passing URL arguments over to the running
+        // instance, and then exiting.  Or if there is not another instance running, then we want to make sure that this
+        // instance will, when activated, look for a URL argument (to open a session in 'manage session' popup).
+
         AppInstance keyInstance = AppInstance.FindOrRegisterForKey("LobsterConnect_AppInstance"); // the key string can be any old thing.
 
         if (keyInstance.IsCurrent) // This is the only LobsterConnect_AppInstance running
@@ -34,6 +40,8 @@ public partial class App : MauiWinUIApplication
                         if (protocol != null && protocol.Uri != null)
                         {
                             string u = protocol.Uri.ToString();
+                            Model.Logger.LogMessage(Model.Logger.Level.INFO, "AppInstance.Activated Handler", "found URI: " + u);
+
                             Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
                             {
 
@@ -79,7 +87,7 @@ public partial class App : MauiWinUIApplication
     {
         base.OnLaunched(args);
 
-        if (_InstanceAlreadyRunning)
+        if (_InstanceAlreadyRunning) // The app has detected an instance that is already running, so it will now try to close, to implement 'single instance' behaviour
         {
             Microsoft.Maui.Controls.Application.Current?.CloseWindow(Microsoft.Maui.Controls.Application.Current.MainPage.Window);
             return;
@@ -87,6 +95,8 @@ public partial class App : MauiWinUIApplication
 
         try
         {
+            // In the ideal world, MAUI would make it so 'args' contained the right data,  But it does not, so there is
+            // this stupid work-around.
             var bugFreeArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
             if (bugFreeArgs.Kind == ExtendedActivationKind.Protocol)
             {
@@ -94,6 +104,9 @@ public partial class App : MauiWinUIApplication
                 if(protocol!=null && protocol.Uri!=null)
                 {
                     string u = protocol.Uri.ToString();
+
+                    Model.Logger.LogMessage(Model.Logger.Level.INFO, "App.OnLaunched", "found URI: " + u);
+
                     Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
                     {
 
@@ -111,18 +124,27 @@ public partial class App : MauiWinUIApplication
     protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
 
-    private void ShowWindow() // for reasons I do not yet understand, this method doesn't seem to reliably bring the app window to the front.
+    /// <summary>
+    /// Attempt to make the app window visible
+    /// </summary>
+    private void ShowWindow()
     {
         Model.DispatcherHelper.RunAsyncOnUI(() =>
         {
             Microsoft.Maui.MauiWinUIWindow window = Microsoft.Maui.Controls.Application.Current.Windows.Last().Handler.PlatformView as Microsoft.Maui.MauiWinUIWindow;
             window.Activate();
+           
 
             nint hWnd = window.WindowHandle;
             Microsoft.UI.WindowId winId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
             Microsoft.UI.Windowing.AppWindow appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(winId);
 
             appWindow.Show();
+
+            // Try to make the window appear as the top window, briefly.
+            (appWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter).IsAlwaysOnTop = true;
+            (appWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter).IsAlwaysOnTop = false;
+
         });
     }
 }

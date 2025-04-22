@@ -2,6 +2,7 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Content;
+using Java.Net;
 
 namespace LobsterConnect;
 
@@ -31,6 +32,7 @@ public class MainActivity : MauiAppCompatActivity
 
             }
             */
+            Model.Logger.LogMessage(Model.Logger.Level.INFO, "MainActivity.OnCreate", "intent data contains URI " + uri.ToString());
 
             Model.DispatcherHelper.RunAsyncOnUI(async () =>
             {

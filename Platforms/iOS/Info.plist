@@ -31,7 +31,7 @@
 	<key>CFBundleIdentifier</key>
 	<string></string>
 	<key>CFBundleShortVersionString</key>
-	<string>1025</string>
+	<string>1030</string>
 	<key>MinimumOSVersion</key>
 	<string>14.2</string>
 	<key>UIBackgroundModes</key>
