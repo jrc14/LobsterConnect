@@ -556,6 +556,38 @@ public partial class MainPage : ContentPage
             MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error adding session: " + ex.Message);
         }
     }
+
+    /// <summary>
+    /// Add a new session using a PopupManageWishlist
+    /// </summary>
+    /// <param name="o">ignored</param>
+    /// <param name="e">ignored</param>
+    async void btnWishListClicked(Object o, EventArgs e)
+    {
+        try
+        {
+            if (MainViewModel.Instance.LoggedOnUser == null)
+            {
+                await DisplayAlert("Would Like to Play", "Log in first please, before setting up a list of games you'd like to play", "Dismiss");
+                return;
+            }
+            else if (!MainViewModel.Instance.CurrentEvent.IsActive)
+            {
+                await DisplayAlert("Would Like to Play", "The current gaming event '" + MainViewModel.Instance.CurrentEvent.Name + "' is not active so games won't be happening in it", "Dismiss");
+                return;
+            }
+            else
+            {
+                var popup = new PopupManageWishList();
+                var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+            }
+        }
+        catch (Exception ex)
+        {
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error managing wish-list: " + ex.Message);
+        }
+    }
+
     /// <summary>
     /// Manage the current filter using a PopupManageFilter
     /// </summary>
@@ -723,7 +755,11 @@ public partial class MainPage : ContentPage
 		{
 			btnAddSessionClicked(this, new EventArgs());
         }
-		else if (action == "filter") // modify the filter settings
+        else if (action == "wishlist") // show the 'would like to play' popup
+        {
+            btnWishListClicked(this, new EventArgs());
+        }
+        else if (action == "filter") // modify the filter settings
 		{
 			btnFilterClicked(this, new EventArgs());
 		}
@@ -856,6 +892,11 @@ public partial class MainPage : ContentPage
                 else if (MainViewModel.Instance.CheckEventName(name))
                 {
                     await DisplayAlert("Error", "An event with that name already exists", "Dismiss");
+                    return false;
+                }
+                else if (name.Contains(','))
+                {
+                    await DisplayAlert("Error", "Event names must not contain commas", "Dismiss");
                     return false;
                 }
                 else

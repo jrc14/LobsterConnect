@@ -24,14 +24,16 @@ namespace LobsterConnect;
 ///  - The list of Games; these are things that people can play.  The app is initially set up with a list
 ///    of 500 games, but if you want to organise a session of a game that is not on the list, you can create a new
 ///    one.
+///  - The WishList, which is to say a list of expressions of interest, where a certain person is expressing
+///    an interest in playing a certain game at a certain event.
 ///    
 /// The app's durable state is persisted into a journal object; to set the viewmodel up, you replay the journal.
 /// Each journal entry describes a Create or Update operation on one of the entities mentioned above (GamingEvent,
-/// Game, Session or Person).  There is an additional entity type, SignUp, that a journal entry can represent - 
+/// Game, WishList, Session or Person).  There is an additional entity type, SignUp, that a journal entry can represent - 
 /// and this supports operations Create and Delete.  In the viewmodel, creating and deleting signups consists
 /// of modifying the 'SignUps' member of a Session object (which is a string containing a comma-separated
 /// list of user handles).
-/// Note that the Delete operation exists only for SignUps; other entity types cannot be deleted, though they
+/// Note that the Delete operation exists only for SignUps and WishList; other entity types cannot be deleted, though they
 /// can be updated (and if you update an entity by setting its IsActive parameter to False, then it will be
 /// largely hidden from the UI).  The design works this way, to make it harder for badly sequenced journal entries
 /// to break referential integrity.  There is an exceptional case for Person entities; if a user exercises their

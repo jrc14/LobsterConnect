@@ -207,7 +207,7 @@ public partial class PopupManageSession : Popup
                     {
                         if (s.State != "OPEN")
                         {
-                            await MainPage.Instance.DisplayAlert("Sign-up", "The session isn't OPEN so new sign-ups are not allowed", "dismiss");
+                            await MainPage.Instance.DisplayAlert("Sign-up", "The session isn't OPEN so new sign-ups are not allowed", "Dismiss");
                         }
                         else
                         {

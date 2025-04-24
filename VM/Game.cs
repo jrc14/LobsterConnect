@@ -23,7 +23,7 @@ namespace LobsterConnect.VM
     public class Game : LobsterConnect.VM.BindableBase
     {
         /// <summary>
-        /// The name of this game.  Attempts to set it to a value containing a 
+        /// The name of this game.  Attempts to set it to a value containing a comma, a
         /// backslash, a vertical bar or a newline will result in a value where the offending character
         /// is replaced by '_'.
         /// </summary>
@@ -56,6 +56,10 @@ namespace LobsterConnect.VM
                     if (this._name.Contains('\n'))
                     {
                         this._name = this._name.Replace('\n', '_');
+                    }
+                    if (this._name.Contains(','))
+                    {
+                        this._name = this._name.Replace(',', '_');
                     }
 
                     if (!dontNotify)

@@ -58,12 +58,17 @@
             <FontImageSource Glyph="&#xf10a;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
     </MenuItem>
+    <MenuItem Text="Would Like to Play" Clicked="AppShell_MenuItemClicked" CommandParameter="wishlist">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xf710;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
     <MenuItem Text="Filter" Clicked="AppShell_MenuItemClicked" CommandParameter="filter">
         <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xf407;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
     </MenuItem>
-    <MenuItem Text="Open link" Clicked="AppShell_MenuItemClicked" CommandParameter="openlink">
+    <MenuItem Text="Open Link" Clicked="AppShell_MenuItemClicked" CommandParameter="openlink">
         <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xe777;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>

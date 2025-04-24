@@ -40,6 +40,7 @@ namespace LobsterConnect.Model
             {
                 case Level.DEBUG: msg = "DEBUG: "; break;
                 case Level.INFO: msg = "INFO: "; break;
+                case Level.ALERT: msg = "ALERT: "; break;
                 case Level.WARNING: msg = "WARNING: "; break;
                 case Level.ERROR: msg = "ERROR: "; break;
                 default: break;
@@ -90,7 +91,7 @@ namespace LobsterConnect.Model
             }
         }
 
-        public enum Level { DEBUG, INFO, WARNING, ERROR};
+        public enum Level { DEBUG, INFO, ALERT, WARNING, ERROR};
 
         public static string LogFilePath
         {

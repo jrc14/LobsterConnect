@@ -1,13 +1,14 @@
 ﻿using System.ComponentModel;
 using LobsterConnect.Model;
 
+
 namespace LobsterConnect.VM
 {
     /// <summary>
     /// The viewmodel that the UI should be bound to.  It's a singleton class (access via the 'Instance' member).
     /// Because it's meant to be bound to UI elements (by implementing INotifyPropertyChanged), you should not
     /// access this class from any thread other than the UI thread.  Furthermore, because its collections of gaming events,
-    /// persons, games and sessions incorporate business logic and consistency checks, you should not in general access
+    /// persons, games, wishlists and sessions incorporate business logic and consistency checks, you should not in general access
     /// any of these collections, or their members, directly (even though they are exposed as public members for binding
     /// purposes).  Instead, you should access them using the methods on this class with names like Create..., Update...,
     /// Get..., Check... and ...SignUp.
@@ -110,11 +111,11 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Call this to load just the sessions and signups that relate to a certain gaming event.  This method isn't doing anything
+        /// Call this to load just the sessions, wishlist items and signups that relate to a certain gaming event.  This method isn't doing anything
         /// at the moment, because the Load method is loading all journal entries anyway - but at some point in the future we 
         /// might change this behaviour, for the sake of efficiency, and load these things only for the current gaming event.
         /// </summary>
-        public void LoadSessionsAndSignUps(string gamingEvent)
+        public void LoadSessionsWishListAndSignUps(string gamingEvent)
         {
 
         }
@@ -294,7 +295,7 @@ namespace LobsterConnect.VM
                 if (s.EventName != CurrentEvent.Name)
                 {
 
-                    LogUserMessage(Logger.Level.INFO, "Switching event to view sesion at event " + s.EventName);
+                    LogUserMessage(Logger.Level.INFO, "Switching event to view session at event " + s.EventName);
                     SetCurrentEvent(s.EventName);
                 }
 
@@ -326,8 +327,8 @@ namespace LobsterConnect.VM
             {
                 if (this._currentEvent != null && !string.IsNullOrEmpty(this._currentEvent.Name))
                 {
-                    // Load sessions and sign-ups applicable to the new event
-                    LoadSessionsAndSignUps(this._currentEvent.Name);
+                    // Load sessions, wish-list items and sign-ups applicable to the new event
+                    LoadSessionsWishListAndSignUps(this._currentEvent.Name);
 
                     // Fire the event that will tell the UI to reload sessions
                     this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
@@ -350,7 +351,7 @@ namespace LobsterConnect.VM
         {
             try
             {
-                LogUserMessage(Logger.Level.WARNING, "Resetting the app ...");
+                LogUserMessage(Logger.Level.ALERT, "Resetting the app ...");
                 Journal.SuspendJournalSync = true;
 
                 await DispatcherHelper.SleepAsync(5000); // allow time for journal sync to complete
@@ -363,7 +364,7 @@ namespace LobsterConnect.VM
                         LogUserMessage(Logger.Level.ERROR, "... sync operation did not finish.  Please exit and restart the app");
                         return false;
                     }
-                    LogUserMessage(Logger.Level.WARNING, "... waiting for a sync operation to finish, before attempting to reset");
+                    LogUserMessage(Logger.Level.ALERT, "... waiting for a sync operation to finish, before attempting to reset");
                     await DispatcherHelper.SleepAsync(5000);
                 }
 
@@ -379,6 +380,7 @@ namespace LobsterConnect.VM
                 this._games.Clear();
                 this._sessions.Clear();
                 this._persons.Clear();
+                this._wishlist.Clear();
                 this._currentFilter = new SessionFilter();
 
                 Model.Utilities.ResetInstallationId();
@@ -399,7 +401,7 @@ namespace LobsterConnect.VM
 
                 this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
 
-                LogUserMessage(Logger.Level.WARNING, "... app reset has been completed.");
+                LogUserMessage(Logger.Level.ALERT, "... app reset has been completed.");
 
                 return true;
             }
@@ -418,7 +420,7 @@ namespace LobsterConnect.VM
         {
             try
             {
-                LogUserMessage(Logger.Level.WARNING, "Purging data for ..."+ personHandle);
+                LogUserMessage(Logger.Level.ALERT, "Purging data for ..."+ personHandle);
                 Journal.SuspendJournalSync = true;
 
                 await DispatcherHelper.SleepAsync(5000); // allow time for journal sync to complete
@@ -431,7 +433,7 @@ namespace LobsterConnect.VM
                         LogUserMessage(Logger.Level.ERROR, "... sync operation did not finish.  Please exit and restart the app");
                         return false;
                     }
-                    LogUserMessage(Logger.Level.WARNING, "... waiting for a sync operation to finish, before attempting to purge");
+                    LogUserMessage(Logger.Level.ALERT, "... waiting for a sync operation to finish, before attempting to purge");
                     await DispatcherHelper.SleepAsync(5000);
                 }
 
@@ -452,6 +454,7 @@ namespace LobsterConnect.VM
                     //  - Amend signup create/delete actions having that user id as first half of id (replacing user id with "#deleted"),
                     //  - Amend signup create/delete actions having MODIFIEDBY= that user (replacing user id with "#deleted")
                     //  - Amend person create/update actions, replacing ID with "#deleted" and removing all parameters
+                    //  - Amend wishlist create/delete/update actions, replacing user id with "#deleted"
                     //  - Replace create/update sessions with the same, but with PROPOSER person handle replaced by "#deleted".
                     string nonce = System.Random.Shared.Next().ToString("X8");
                     string signature = Utilities.GetHashCodeForString(personHandle + nonce).ToString("X8");
@@ -478,6 +481,7 @@ namespace LobsterConnect.VM
                         this._games.Clear();
                         this._sessions.Clear();
                         this._persons.Clear();
+                        this._wishlist.Clear();
                         this._currentFilter = new SessionFilter();
 
                         Model.Utilities.ResetInstallationId();
@@ -499,7 +503,7 @@ namespace LobsterConnect.VM
 
                         this.SessionsMustBeRefreshed?.Invoke(this, new SessionsRefreshEventArgs());
 
-                        LogUserMessage(Logger.Level.WARNING, "... data purge has been completed.");
+                        LogUserMessage(Logger.Level.ALERT, "... data purge has been completed.");
 
                         return true;
                     }
@@ -538,6 +542,13 @@ namespace LobsterConnect.VM
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "game name cannot be null");
                     throw new ArgumentException("MainViewModel.CreateGame: null name");
                 }
+
+                if (name.Contains(','))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "game name must not contain commas");
+                    throw new ArgumentException("MainViewModel.CreateGame: invalid name");
+                }
+
                 if (bggLink == null)
                 {
                     bggLink = "NO LINK";
@@ -552,6 +563,7 @@ namespace LobsterConnect.VM
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGame", "game with that name already exists:'" + name + "'");
                     throw new ArgumentException("MainViewModel.CreateGame: duplicate name:'" + name + "'");
                 }
+
                 _games.Add(new Game() { Name = name, BggLink = bggLink, IsActive = (bool)isActive });
 
                 if (informJournal)
@@ -1226,6 +1238,201 @@ namespace LobsterConnect.VM
             }
         }
 
+
+        /// <summary>
+        /// Create a wish-list entry.  The parameters are the person handle, game name and gaming event; the other attribute (notes) is optional.
+        /// An exception is thrown if the person handle, game name or gaming event are null or invalid, or if a wish list item  having that
+        /// person handle, game name and gaming event already exist in the wish-list collection.
+        /// </summary>
+        /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
+        /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
+        /// replaying the journal.</param>
+        /// <param name="person">mandatory and must be a valid person handle</param>
+        /// <param name="game">mandatory and must be a valid game name</param>
+        /// <param name="gamingEvent">mandatory and must be a valid gaming event name</param>
+        /// <param name="notes">optional defaulted to "NO NOTES"</param>
+        /// <exception cref="ArgumentException"></exception>
+        public void CreateWishList(bool informJournal, string person, string game, string gamingEvent, string notes = null)
+        {
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => CreateWishList(informJournal, person, game, gamingEvent, notes));
+            }
+            {
+                if (person == null || !CheckPersonHandleExists(person))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "person handle is not valid");
+                    throw new ArgumentException("MainViewModel.CreateWishList: invalid person");
+                }
+                else if (game==null || !CheckGameNameExists(game))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "game name is not valid");
+                    throw new ArgumentException("MainViewModel.CreateWishList: invalid game");
+                }
+                else if (gamingEvent == null || GetGamingEvent(gamingEvent)==null)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "gaming event name is not valid");
+                    throw new ArgumentException("MainViewModel.CreateWishList: invalid gaming event");
+                }
+                else
+                {
+                    WishListItem existing = this._wishlist.FirstOrDefault(
+                        i => i.Person == person && i.Game == game && i.GamingEvent == gamingEvent);
+
+                    if(existing!=null)
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "item already exists:'" + person+","+game+","+gamingEvent + "'");
+                        throw new ArgumentException("MainViewModel.CreateWishList: duplicate item:'" + person + "," + game + "," + gamingEvent + "'");
+                    }
+
+                    if (notes == null)
+                    {
+                        notes = "NO NOTES";
+                    }
+                    _wishlist.Add(new WishListItem() { Person=person, Game = game, GamingEvent = gamingEvent, Notes = notes });
+
+                    if (informJournal)
+                    {
+                        string id = person + "," + game + "," + gamingEvent;
+                        Journal.AddJournalEntry(Journal.EntityType.WishList, Journal.OperationType.Create, id,
+                            "NOTES", notes);
+
+                        Journal.CloudSyncRequested = true;
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Update a wish-list entry.  The parameters are the person handle, game name and gaming event; the other attribute (notes) is optional,
+        /// but leaving it out would be an odd thing to do because the only thing that this method can do it
+        /// update the Notes attribute of a wish-list entry, there being no other attributes.
+        /// An exception is thrown if the person handle, game name or gaming event are null or invalid, or if a wish list item  having that
+        /// person handle, game name and gaming event don't exist in the wish-list collection.
+        /// </summary>
+        /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
+        /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
+        /// replaying the journal.</param>
+        /// <param name="person">mandatory and must be a valid person handle</param>
+        /// <param name="game">mandatory and must be a valid game name</param>
+        /// <param name="gamingEvent">mandatory and must be a valid gaming event name</param>
+        /// <param name="notes">optional defaulted to "NO NOTES"</param>
+        /// <exception cref="ArgumentException"></exception>
+        public void UpdateWishList(bool informJournal, string person, string game, string gamingEvent, string notes = null)
+        {
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateWishList", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => UpdateWishList(informJournal, person, game, gamingEvent, notes));
+            }
+            {
+                if (person == null || !CheckPersonHandleExists(person))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateWishList", "person handle is not valid");
+                    throw new ArgumentException("MainViewModel.UpdateWishList: invalid person");
+                }
+                else if (game == null || !CheckGameNameExists(game))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateWishList", "game name is not valid");
+                    throw new ArgumentException("MainViewModel.UpdateWishList: invalid game");
+                }
+                else if (gamingEvent == null || GetGamingEvent(gamingEvent) == null)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateWishList", "gaming event name is not valid");
+                    throw new ArgumentException("MainViewModel.UpdateWishList: invalid gaming event");
+                }
+                else
+                {
+                    WishListItem existing = this._wishlist.FirstOrDefault(
+                        i => i.Person == person && i.Game == game && i.GamingEvent == gamingEvent);
+
+                    if (existing == null)
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateWishList", "item does not exist:'" + person + "," + game + "," + gamingEvent + "'");
+                        throw new ArgumentException("MainViewModel.UpdateWishList: missing item:'" + person + "," + game + "," + gamingEvent + "'");
+                    }
+
+                    if (notes == null)
+                    {
+                        notes = "NO NOTES";
+                    }
+
+                    existing.Notes = notes;
+
+                    if (informJournal)
+                    {
+                        string id = person + "," + game + "," + gamingEvent;
+                        Journal.AddJournalEntry(Journal.EntityType.WishList, Journal.OperationType.Update, id,
+                            "NOTES", notes);
+
+                        Journal.CloudSyncRequested = true;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete a wish-list entry.  The parameters are the person handle, game name and gaming event.
+        /// An exception is thrown if the person handle, game name or gaming event are null or invalid, or if a wish list item  having that
+        /// person handle, game name and gaming event does not exist in the wish-list collection
+        /// persons collection.
+        /// </summary>
+        /// <param name="informJournal">set to true if this update should be sent to the journal (i.e. if it resulted from local
+        /// UI action); set to false if the journal doesn't need to be told about this update (i.e. if it resulted from
+        /// replaying the journal.</param>
+        /// <param name="person">mandatory and must be a valid person handle</param>
+        /// <param name="game">mandatory and must be a valid game name</param>
+        /// <param name="gamingEvent">mandatory and must be a valid gaming event name</param>
+        /// <exception cref="ArgumentException"></exception>
+        public void DeleteWishList(bool informJournal, string person, string game, string gamingEvent)
+        {
+            if (!Model.DispatcherHelper.UIDispatcherHasThreadAccess)
+            {
+                Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "Coding bug: Should be called on the UI thread");
+                Model.DispatcherHelper.RunAsyncOnUI(() => DeleteWishList(informJournal, person, game, gamingEvent));
+            }
+            {
+                if (person == null || !CheckPersonHandleExists(person))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "person handle is not valid");
+                    throw new ArgumentException("MainViewModel.DeleteWishList: invalid person");
+                }
+                else if (game == null || !CheckGameNameExists(game))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "game name is not valid");
+                    throw new ArgumentException("MainViewModel.DeleteWishList: invalid game");
+                }
+                else if (gamingEvent == null || GetGamingEvent(gamingEvent) == null)
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "gaming event name is not valid");
+                    throw new ArgumentException("MainViewModel.DeleteWishList: invalid gaming event");
+                }
+                else
+                {
+                    WishListItem existing = this._wishlist.FirstOrDefault(
+                        i => i.Person == person && i.Game == game && i.GamingEvent == gamingEvent);
+
+                    if (existing == null)
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "item does not exist exists:'" + person + "," + game + "," + gamingEvent + "'");
+                        throw new ArgumentException("MainViewModel.DeleteWishList: item not found: '" + person + "," + game + "," + gamingEvent + "'");
+                    }
+
+                    _wishlist.Remove(existing);
+
+                    if (informJournal)
+                    {
+                        string id = person + "," + game + "," + gamingEvent;
+                        Journal.AddJournalEntry(Journal.EntityType.WishList, Journal.OperationType.Delete, id);
+
+                        Journal.CloudSyncRequested = true;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// The filter that is currently applied to restrict the set of sessions that will be displayed in the UI.
         /// Special magic code in the OnPropertyChanged handler for 'CurrentFilter' will take care of making
@@ -1313,7 +1520,13 @@ namespace LobsterConnect.VM
                     throw new ArgumentException("MainViewModel.CreateGamingEvent: null name");
                 }
 
-                if(GetAvailableEvents().Contains(name))
+                if(name.Contains(','))
+                {
+                    Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "event name cannot contain a comma character");
+                    throw new ArgumentException("MainViewModel.CreateGamingEvent: invalid name");
+                }
+
+                if (GetAvailableEvents().Contains(name))
                 {
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateGamingEvent", "event name is the same as one already in the list");
                     throw new ArgumentException("MainViewModel.CreateGamingEvent: duplicate name");
@@ -1698,6 +1911,13 @@ namespace LobsterConnect.VM
         /// </summary>
         private List<Person> _persons = new List<Person>();
 
+        /// <summary>
+        /// The wish-list items collection.  It's private; add wish-list items using the CreateWishList method,
+        /// remove them by using DeleteWishList, update them using UpdateWishList, and fetch
+        /// them by using GetWishListItemsForGame and GetWishListItemsForPerson.
+        /// You should access this collection only on the UI thread; it is not thread-safe.
+        /// </summary>
+        private List<WishListItem> _wishlist = new List<WishListItem>();
 
         /// <summary>
         /// Checks whether the games collection contains a game having the name provided.
@@ -1801,6 +2021,20 @@ namespace LobsterConnect.VM
             }
         }
 
+        public void SyncCheckSession(Session session)
+        {
+            if (LoggedOnUser != null && this.CurrentEvent!=null && session.EventName==CurrentEvent.Name)
+            {
+                List<WishListItem> watching = this.GetWishListItemsForPerson(LoggedOnUser.Handle);
+
+                if(watching.Any(i=>i.Game==session.ToPlay))
+                {
+                    LogSyncMessage(Logger.Level.ALERT, "Sync: a game of '" + session.ToPlay + "' has been proposed; this game is on your wish-list");
+                }
+            }
+        }
+
+
         public void SyncCheckSessionUpdate(Session session, string toState, string toNotes)
         {
             if (LoggedOnUser != null)
@@ -1816,7 +2050,7 @@ namespace LobsterConnect.VM
                         LogSyncMessage(Logger.Level.INFO, "Sync: a game of '" + session.ToPlay + "' organised by you has been declared FULL");
                     }
 
-                    if(toNotes!=null)
+                    if (toNotes != null)
                     {
                         LogSyncMessage(Logger.Level.INFO, "Sync: new NOTES have been added to a game of '" + session.ToPlay + "' organised by you");
                     }
@@ -1839,7 +2073,6 @@ namespace LobsterConnect.VM
                 }
             }
         }
-
         public void SyncCheckSignUp(string sessionId, string personHandle, string modifiedBy)
         {
             Session session = GetSession(sessionId);
@@ -1851,7 +2084,7 @@ namespace LobsterConnect.VM
             {
                 if (session.State == "OPEN")
                 {
-                    LogSyncMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has signed up to play your game of '" + session.ToPlay + "'");
+                    LogSyncMessage(Logger.Level.ALERT, "Sync: '" + personHandle + "' has signed up to play your game of '" + session.ToPlay + "'");
 
                     if (session.NumSignUps > session.SitsMaximum)
                     {
@@ -1866,7 +2099,7 @@ namespace LobsterConnect.VM
 
             if (LoggedOnUser.Handle==personHandle && modifiedBy != personHandle)
             {
-                LogSyncMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has signed you up to play a game of '" + session.ToPlay + "'");
+                LogSyncMessage(Logger.Level.ALERT, "Sync: '" + modifiedBy + "' has signed you up to play a game of '" + session.ToPlay + "'");
             }
         }
 
@@ -1879,13 +2112,77 @@ namespace LobsterConnect.VM
 
             if (LoggedOnUser.Handle == session.Proposer && session.Proposer != personHandle)
             {
-                LogSyncMessage(Logger.Level.INFO, "Sync: '" + personHandle + "' has cancelled their sign-up to play your game of '" + session.ToPlay + "'");
+                LogSyncMessage(Logger.Level.ALERT, "Sync: '" + personHandle + "' has cancelled their sign-up to play your game of '" + session.ToPlay + "'");
             }
 
             if (LoggedOnUser.Handle == personHandle && modifiedBy != personHandle)
             {
                 LogSyncMessage(Logger.Level.WARNING, "Sync: '" + modifiedBy + "' has cancelled your sign-up up to play a game of '" + session.ToPlay + "'");
             }
+        }
+
+
+        public void SyncCheckWishList(string personHandle, string gameId, string eventName, string notes)
+        {
+            if (LoggedOnUser != null && this.CurrentEvent != null && eventName == CurrentEvent.Name
+            && personHandle!="#deleted" && personHandle!=LoggedOnUser.Handle)
+            {
+                List<WishListItem> watching = this.GetWishListItemsForPerson(LoggedOnUser.Handle);
+
+                if(watching.Any(i=>i.Game==gameId))
+                {
+                    LogSyncMessage(Logger.Level.ALERT, "Sync: user '" + personHandle + "' is interested in playing '"+gameId+"'; this game is on your wish-list (notes:'"+notes+"')");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Retrieve a list of the wish-list items that indicate a wish to play the indicated game, at the current gaming event.
+        /// </summary>
+        /// <param name="gameName">wish-list items for the current event and this game name will be returned</param>
+        /// <returns>the list of wish-list items</returns>
+        public List<WishListItem> GetWishListItemsForGame(string gameName)
+        {
+            List<WishListItem> returnValue = new List<WishListItem>();
+
+            if (this.CurrentEvent == null)
+                return returnValue;
+
+            foreach (WishListItem i in _wishlist)
+            {
+                if (i.Person == "#deleted")
+                    continue;
+
+                if (i.GamingEvent == this.CurrentEvent.Name && i.Game == gameName)
+                    returnValue.Add(i);
+            }
+
+            return returnValue;
+        }
+
+
+        /// <summary>
+        /// Retrieve a list of the wish-list items for the indicated person, at the current gaming event.
+        /// </summary>
+        /// <param name="person">wish-list items for the current event and this person will be returned</param>
+        /// <returns>the list of wish-list items</returns>
+        public List<WishListItem> GetWishListItemsForPerson(string person)
+        {
+            List<WishListItem> returnValue = new List<WishListItem>();
+
+            if (this.CurrentEvent == null)
+                return returnValue;
+
+            if (person == "#deleted")
+                return returnValue;
+
+            foreach (WishListItem i in _wishlist)
+            {
+                if (i.GamingEvent == this.CurrentEvent.Name && i.Person == person)
+                    returnValue.Add(i);
+            }
+
+            return returnValue;
         }
 
         /// <summary>
@@ -1921,8 +2218,9 @@ namespace LobsterConnect.VM
             switch(level)
             {
                 case Logger.Level.DEBUG:   l = "DEBUG:"; break;
-                case Logger.Level.INFO:    l = "INFO:"; break;
-                case Logger.Level.WARNING: l = "ALERT:";  break;
+                case Logger.Level.INFO:    l = "INFO: "; break;
+                case Logger.Level.ALERT:   l = "ALERT:"; break;
+                case Logger.Level.WARNING: l = "WARN: ";  break;
                 case Logger.Level.ERROR:   l = "ERROR:"; break;
                 default:break;
             }
@@ -2073,7 +2371,6 @@ namespace LobsterConnect.VM
             _games.Add(new Game() { Name = "SCOUT (2019)", BggLink = "https://boardgamegeek.com/boardgame/291453/scout" });
             _games.Add(new Game() { Name = "Wingspan Asia (2022)", BggLink = "https://boardgamegeek.com/boardgame/366161/wingspan-asia" });
             _games.Add(new Game() { Name = "Concordia Venus (2018)", BggLink = "https://boardgamegeek.com/boardgame/256916/concordia-venus" });
-            _games.Add(new Game() { Name = "Title", BggLink = "https://boardgamegeek.com/browse/boardgame?sort=title" });
             _games.Add(new Game() { Name = "Dominant Species (2010)", BggLink = "https://boardgamegeek.com/boardgame/62219/dominant-species" });
             _games.Add(new Game() { Name = "Harmonies (2024)", BggLink = "https://boardgamegeek.com/boardgame/414317/harmonies" });
             _games.Add(new Game() { Name = "7 Wonders (2010)", BggLink = "https://boardgamegeek.com/boardgame/68448/7-wonders" });
@@ -2173,7 +2470,6 @@ namespace LobsterConnect.VM
             _games.Add(new Game() { Name = "Welcome To... (2018)", BggLink = "https://boardgamegeek.com/boardgame/233867/welcome-to" });
             _games.Add(new Game() { Name = "Earth (2023)", BggLink = "https://boardgamegeek.com/boardgame/350184/earth" });
             _games.Add(new Game() { Name = "Welcome to the Moon (2021)", BggLink = "https://boardgamegeek.com/boardgame/339789/welcome-to-the-moon" });
-            _games.Add(new Game() { Name = "Title", BggLink = "https://boardgamegeek.com/browse/boardgame?sort=title" });
             _games.Add(new Game() { Name = "Chaos in the Old World (2009)", BggLink = "https://boardgamegeek.com/boardgame/43111/chaos-in-the-old-world" });
             _games.Add(new Game() { Name = "Star Wars: Outer Rim (2019)", BggLink = "https://boardgamegeek.com/boardgame/271896/star-wars-outer-rim" });
             _games.Add(new Game() { Name = "War of the Ring (2004)", BggLink = "https://boardgamegeek.com/boardgame/9609/war-of-the-ring" });
@@ -2274,7 +2570,6 @@ namespace LobsterConnect.VM
             _games.Add(new Game() { Name = "Chronicles of Crime (2018)", BggLink = "https://boardgamegeek.com/boardgame/239188/chronicles-of-crime" });
             _games.Add(new Game() { Name = "Bitoku (2021)", BggLink = "https://boardgamegeek.com/boardgame/323612/bitoku" });
             _games.Add(new Game() { Name = "Oath (2021)", BggLink = "https://boardgamegeek.com/boardgame/291572/oath" });
-            _games.Add(new Game() { Name = "Title", BggLink = "https://boardgamegeek.com/browse/boardgame?sort=title" });
             _games.Add(new Game() { Name = "Bora Bora (2013)", BggLink = "https://boardgamegeek.com/boardgame/127060/bora-bora" });
             _games.Add(new Game() { Name = "Kemet: Blood and Sand (2021)", BggLink = "https://boardgamegeek.com/boardgame/297562/kemet-blood-and-sand" });
             _games.Add(new Game() { Name = "Kingdomino (2016)", BggLink = "https://boardgamegeek.com/boardgame/204583/kingdomino" });

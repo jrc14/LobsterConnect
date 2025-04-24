@@ -24,18 +24,22 @@
 			<StackLayout  Orientation="Horizontal" HorizontalOptions="Start" >
 				<ImageButton x:Name="btnAddSession" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="5,5,0,5"
 							 Clicked="btnAddSessionClicked">
-					<ImageButton.Source>
-						<FontImageSource Glyph="&#xf10a;" FontFamily="FluentSystemIcons-Regular"/>
-					</ImageButton.Source>
-
-				</ImageButton>
-				<ImageButton  x:Name="btnFilter"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="5,5,0,5"
+                    <ImageButton.Source>
+                        <FontImageSource Glyph="&#xf10a;" FontFamily="FluentSystemIcons-Regular"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton  x:Name="btnWishList"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="5,5,0,5"
+							  Clicked="btnWishListClicked">
+                    <ImageButton.Source>
+                        <FontImageSource Glyph="&#xf710;" FontFamily="FluentSystemIcons-Regular"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton  x:Name="btnFilter"  Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="White" CornerRadius="5" Margin="5,5,0,5"
 							  Clicked="btnFilterClicked">
-					<ImageButton.Source>
-						<FontImageSource Glyph="&#xf407;" FontFamily="FluentSystemIcons-Regular"/>
-					</ImageButton.Source>
-
-				</ImageButton>
+                    <ImageButton.Source>
+                        <FontImageSource Glyph="&#xf407;" FontFamily="FluentSystemIcons-Regular"/>
+                    </ImageButton.Source>
+                </ImageButton>
                 <Label Text="{Binding CurrentFilter.Description}" TextColor="White" VerticalOptions="Center" Margin="5,5,5,5">
                 </Label>
             </StackLayout>

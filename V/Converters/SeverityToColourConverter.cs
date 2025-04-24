@@ -12,8 +12,10 @@
             {
                 if ((value as string).Contains("ERROR:"))
                     return Colors.Red;
-                else if ((value as string).Contains("ALERT:"))
+                else if ((value as string).Contains("WARN:"))
                     return Colors.OrangeRed;
+                else if ((value as string).Contains("ALERT:"))
+                    return Colors.AliceBlue;
                 else
                     return Colors.LightGray;
 

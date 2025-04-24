@@ -51,6 +51,11 @@ namespace LobsterConnect.Model
     ///         EVENTNAME (Mandatory in all journal entries): the name of the gaming event at which the session is happening
     ///         MODIFIEDBY: the handle of the person making this change (creating or deleting the sign-up)
     ///         
+    /// WishList (Create, Update and Delete): a record that a certain person is interested in playing a certain game at a certain event
+    ///     ID consists of person handle (ID) , game name (ID), gaming event name (ID).
+    ///     Attributes are:
+    ///         NOTES: explanatory notes written by the person who's expressing interest in playing the game
+    ///         
     /// GamingEvent (Create and Update only): a record of an event (an evening, a gaming day, a convention) at which games can be played.
     ///     ID consists of the event's name. Note that EVENTTYPE is immutable; you can specify it in a Create entry, but it can't be
     ///     modified by a subsequent Update entry (because changing an event's type would allow changes that would invalidate
@@ -62,7 +67,7 @@ namespace LobsterConnect.Model
     ///     
     /// NB: IDs and attribute values are all strings.  It is an error if any of these strings contains the characters '\' or '|',
     ///     or the new-line character '\n'.
-    ///     The IDs of person entities are, in addition, not allowed to include the character ','
+    ///     The IDs of person,game and gaming event entities are, in addition, not allowed to include the character ','
     /// 
     /// </summary>
     public class Journal
@@ -70,7 +75,7 @@ namespace LobsterConnect.Model
         /// <summary>
         /// Add an entry to the journal.
         /// </summary>
-        /// <param name="entityType">The type of entity: GamingEvent, Game, Session, Person or Signup</param>
+        /// <param name="entityType">The type of entity: GamingEvent, Game, WishList, Session, Person or Signup</param>
         /// <param name="operationType">What is being done to the entity: Create, Update or Delete</param>
         /// <param name="entityId">ID of the entity</param>
         /// <param name="journalParameters">an even number of strings parameter name then parameter value</param>
@@ -163,7 +168,7 @@ namespace LobsterConnect.Model
         /// </summary>
         public enum EntityType
         {
-            Game, Person, Session, SignUp, GamingEvent
+            Game, Person, Session, SignUp, WishList, GamingEvent
         }
 
         /// <summary>
@@ -246,6 +251,15 @@ namespace LobsterConnect.Model
                 if (e == EntityType.Session || e == EntityType.SignUp)
                 {
                     _gamingEventFilter = GetParameterValue("EVENTNAME", p,"");
+                }
+                else if (e == EntityType.WishList)
+                {
+                    if (i.Count(ch => ch == ',') == 2) // id should be person,game,event
+                    {
+                        _gamingEventFilter = i.Split(',')[2];
+                    }
+                    else
+                        _gamingEventFilter = "";
                 }
                 else
                 {
@@ -380,6 +394,7 @@ namespace LobsterConnect.Model
                     case "PERSON": this._entityType = EntityType.Person; break;
                     case "SESSION": this._entityType = EntityType.Session; break;
                     case "SIGNUP": this._entityType = EntityType.SignUp; break;
+                    case "WISHLIST": this._entityType = EntityType.WishList; break;
                     default: throw new Exception("JournalEntry(string) ctor: entity type invalid");
                 }
 
@@ -465,6 +480,7 @@ namespace LobsterConnect.Model
                     case EntityType.Person: entityTypeString = "Person"; break;
                     case EntityType.Session: entityTypeString = "Session"; break;
                     case EntityType.SignUp: entityTypeString = "SignUp"; break;
+                    case EntityType.WishList: entityTypeString = "WishList"; break;
                     default: throw new Exception("JournalEntry.ToString: invalid entity tpe");
                 }
                 string operationTypeString = null;
@@ -489,7 +505,7 @@ namespace LobsterConnect.Model
             /// Returns true if this entry relates to the given user (in the sense that the content of the entry
             /// might constitute personal data for that user, from a privacy perspective).  That means person entries
             /// for this person, or sessions proposed by this person, or signups involving this person or modified by this
-            /// person.
+            /// person, or wishlist entries created by this person.
             /// </summary>
             /// <param name="handle"></param>
             /// <returns></returns>
@@ -509,6 +525,14 @@ namespace LobsterConnect.Model
                     if (this._entityId.StartsWith(handle + ","))
                         return true;
                     else if (GetParameterValue("MODIFIEDBY", this._parameters) == handle)
+                        return true;
+                    else
+                        return false;
+
+                }
+                else if (this._entityType == EntityType.WishList)
+                {
+                    if (this._entityId.StartsWith(handle + ","))
                         return true;
                     else
                         return false;
@@ -536,6 +560,7 @@ namespace LobsterConnect.Model
                     case EntityType.Person: entityTypeString = "Person"; break;
                     case EntityType.Session: entityTypeString = "Session"; break;
                     case EntityType.SignUp: entityTypeString = "SignUp"; break;
+                    case EntityType.WishList: entityTypeString = "WishList"; break;
                     default: throw new Exception("JournalEntry.ToString: invalid entity tpe");
                 }
                 string operationTypeString = null;
@@ -573,6 +598,18 @@ namespace LobsterConnect.Model
                             idString = personHandle+" "+ session.ToPlay + " (" + session.Proposer + ") @ time slot #" + session.StartAt.Ordinal.ToString();
                         else
                             idString = this._entityId;
+                    }
+                    else
+                        idString = this._entityId;
+                }
+                else if (this._entityType == EntityType.WishList)
+                {
+                    if (this._entityId.Count(ch => ch == ',') == 2)
+                    {
+                        string personHandle = this._entityId.Split(',')[0];
+                        string gameName = this._entityId.Split(',')[1];
+                        string gamingEvent = this._entityId.Split(',')[2];
+                        idString = personHandle + " to play " + gameName+" at "+ gamingEvent;
                     }
                     else
                         idString = this._entityId;
@@ -622,6 +659,7 @@ namespace LobsterConnect.Model
                     case EntityType.Person: ReplayPerson(vm); break;
                     case EntityType.Session: ReplaySession(vm); break;
                     case EntityType.SignUp: ReplaySignUp(vm); break;
+                    case EntityType.WishList: ReplayWishList(vm); break;
                     default: throw new Exception("JournalEntry.Replay: invalid event type");
                 }
             }
@@ -792,6 +830,11 @@ namespace LobsterConnect.Model
                         (int) sitsMinimum,
                         (int) sitsMaximum,
                         GetParameterValue("STATE", this._parameters));
+
+                    Session session = vm.GetSession(sessionId);
+
+                    vm.SyncCheckSession(session);
+
                 }
                 else if (this._operationType == OperationType.Update)
                 {
@@ -856,6 +899,60 @@ namespace LobsterConnect.Model
                 else
                 {
                     throw new Exception("JournalEntry.ReplaySignUp: invalid operation type");
+                }
+            }
+
+
+            /// <summary>
+            /// Replay a sign-up wish-list entry
+            /// </summary>
+            /// <param name="vm"></param>
+            /// <exception cref="Exception"></exception>
+            private void ReplayWishList(MainViewModel vm)
+            {
+                string personGameAndEvent = this._entityId;
+                if (personGameAndEvent.Count(ch=>ch==',')!=2)
+                {
+                    throw new Exception("JournalEntry.ReplayWishList: id (personHandle,gameId,eventId expected)");
+                }
+                string personHandle = personGameAndEvent.Split(',')[0];
+                string gameId = personGameAndEvent.Split(',')[1];
+                string eventName = personGameAndEvent.Split(',')[2];
+
+                string notes = GetParameterValue("NOTES", this._parameters);
+
+                if (!vm.CheckPersonHandleExists(personHandle))
+                {
+                    throw new Exception("JournalEntry.ReplayWishList: personHandle is not recognised: '" + personHandle + "'");
+                }
+
+                if (vm.GetGame(gameId) == null)
+                {
+                    throw new Exception("JournalEntry.ReplayWishList: gameId is not recognised: '" + gameId + "'");
+                }
+
+                if (vm.GetGamingEvent(eventName) == null)
+                {
+                    throw new Exception("JournalEntry.ReplayWishList: eventName is not recognised: '" + eventName + "'");
+                }
+
+                if (this._operationType == OperationType.Create)
+                {
+                    vm.CreateWishList(false, personHandle, gameId, eventName, notes);
+                    vm.SyncCheckWishList(personHandle, gameId, eventName, notes);
+
+                }
+                else if (this._operationType == OperationType.Delete)
+                {
+                    vm.DeleteWishList(false, personHandle, gameId, eventName);
+                }
+                else if (this._operationType == OperationType.Update)
+                {
+                    vm.UpdateWishList(false, personHandle, gameId, eventName, notes);
+                }
+                else
+                {
+                    throw new Exception("JournalEntry.ReplayWishList: invalid operation type");
                 }
             }
 
@@ -1029,7 +1126,7 @@ namespace LobsterConnect.Model
             ///  * Set it to null or "" to mean this entry must always be loaded, no matter what the viewmodel's current
             ///    gaming event is.  Gaming events, games and persons would match this case.
             ///  * Set it to the name of a certain gaming event, if this entry only needs loading when the viewmodel's
-            ///    gaming event is set to the specified value.  This would be appropriate for sessions and sign-ups.
+            ///    gaming event is set to the specified value.  This would be appropriate for sessions, wishlists, and sign-ups.
             /// </summary>
             public string GamingEventFilter
             {
@@ -1125,7 +1222,7 @@ namespace LobsterConnect.Model
                     Logger.LogMessage(Logger.Level.ERROR, "Journal.LoadJournal", ex, "while replaying: " + entry.ToString());
                 }
             }
-            if (_LocalJournalNextSeq == 1)
+            if (toReplay.Count == 0)
                 return false; // meaning that, after loading, the journal was empty
             else
                 return true; // meaning that we have got some entries in the local journal, now we have loaded it.

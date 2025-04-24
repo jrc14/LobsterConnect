@@ -51,16 +51,16 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
 		<ProvisioningType>automatic</ProvisioningType>
-		<ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+		<ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
 	  <CodesignProvision>2025-03-28 LobsterConnect AppStore Provisioning</CodesignProvision>
 	  <CodesignKey>Apple Distribution: Turnipsoft Limited (92QS772DRV)</CodesignKey>
 	  <ProvisioningType>manual</ProvisioningType>
-	  <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+	  <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
@@ -71,34 +71,34 @@
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 	  <TrimMode>link</TrimMode>
-	  <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+	  <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 	  <TrimMode>link</TrimMode>
-	  <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+	  <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-maccatalyst|AnyCPU'">
-	  <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+	  <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows10.0.19041.0|AnyCPU'">
-	  <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+	  <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-maccatalyst|AnyCPU'">
-	  <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+	  <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
-	  <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-	  <ApplicationVersion>1</ApplicationVersion>
+	  <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+	  <ApplicationVersion>2</ApplicationVersion>
 	</PropertyGroup>
 	
 	<ItemGroup>
@@ -175,6 +175,9 @@
 	  <MauiXaml Update="V\PopupChooseEvent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="V\PopupChooseGame.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="V\PopupDataHandling.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -196,6 +199,9 @@
 	  <MauiXaml Update="V\PopupManageSession.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="V\PopupManageWishList.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="V\PopupPersonDetails.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -203,6 +209,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="V\PopupViewPersons.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="V\PopupViewWishList.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
