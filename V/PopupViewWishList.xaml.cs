@@ -5,11 +5,12 @@ using LobsterConnect.VM;
 
 namespace LobsterConnect.V;
 
+/// <summary>
+/// Popup for displaying the people interested in playing some game.  After constructing the popup,
+/// but before showing it, call SetGame to tell the popup what game it should load.
+/// </summary>
 public partial class PopupViewWishList : Popup
 {
-    /// <summary>
-    /// Popup for displaying the people interested in playing some game.
-    /// </summary>
     public PopupViewWishList()
     {
         InitializeComponent();
@@ -37,10 +38,12 @@ public partial class PopupViewWishList : Popup
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
     }
 
+    private string _gameName="";
     public void SetGame(string gameName)
     {
         this.lblTitle.Text = "Who'd like to play " + gameName + "?";
         LoadPersons(gameName);
+        this._gameName = gameName;
     }
 
     void LoadPersons(string gameName)
@@ -79,4 +82,33 @@ public partial class PopupViewWishList : Popup
         await CloseAsync(null, CancellationToken.None);
     }
 
+
+    private async void lblReportContentTapped(object sender, TappedEventArgs e)
+    {
+        try
+        {
+            if (Email.Default.IsComposeSupported)
+            {
+
+                EmailMessage message = new EmailMessage()
+                {
+                    Subject = "LobsterConnect Inappropriate Content",
+                    Body = "I note that the wish-list details for '" + this._gameName + "' contain inappropriate content.  Please take the necessary steps to address this concern.",
+                    BodyFormat = EmailBodyFormat.PlainText,
+                    To = new List<string>() { "moderator@turnipsoft.co.uk" }
+                };
+
+                await Email.Default.ComposeAsync(message);
+                await CloseAsync(true, CancellationToken.None);
+            }
+            else
+            {
+                MainViewModel.Instance.LogUserMessage(Logger.Level.WARNING, "Sorry, the app cannot create an email for you.  Please send your report to moderator@turnipsoft.co.uk");
+            }
+        }
+        catch (Exception ex)
+        {
+            MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: " + ex.Message);
+        }
+    }
 }

@@ -10,7 +10,7 @@ public partial class PopupItemsViewer : Popup
     /// the popup, call SetItems to set the list.  Its return value will be a string, being the item
     /// selected, if one is selected.
     /// It doesn't contain a helpful label or any error checking, so it's not really for use in the
-    /// mainstream UI (it's used in admin UI functions, as we hope admin users will put up with]
+    /// mainstream UI (it's used in admin UI functions, as we hope admin users will put up with
     /// a worse user experience).
     /// </summary>
     public PopupItemsViewer()
@@ -69,5 +69,4 @@ public partial class PopupItemsViewer : Popup
             result = items[i];
         await CloseAsync(result, CancellationToken.None);
     }
-
 }

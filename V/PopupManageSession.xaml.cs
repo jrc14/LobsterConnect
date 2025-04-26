@@ -75,7 +75,7 @@ public partial class PopupManageSession : Popup
             {
                 string whatsAppLink = await MainPage.Instance.DisplayPromptAsync("Manage Gaming Session", "To associate a chat with this game, get a link for the chat, and paste it here", initialValue: s.WhatsAppLink);
 
-                if (s != null)
+                if (whatsAppLink != null)
                 {
                     MainViewModel.Instance.UpdateSession(true, s, whatsAppLink: whatsAppLink);
                     MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': Chat link has been updated to '" + whatsAppLink + "'");
@@ -102,7 +102,7 @@ public partial class PopupManageSession : Popup
                         "Manage Gaming Session",
                         "Enter the notes to display on this session.  Do not enter text that is offensive or defamatory, or contains information about any person.", initialValue: s.Notes);
 
-                if (s != null)
+                if (notes != null)
                 {
                     MainViewModel.Instance.UpdateSession(true, s, notes: notes);
                     MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Session for '" + s.ToPlay + "': Notes have been updated to '" + notes + "'");

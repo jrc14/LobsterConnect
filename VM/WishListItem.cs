@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace LobsterConnect.VM
 {
     /// <summary>
-    /// A wish list item, representing the fact that a certain person has an interest in playing
+    /// A wish-list item, representing the fact that a certain person has an interest in playing
     /// a certain game at a certain gaming event.
     /// Note that its member variables have public set accessors and are bindable
     /// but UI code should not use those accessors to change their values, because doing so will

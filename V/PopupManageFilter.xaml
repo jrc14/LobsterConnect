@@ -11,11 +11,12 @@
             <RowDefinition Height="50"/>
             <RowDefinition Height="50"/>
             <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="50" x:Name="rdefButtons"/>
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="colDef0" Width="100"/>
+            <ColumnDefinition x:Name="colDef0" Width="150"/>
             <ColumnDefinition x:Name="colDef1" Width="250"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Set Filter" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
@@ -36,7 +37,11 @@
 
         <Label Grid.Row="4" Grid.Column="0" Text="State:" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
         <Picker Grid.Row="4" Grid.Column="1" HorizontalOptions="Start" x:Name="pickerState" Margin="5" VerticalOptions="Center"></Picker>
-        <Button Grid.Row="5" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
-        <Button Grid.Row="5" Grid.Column="1" Text="Save" Clicked="OnSaveClicked" Margin="5" x:Name="btnSave" ></Button>
+        
+        <Label Grid.Row="5" Grid.Column="0" Text="Only games that I'd 'like to play':" HorizontalOptions="Start" Margin="5" VerticalOptions="Center"></Label>
+        <Switch Grid.Row="5" Grid.Column="1" HorizontalOptions="Start" x:Name="switchWatchList" Margin="5" VerticalOptions="Center"></Switch>
+        
+        <Button Grid.Row="6" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel"></Button>
+        <Button Grid.Row="6" Grid.Column="1" Text="Save" Clicked="OnSaveClicked" Margin="5" x:Name="btnSave" ></Button>
     </Grid>
 </toolkit:Popup>

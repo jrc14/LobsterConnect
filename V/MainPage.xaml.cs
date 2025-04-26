@@ -12,9 +12,10 @@ public partial class MainPage : ContentPage
 {
     /// <summary>
     /// There is only one content page in the app; it's this one.  It consists of a menu bar at the top
-    /// including controls for logging on, for adding a session, for applying a filter and for
-    /// selecting gaming events; below that is the main table of planned sessions, and at the bottom is 
-    /// a window showing logged messages (most recent message at the top).
+    /// including controls for logging on, for adding a session, for setting a 'would like to play' wish-list,
+    /// for applying a filter and for selecting gaming events; below that is the main table of
+    /// planned sessions, and at the bottom is a window showing logged messages (most recent message at
+    /// the top).
     /// There is a hamburger menu and a title bar heading - but these are defined in the AppShell.xaml file.
     /// 
     /// For design notes concerning the app as a whole, please refer to App.xaml.cs.
@@ -70,7 +71,6 @@ public partial class MainPage : ContentPage
         // showing two alerts at the same time.
         if (!Preferences.ContainsKey("AgeConfirmed"))
         {
-            //this.gdMainPage.IsVisible = false;
             this.ParentChanged += AgeVerification;
         }
         else
@@ -212,7 +212,7 @@ public partial class MainPage : ContentPage
 			}
 			.Assign(out StackLayout slSlotLabels));
 
-		for(int s=0; s<sessions.Count(); s++)
+		for(int s=0; s<sessions.Length; s++)
 		{
 			SessionTime t = new SessionTime(s);
 
@@ -558,7 +558,7 @@ public partial class MainPage : ContentPage
     }
 
     /// <summary>
-    /// Add a new session using a PopupManageWishlist
+    /// Manage the user's wish-list using a PopupManageWishlist
     /// </summary>
     /// <param name="o">ignored</param>
     /// <param name="e">ignored</param>
@@ -608,7 +608,7 @@ public partial class MainPage : ContentPage
     /// <summary>
     /// Present the session management popup
     /// </summary>
-    /// <param name="s"></param>
+    /// <param name="s">the session to be managed</param>
     /// <returns></returns>
 	public async Task<bool> ShowSessionManagementPopup(Session s)
 	{
@@ -631,7 +631,7 @@ public partial class MainPage : ContentPage
 	}
 
     /// <summary>
-    /// When the gaming event label is tapped, present a chooser for selecting switching between the available
+    /// When the gaming event label is tapped, we present a chooser for selecting switching between the available
     /// gaming events.
     /// </summary>
     /// <param name="sender">ignored</param>
@@ -655,7 +655,7 @@ public partial class MainPage : ContentPage
 
     /// <summary>
     /// When the main table of sessions is tapped (in a region not containing a session) or when the header
-    /// containing the slot labels is tapped, show a popup for creating a new session, figuring out what
+    /// containing the slot labels is tapped, we show a popup for creating a new session, figuring out what
     /// session time slot to pick initially by looking at the X coordinate of the tap gesture.
     /// </summary>
     /// <param name="sender"></param>
@@ -881,7 +881,6 @@ public partial class MainPage : ContentPage
         }
         else
         {
-
             if (action3 == "Add Gaming Event")
             {
                 string name = await DisplayPromptAsync("New Event", "Enter the name of the new gaming event (preferably as YYYY-MM-DD EVENT NAME)");
@@ -1079,7 +1078,7 @@ public partial class MainPage : ContentPage
 #if DEBUG
             else if (action3 == "Add Test Data")
             {
-                string action4 = await DisplayActionSheet("Test Data", "Dismiss", null, "Add Persons", "Add Sessions");
+                string action4 = await DisplayActionSheet("Test Data", "Dismiss", null, "Add Persons", "Add Sessions", "Add WishList");
                 if (string.IsNullOrEmpty(action4))
                 {
                     return false; // the admin cancelled the action sheet
@@ -1093,6 +1092,12 @@ public partial class MainPage : ContentPage
                 {
                     GamingEvent e = MainViewModel.Instance.CurrentEvent;
                     MainViewModel.Instance.AddTestSessionsAndSignUps(e, true);
+                    return true;
+                }
+                else if (action4 == "Add WishList")
+                {
+                    GamingEvent e = MainViewModel.Instance.CurrentEvent;
+                    MainViewModel.Instance.AddTestWishList(e, true);
                     return true;
                 }
                 else

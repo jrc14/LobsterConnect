@@ -30,6 +30,7 @@ namespace LobsterConnect.VM
             this._toPlay = null;
             this._signUpsInclude = null;
             this._state = null;
+            this._onWishList = false;
         }
 
         public SessionFilter(SessionFilter that)
@@ -38,7 +39,9 @@ namespace LobsterConnect.VM
             this._toPlay = that._toPlay;
             this._signUpsInclude = that._signUpsInclude;
             this._state = that._state;
+            this._onWishList = that._onWishList;
         }
+
         /// <summary>
         /// True if this filter applies no criteria (i.e. will return true for any call to Matches(Session).  False if
         /// it contains some filter criteria
@@ -55,6 +58,8 @@ namespace LobsterConnect.VM
                     return false;
                 if (!string.IsNullOrEmpty(this.State))
                     return false;
+                if (this.OnWishList)
+                    return false;
 
                 return true;
             }
@@ -62,7 +67,9 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Predicate that is true if the filter matches the given session.  Null or empty values in the
-        /// attributes are treated as wildcards that match any session.
+        /// attributes are treated as wildcards that match any session.  A 'false' value in the OnWishList
+        /// attribute will match any session (whereas a true value will match only session's whose
+        /// game is on the wish-list of the currently logged on user).
         /// </summary>
         /// <param name="s">the session to test for a match</param>
         /// <returns></returns>
@@ -88,6 +95,15 @@ namespace LobsterConnect.VM
                 if (s.State != this.State)
                     return false;
             }
+
+            if(MainViewModel.Instance.LoggedOnUser!=null && this.OnWishList) // if there's a logged on user and the filter specifies we return only items on that person's wish list
+            {
+                List<WishListItem> wishList = MainViewModel.Instance.GetWishListItemsForPerson(MainViewModel.Instance.LoggedOnUser.Handle);
+
+                if (!wishList.Any(w => w.Game == s.ToPlay)) // if no wish-list item has Game equal to s.ToPlay
+                    return false;
+            }
+
             return true;
         }
 
@@ -115,7 +131,6 @@ namespace LobsterConnect.VM
                             d+=", '" + this.ToPlay + "'";
                     }
 
-
                     if (!string.IsNullOrEmpty(this.SignUpsInclude))
                     {
                         if (string.IsNullOrEmpty(d))
@@ -130,6 +145,14 @@ namespace LobsterConnect.VM
                             d = this.State;
                         else
                             d += ", " + this.State;
+                    }
+
+                    if (this.OnWishList)
+                    {
+                        if (string.IsNullOrEmpty(d))
+                            d = "*";
+                        else
+                            d += ", *";
                     }
 
                     return "{" + d + "}";
@@ -265,6 +288,30 @@ namespace LobsterConnect.VM
             }
         }
         private string _state = "";
+
+        /// <summary>
+        /// A boolean which, if true, means that the filter won't match a session unless its game
+        /// is on the wish-list of the currently logged on user.
+        /// /// </summary>
+        public bool OnWishList
+        {
+            get
+            {
+                return this._onWishList;
+            }
+            set
+            {
+                if (this._onWishList != value)
+                {
+                    this._onWishList = value;
+
+                    this.OnPropertyChanged("OnWishList");
+                    this.OnPropertyChanged("Description");
+
+                }
+            }
+        }
+        private bool _onWishList = false;
 
     }
 }

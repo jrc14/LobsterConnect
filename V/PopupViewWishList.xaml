@@ -9,6 +9,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" x:Name="rdefButtons"/>
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
@@ -25,7 +26,16 @@
                 </Grid.ColumnDefinitions>
             </Grid>
         </ScrollView>
-        <Button Grid.Row="2" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+        <ScrollView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="100" Orientation="Vertical">
+            <Label  TextColor="DarkBlue" FontAttributes="Italic" LineBreakMode="WordWrap" Margin="10"
+               Text="It's a condition of use of this app that you must not enter anything that is defamatory, obscene, offensive or otherwise inappropriate, and you must not enter any personal information about anyone other than yourself. If you see content that violates this condition, you can report it to us by clicking on this link.">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer 
+                Tapped="lblReportContentTapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+        </ScrollView>
+        <Button Grid.Row="3" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
 
     </Grid>
 </toolkit:Popup>

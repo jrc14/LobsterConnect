@@ -7,7 +7,7 @@ public partial class PopupSetSessionState : Popup
 {
     /// <summary>
     /// Popup for changing the state of a session between OPEN, FULL and ABANDONED.  To associate
-    /// the popup with a certain session, call the SetSession method afte constructing the dialog.
+    /// the popup with a certain session, call the SetSession method after constructing the dialog.
     /// The buttons on the popup change the session state immediately by calling
     /// MainViewModel.Instance.UpdateSession.  There is no 'undo' function - if you want to change
     /// a session back to the previous state, then just tap on the button for that state.

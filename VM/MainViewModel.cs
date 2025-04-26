@@ -8,7 +8,7 @@ namespace LobsterConnect.VM
     /// The viewmodel that the UI should be bound to.  It's a singleton class (access via the 'Instance' member).
     /// Because it's meant to be bound to UI elements (by implementing INotifyPropertyChanged), you should not
     /// access this class from any thread other than the UI thread.  Furthermore, because its collections of gaming events,
-    /// persons, games, wishlists and sessions incorporate business logic and consistency checks, you should not in general access
+    /// persons, games, wish-lists and sessions incorporate business logic and consistency checks, you should not in general access
     /// any of these collections, or their members, directly (even though they are exposed as public members for binding
     /// purposes).  Instead, you should access them using the methods on this class with names like Create..., Update...,
     /// Get..., Check... and ...SignUp.
@@ -23,7 +23,7 @@ namespace LobsterConnect.VM
     {
         /// <summary>
         /// The single instance of the MainViewModel class.  Manipulate the state and contents of gaming events, games,
-        /// persons and gaming sessions by calling methods on this class.
+        /// persons, wish-lists, and gaming sessions by calling methods on this class.
         /// </summary>
         public static MainViewModel Instance
         {
@@ -42,7 +42,7 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Initialise the main view model by loading Gaming Events, Persons, Games and Sessions.
+        /// Initialise the main view model by loading Gaming Events, Persons, Games, WishLists and Sessions.
         /// This method also sets up the event handler for PropertyChanged events, to detect situations when the UI
         /// needs to refresh its session list, and to fire SessionsMustBeRefreshed in those situations
         /// </summary>
@@ -59,40 +59,30 @@ namespace LobsterConnect.VM
             this._isLoaded = true;
 
             // Load 500 top games into the local store (without writing them to the journal or the cloud store, which
-            // would be pointless being as every time the app starts these games get loaded).
+            // would be pointless, being as every time the app starts these games get loaded).
             CreateDefaultGames();
 
             // Create the 'deleted' person, for the sake of referential integrity.  It exists only in the local store.
             CreatePerson(false, "#deleted", "NAME DELETED", "NUMBER DELETED", "EMAIL DELETED", "#deleted", false, false);
 
-            bool loadTestData = false;
-            if (loadTestData)
+
+            // Read everything from the local journal file into the viewmodel.  If ignoreJournalFile is set
+            // then we won't load any data from the journal file, and will instead wait for the journal sync
+            // worker to fetch the journal entries from the cloud sync service.
+            this.suppressSyncMessages = true; // don't show sync messages until the initial load is completed
+            if (!ignoreJournalFile)
             {
-                // Uncomment the lines below, to generate a load of test entries in the viewmodel
-                //LoadTestEventsGamesAndPersons(true);
-                //SetCurrentEvent("LoBsterCon XXVIII");
-                //LoadTestSessionsAndSignUps(MainViewModel.Instance.CurrentEvent.Name,true);
+                bool loaded = Journal.LoadJournal(this);
+                if(loaded)
+                    this.suppressSyncMessages = false; // now the journal is loaded, we can start showing sync messages
+                else
+                    Journal.SyncCompleted += OnJournalInitialSyncCompleted; // the journal was empty, so we need to wait for the initial cloud sync to complete before we start showing sync messages
             }
             else
             {
-                // Reads everything from the local journal file into the viewmodel.  If ignoreJournalFile is set
-                // then we won't load any data from the journal file, and will instead wait for the journal sync
-                // worker to fetch the journal entries from the cloud sync service.
-                this.suppressSyncMessages = true; // don't show sync messages until the initial load is completed
-                if (!ignoreJournalFile)
-                {
-                    bool loaded = Journal.LoadJournal(this);
-                    if(loaded)
-                        this.suppressSyncMessages = false; // now the journal is loaded, we can start showing sync messages
-                    else
-                        Journal.SyncCompleted += OnJournalInitialSyncCompleted; // the journal was empty, so we need to wait for the initial cloud sync to complete before we start showing sync messages
-                }
-                else
-                {
-                    Journal.SyncCompleted += OnJournalInitialSyncCompleted; // start showing sync messages once the first cloud sync has finished
-                }
+                Journal.SyncCompleted += OnJournalInitialSyncCompleted; // start showing sync messages once the first cloud sync has finished
             }
-
+            
             // We set this handler after calling SetCurrentEvent above, to avoid a redundant call to
             // LoadSessionsAndSignUps and the firing of SessionsMustBeRefreshed
             this.PropertyChanged += MainViewModel_PropertyChanged;
@@ -120,52 +110,9 @@ namespace LobsterConnect.VM
 
         }
 
-        /*
-        private void LoadTestPersons(bool informJournal)
-        {
-            // Create 10 random pixies
-            for (int i=0; i<10; i++)
-            {
-                switch (i%5)
-                {
-                    case 0:
-                        CreatePerson(informJournal, "bobby" + i.ToString(), "Bobby the Magic Pixie number " + i.ToString(),
-                            "+44-20-555-" + i.ToString("D4"),
-                            "bobby" + i.ToString() + "@pixienet.com",
-                            Model.Utilities.PasswordHash("bobby" + i.ToString()));
-                        break;
-                    case 1:
-                        CreatePerson(informJournal, "susan" + i.ToString(), "Susan the Magic Pixie number " + i.ToString(),
-                            "+44-20-7555-" + i.ToString("D4"),
-                            "susan" + i.ToString() + "@pixienet.com",
-                            Model.Utilities.PasswordHash("susan" + i.ToString()));
-                        break;
-                    case 2:
-                        CreatePerson(informJournal, "steve" + i.ToString(), "Steve the Magic Pixie number " + i.ToString(),
-                            "+44-20-7555-" + i.ToString("D4"),
-                            "steve" + i.ToString() + "@pixienet.com",
-                            Model.Utilities.PasswordHash("steve" + i.ToString()));
-                        break;
-                    case 3:
-                        CreatePerson(informJournal, "jack" + i.ToString(), "Jack the Magic Pixie number " + i.ToString(),
-                            "+44-20-7555-" + i.ToString("D4"),
-                            "jack" + i.ToString() + "@pixienet.com",
-                            Model.Utilities.PasswordHash("jack" + i.ToString()));
-                        break;
-                    default:
-                        CreatePerson(informJournal, "mick" + i.ToString(), "Mick the Magic Pixie number " + i.ToString(),
-                            "+44-20-7555-" + i.ToString("D4"),
-                            "mick" + i.ToString() + "@pixienet.com",
-                            Model.Utilities.PasswordHash("mick" + i.ToString()));
-                        break;
-                }
-            }    
-        }
-        */
-
 #if DEBUG
         /// <summary>
-        /// For debugging - add a bunch of test persons.  Use with caution as 
+        /// For debugging - add a bunch of test persons.  Use with caution because 
         /// if informJournal is true, the test data will end up being written to the production
         /// cloud sync service.
         /// </summary>
@@ -252,6 +199,42 @@ namespace LobsterConnect.VM
                 }
             }
         }
+
+
+        /// <summary>
+        /// For debugging - add a bunch of test wish-list entries.  Use with caution as 
+        /// if informJournal is true, the test data will end up being written to the production
+        /// cloud sync service.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="informJournal"></param>
+        public void AddTestWishList(GamingEvent e, bool informJournal)
+        {
+            int numItems = 5;
+            if (e.EventType == "CONVENTION")
+                numItems = 20;
+
+            for (int i = 0; i < numItems; i++)
+            {
+                string person = "";
+                do
+                {
+                    person = this._persons[System.Random.Shared.Next(0, this._persons.Count)].Handle;
+                }
+                while (person == "#deleted");
+
+                string game = this._games[System.Random.Shared.Next(0, this._games.Count)].Name;
+
+                try
+                {
+                    CreateWishList(informJournal, person, game, e.Name, "Here are some notes for wish-list item number " + i.ToString());
+                }
+                catch(Exception ) // duplicates will  cause an exception to be thrown; we will just ignore it
+                {
+
+                }
+            }
+        }
 #endif
 
         /// <summary>
@@ -307,7 +290,7 @@ namespace LobsterConnect.VM
             }
             catch(Exception ex)
             {
-                LogUserMessage(Logger.Level.ERROR, "Error while tryign to open session from link: "+ex.Message);
+                LogUserMessage(Logger.Level.ERROR, "Error while trying to open session from link: "+ex.Message);
             }
             return false;           
 
@@ -381,6 +364,8 @@ namespace LobsterConnect.VM
                 this._sessions.Clear();
                 this._persons.Clear();
                 this._wishlist.Clear();
+                ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
+
                 this._currentFilter = new SessionFilter();
 
                 Model.Utilities.ResetInstallationId();
@@ -420,7 +405,7 @@ namespace LobsterConnect.VM
         {
             try
             {
-                LogUserMessage(Logger.Level.ALERT, "Purging data for ..."+ personHandle);
+                LogUserMessage(Logger.Level.ALERT, "Purging data for "+ personHandle+" ... ");
                 Journal.SuspendJournalSync = true;
 
                 await DispatcherHelper.SleepAsync(5000); // allow time for journal sync to complete
@@ -454,7 +439,7 @@ namespace LobsterConnect.VM
                     //  - Amend signup create/delete actions having that user id as first half of id (replacing user id with "#deleted"),
                     //  - Amend signup create/delete actions having MODIFIEDBY= that user (replacing user id with "#deleted")
                     //  - Amend person create/update actions, replacing ID with "#deleted" and removing all parameters
-                    //  - Amend wishlist create/delete/update actions, replacing user id with "#deleted"
+                    //  - Amend wishlist create/delete/update actions, replacing user id with "#deleted" and removing all parameters
                     //  - Replace create/update sessions with the same, but with PROPOSER person handle replaced by "#deleted".
                     string nonce = System.Random.Shared.Next().ToString("X8");
                     string signature = Utilities.GetHashCodeForString(personHandle + nonce).ToString("X8");
@@ -482,6 +467,9 @@ namespace LobsterConnect.VM
                         this._sessions.Clear();
                         this._persons.Clear();
                         this._wishlist.Clear();
+                        ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
+
+
                         this._currentFilter = new SessionFilter();
 
                         Model.Utilities.ResetInstallationId();
@@ -1259,18 +1247,19 @@ namespace LobsterConnect.VM
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "Coding bug: Should be called on the UI thread");
                 Model.DispatcherHelper.RunAsyncOnUI(() => CreateWishList(informJournal, person, game, gamingEvent, notes));
             }
+            else
             {
                 if (person == null || !CheckPersonHandleExists(person))
                 {
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "person handle is not valid");
                     throw new ArgumentException("MainViewModel.CreateWishList: invalid person");
                 }
-                else if (game==null || !CheckGameNameExists(game))
+                else if (game == null || !CheckGameNameExists(game))
                 {
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "game name is not valid");
                     throw new ArgumentException("MainViewModel.CreateWishList: invalid game");
                 }
-                else if (gamingEvent == null || GetGamingEvent(gamingEvent)==null)
+                else if (gamingEvent == null || GetGamingEvent(gamingEvent) == null)
                 {
                     Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "gaming event name is not valid");
                     throw new ArgumentException("MainViewModel.CreateWishList: invalid gaming event");
@@ -1280,9 +1269,9 @@ namespace LobsterConnect.VM
                     WishListItem existing = this._wishlist.FirstOrDefault(
                         i => i.Person == person && i.Game == game && i.GamingEvent == gamingEvent);
 
-                    if(existing!=null)
+                    if (existing != null)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "item already exists:'" + person+","+game+","+gamingEvent + "'");
+                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "item already exists:'" + person + "," + game + "," + gamingEvent + "'");
                         throw new ArgumentException("MainViewModel.CreateWishList: duplicate item:'" + person + "," + game + "," + gamingEvent + "'");
                     }
 
@@ -1290,7 +1279,22 @@ namespace LobsterConnect.VM
                     {
                         notes = "NO NOTES";
                     }
-                    _wishlist.Add(new WishListItem() { Person=person, Game = game, GamingEvent = gamingEvent, Notes = notes });
+                    _wishlist.Add(new WishListItem() { Person = person, Game = game, GamingEvent = gamingEvent, Notes = notes });
+
+                    ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
+
+
+                    // If the filter is currently set to 'show only sessions whose gaeme is on the current
+                    // user's wishlist' then a change to the logged on user's wishlist means that the filter results
+                    // will change, so the sessions table must be refreshed.
+                    if (CurrentFilter != null && this.CurrentFilter.OnWishList
+                    && this.LoggedOnUser!=null && this.LoggedOnUser.Handle == person)
+                    {
+                        Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        {
+                            ThrottledFireSessionsRefreshEvent();
+                        });
+                    }
 
                     if (informJournal)
                     {
@@ -1327,6 +1331,7 @@ namespace LobsterConnect.VM
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateWishList", "Coding bug: Should be called on the UI thread");
                 Model.DispatcherHelper.RunAsyncOnUI(() => UpdateWishList(informJournal, person, game, gamingEvent, notes));
             }
+            else
             {
                 if (person == null || !CheckPersonHandleExists(person))
                 {
@@ -1361,6 +1366,9 @@ namespace LobsterConnect.VM
 
                     existing.Notes = notes;
 
+                    ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
+
+
                     if (informJournal)
                     {
                         string id = person + "," + game + "," + gamingEvent;
@@ -1393,6 +1401,7 @@ namespace LobsterConnect.VM
                 Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "Coding bug: Should be called on the UI thread");
                 Model.DispatcherHelper.RunAsyncOnUI(() => DeleteWishList(informJournal, person, game, gamingEvent));
             }
+            else
             {
                 if (person == null || !CheckPersonHandleExists(person))
                 {
@@ -1421,6 +1430,20 @@ namespace LobsterConnect.VM
                     }
 
                     _wishlist.Remove(existing);
+
+                    ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
+
+                    // If the filter is currently set to 'show only sessions whose gaeme is on the current
+                    // user's wishlist' then a change to the logged on user's wishlist means that the filter results
+                    // will change, so the sessions table must be refreshed.
+                    if (CurrentFilter != null && this.CurrentFilter.OnWishList
+                    && this.LoggedOnUser != null && this.LoggedOnUser.Handle == person)
+                    {
+                        Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        {
+                            ThrottledFireSessionsRefreshEvent();
+                        });
+                    }
 
                     if (informJournal)
                     {
@@ -1490,6 +1513,7 @@ namespace LobsterConnect.VM
 
                 LogUserMessage(Logger.Level.INFO, "Current gaming event has been set to '" + eventName + "'");
 
+                ResetWishListCachedItems(); // because wish-list items are cached for the current event only, we must clear the cache when we change the event
                 SessionTime.SetEventType(g.EventType); // set the number of gaming time slots and their labels, according to the type of gaming event
                 this.CurrentEvent = g;
             }
@@ -1711,6 +1735,17 @@ namespace LobsterConnect.VM
             else
             {
                 this.LoggedOnUser = p;
+
+                // If the filter is currently set to 'show only sessions whose gaeme is on the current
+                // user's wishlist' then a change to the current user means that the filter results
+                // will change, so the sessions table must be refreshed.
+                if (CurrentFilter != null && this.CurrentFilter.OnWishList)
+                {
+                    Model.DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                    {
+                        ThrottledFireSessionsRefreshEvent();
+                    });
+                }
 
                 if (p==null)
                 {
@@ -2029,7 +2064,7 @@ namespace LobsterConnect.VM
 
                 if(watching.Any(i=>i.Game==session.ToPlay))
                 {
-                    LogSyncMessage(Logger.Level.ALERT, "Sync: a game of '" + session.ToPlay + "' has been proposed; this game is on your wish-list");
+                    LogSyncMessage(Logger.Level.ALERT, "Sync: a game of '" + session.ToPlay + "' has been proposed by '"+session.Proposer+"'; this game is on your wish-list");
                 }
             }
         }
@@ -2138,51 +2173,96 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Retrieve a list of the wish-list items that indicate a wish to play the indicated game, at the current gaming event.
+        /// The method keeps a note of the last game it was called with, and will return the same
+        /// result again if called with the same game name.  To make it forget (which you'll need to do
+        /// if you change the current event, or any wish-list items) call ResetWishListCachedItems().
         /// </summary>
         /// <param name="gameName">wish-list items for the current event and this game name will be returned</param>
         /// <returns>the list of wish-list items</returns>
         public List<WishListItem> GetWishListItemsForGame(string gameName)
         {
-            List<WishListItem> returnValue = new List<WishListItem>();
-
-            if (this.CurrentEvent == null)
-                return returnValue;
-
-            foreach (WishListItem i in _wishlist)
+            if (_GetWishListItemsForGame_cachedArgument != null && _GetWishListItemsForGame_cachedArgument == gameName
+            && _GetWishListItemsForGame_cachedReturnValue != null)
             {
-                if (i.Person == "#deleted")
-                    continue;
-
-                if (i.GamingEvent == this.CurrentEvent.Name && i.Game == gameName)
-                    returnValue.Add(i);
+                return _GetWishListItemsForGame_cachedReturnValue;
             }
+            else
+            {
+                List<WishListItem> returnValue = new List<WishListItem>();
 
-            return returnValue;
+                if (this.CurrentEvent == null)
+                    return returnValue;
+
+                foreach (WishListItem i in _wishlist)
+                {
+                    if (i.Person == "#deleted")
+                        continue;
+
+                    if (i.GamingEvent == this.CurrentEvent.Name && i.Game == gameName)
+                        returnValue.Add(i);
+                }
+
+                _GetWishListItemsForGame_cachedReturnValue = returnValue;
+                _GetWishListItemsForGame_cachedArgument = gameName;
+
+                return returnValue;
+            }
         }
-
+        List<WishListItem> _GetWishListItemsForGame_cachedReturnValue = null;
+        string _GetWishListItemsForGame_cachedArgument = null;
 
         /// <summary>
         /// Retrieve a list of the wish-list items for the indicated person, at the current gaming event.
+        /// The method keeps a note of the last person it was called with, and will return the same
+        /// result again if called with the same person name.  To make it forget (which you'll need to do
+        /// if you change the current event, or any wish-list items) call ResetWishListCachedItems().
         /// </summary>
         /// <param name="person">wish-list items for the current event and this person will be returned</param>
         /// <returns>the list of wish-list items</returns>
         public List<WishListItem> GetWishListItemsForPerson(string person)
         {
-            List<WishListItem> returnValue = new List<WishListItem>();
-
-            if (this.CurrentEvent == null)
-                return returnValue;
-
-            if (person == "#deleted")
-                return returnValue;
-
-            foreach (WishListItem i in _wishlist)
+            if (_GetWishListItemsForPerson_cachedArgument != null && _GetWishListItemsForPerson_cachedArgument == person
+            && _GetWishListItemsForPerson_cachedReturnValue != null)
             {
-                if (i.GamingEvent == this.CurrentEvent.Name && i.Person == person)
-                    returnValue.Add(i);
+                return _GetWishListItemsForPerson_cachedReturnValue;
             }
+            else
+            {
+                List<WishListItem> returnValue = new List<WishListItem>();
 
-            return returnValue;
+                if (this.CurrentEvent == null)
+                    return returnValue;
+
+                if (person == "#deleted")
+                    return returnValue;
+
+                foreach (WishListItem i in _wishlist)
+                {
+                    if (i.GamingEvent == this.CurrentEvent.Name && i.Person == person)
+                        returnValue.Add(i);
+                }
+
+                _GetWishListItemsForPerson_cachedReturnValue = returnValue;
+                _GetWishListItemsForPerson_cachedArgument = person;
+
+                return returnValue;
+            }
+        }
+        List<WishListItem> _GetWishListItemsForPerson_cachedReturnValue = null;
+        string _GetWishListItemsForPerson_cachedArgument = null;
+
+        /// <summary>
+        /// The methods GetWishListItemsForGame and GetWishListItemsForPerson maintain cached
+        /// wish-list items, for efficiency reasons.  If you do something that invalidates
+        /// the caches (i.e. you change the current event or the contents of this._wishlist)
+        /// you must call this method so that the caches get cleared.
+        /// </summary>
+        public void ResetWishListCachedItems()
+        {
+            _GetWishListItemsForPerson_cachedArgument = null;
+            _GetWishListItemsForPerson_cachedReturnValue = null;
+            _GetWishListItemsForGame_cachedArgument = null;
+            _GetWishListItemsForGame_cachedReturnValue = null;
         }
 
         /// <summary>

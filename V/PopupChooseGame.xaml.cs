@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace LobsterConnect.V;
 
 /// <summary>
-/// Popup for picking a game - the can use the game selection picker to pick a game, or they
+/// Popup for picking a game - the user can use the game selection picker to pick a game, or they
 /// can create a new game if they need to; in that case the MainViewModel.Instance.CreateGame
 /// method will be used to create it.
 /// </summary>

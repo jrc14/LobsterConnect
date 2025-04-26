@@ -1,5 +1,6 @@
 using CommunityToolkit.Maui.Views;
 using LobsterConnect.VM;
+using System.Globalization;
 namespace LobsterConnect.V;
 
 /// <summary>
@@ -21,9 +22,9 @@ public partial class PopupManageFilter : Popup
 
         try
         {
-            if (MainPage.Instance.Width > 400)
+            if (MainPage.Instance.Width > 450)
             {
-                this.colDef0.Width = new GridLength(100, GridUnitType.Absolute);
+                this.colDef0.Width = new GridLength(150, GridUnitType.Absolute);
                 this.colDef1.Width = new GridLength(250, GridUnitType.Absolute);
                 this.pickerProposer.WidthRequest = 150;
                 this.entryProposer.WidthRequest = 80;
@@ -32,9 +33,9 @@ public partial class PopupManageFilter : Popup
             }
             else
             {
-                double ww = 400 - MainPage.Instance.Width;
+                double ww = 450 - MainPage.Instance.Width;
 
-                this.colDef0.Width = new GridLength(100-ww/3, GridUnitType.Absolute);
+                this.colDef0.Width = new GridLength(150-ww/3, GridUnitType.Absolute);
                 this.colDef1.Width = new GridLength(250-2*ww/3, GridUnitType.Absolute);
                 this.pickerProposer.WidthRequest = 150 - ww / 3;
                 this.entryProposer.WidthRequest = 80 - ww / 3;
@@ -46,7 +47,6 @@ public partial class PopupManageFilter : Popup
         {
             Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupManageFilter ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
-
 
         V.Utilities.StylePopupButtons(this.btnSave, this.btnCancel, this.rdefButtons);
     }
@@ -100,6 +100,8 @@ public partial class PopupManageFilter : Popup
         {
             this.pickerState.SelectedIndex = 0;
         }
+
+        this.switchWatchList.IsToggled = f.OnWishList;
     }
 
     async void OnSaveClicked(object sender, EventArgs e)
@@ -118,7 +120,9 @@ public partial class PopupManageFilter : Popup
         if (this.pickerState.SelectedIndex > 0)
             f.State = this.pickerState.SelectedItem as string;
 
-        MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "Filter has been set ("+f.Proposer+"/"+f.ToPlay+"/"+f.SignUpsInclude+"/"+f.State+")");
+        f.OnWishList = this.switchWatchList.IsToggled;
+
+        MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "Filter has been set: '"+f.Description+"'");
 
         await CloseAsync(f, CancellationToken.None);
     }

@@ -73,7 +73,6 @@ public partial class PopupAddSession : Popup
         }
         catch(Exception ex)
         {
-
             MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error setting time slot index: " + ex.Message);
         }
     }

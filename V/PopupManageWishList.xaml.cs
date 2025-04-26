@@ -5,12 +5,13 @@ using LobsterConnect.VM;
 
 namespace LobsterConnect.V;
 
+/// <summary>
+/// Popup for displaying the games that the logged on user has included in their 'would like to play' wish-list,
+/// and for adding and removing games.  Don't show this popup when there is no logged on user,
+/// because it won't do anything useful.
+/// </summary>
 public partial class PopupManageWishList : Popup
 {
-    /// <summary>
-    /// Popup for displaying the games that the logged on user has included in their wish-list,
-    /// and for adding and removing games.
-    /// </summary>
     public PopupManageWishList()
     {
         InitializeComponent();
@@ -40,6 +41,10 @@ public partial class PopupManageWishList : Popup
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons, this.btnAdd);
     }
 
+    /// <summary>
+    /// Populates the grid with all the wish-list entries for the currently logged on user,
+    /// at the currently selected gaming event.
+    /// </summary>
     void LoadWishList()
     {
         if (MainViewModel.Instance.LoggedOnUser == null)
@@ -95,17 +100,21 @@ public partial class PopupManageWishList : Popup
         }
     }
 
+    /// <summary>
+    /// Display an action sheet for the things that the user can do with an existing wish-list item.
+    /// </summary>
+    /// <param name="item"></param>
     async void ShowItemActions(WishListItem item)
     {
         try
         {
             string option = await MainPage.Instance.DisplayActionSheet("Would Like to Play", "Dismiss", null,
-                "No longer want to play",
+                "No longer interested",
                 "Update my notes",
                 "Who else is interested?",
                 "Propose session to play");
 
-            if (option == "No longer want to play")
+            if (option == "No longer interested")
             {
                 MainViewModel.Instance.DeleteWishList(true, item.Person, item.Game, item.GamingEvent);
                 Model.DispatcherHelper.RunAsyncOnUI(LoadWishList);
@@ -126,7 +135,7 @@ public partial class PopupManageWishList : Popup
                 popup.SetGame(item.Game);
                 MainPage.Instance.ShowPopup(popup);
             }
-            else if (option == "Propose session to play")
+            else if (option == "Propose a session to play")
             {
                 await CloseAsync(null, CancellationToken.None);
                 Model.DispatcherHelper.RunAsyncOnUI(() =>
@@ -143,6 +152,7 @@ public partial class PopupManageWishList : Popup
         }
     }
     /// <summary>
+    /// Dismiss just closes the popup; there is no state to be saved.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
@@ -168,6 +178,8 @@ public partial class PopupManageWishList : Popup
             if (string.IsNullOrEmpty(s))
                 return;
 
+            // Note that GetWishListItemsForPerson will only look at items for the currently selected event,
+            // which is the behaviour we want here.
             bool duplicate = MainViewModel.Instance.GetWishListItemsForPerson(MainViewModel.Instance.LoggedOnUser.Handle)
                     .Any(w => w.Game == s);
 
@@ -177,7 +189,7 @@ public partial class PopupManageWishList : Popup
             }
             else
             {
-                string notes = await MainPage.Instance.DisplayPromptAsync("Would Like to Play", "Please enter notes regarding the game - for instance, when are you hoping to play, or is there a particular variant you want to play?");
+                string notes = await MainPage.Instance.DisplayPromptAsync("Would Like to Play", "Please enter notes regarding the game - for instance, when are you hoping to play, or is there a particular variant you want to play? Do not enter text that is offensive or defamatory, or contains information about any person.");
 
                 if (notes == null) // Cancel
                     return;

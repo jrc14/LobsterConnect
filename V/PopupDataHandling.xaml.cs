@@ -18,7 +18,7 @@ public partial class PopupDataHandling : Popup
             "If your account is inactive (you don't propose or sign up to any games) for more that five years, then your personal data will be removed from our on-line database.\n";
 
     /// <summary>
-    /// Popup to display the privacy and data management policy.  It contains additiona controls to
+    /// Popup to display the privacy and data management policy.  It contains additional controls to
     /// display what personal information is held for the current user (using the PrettyPrint method
     /// on the local journal, and the RelatesToUser method on JournalEntry) and to purge that data
     /// from the cloud sync service, using MainViewModel.Instance.PurgeUserData.
@@ -106,7 +106,7 @@ public partial class PopupDataHandling : Popup
         else
         {
             this.lbTextViewer.Text = Journal.PrettyPrint(
-                (e) => { return e.RelatesToUser(MainViewModel.Instance.LoggedOnUser.Handle); },
+                (x) => { return x.RelatesToUser(MainViewModel.Instance.LoggedOnUser.Handle); },
                 MainViewModel.Instance);
                 
         }
@@ -122,7 +122,7 @@ public partial class PopupDataHandling : Popup
         if (MainViewModel.Instance.LoggedOnUser != null)
         {
             string personHandle = MainViewModel.Instance.LoggedOnUser.Handle;
-            bool confirmation = await MainPage.Instance.DisplayAlert("Purge Data", "Please confirm you want to purge all information about '"+personHandle+"' from the app and its on-line database.  Please note that this action cannot be done; once purged, the data is permanently and unrecoverably lost.", "Purge", "Don't purge");
+            bool confirmation = await MainPage.Instance.DisplayAlert("Purge Data", "Please confirm you want to purge all information about '"+personHandle+"' from the app and its on-line database.  Please note that this action cannot be undone; once purged, the data is permanently and unrecoverably lost.", "Purge", "Don't purge");
             if (confirmation)
             {
                 await MainViewModel.Instance.PurgeUserData(personHandle);

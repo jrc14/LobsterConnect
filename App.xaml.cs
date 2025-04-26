@@ -29,7 +29,8 @@ namespace LobsterConnect;
 ///    
 /// The app's durable state is persisted into a journal object; to set the viewmodel up, you replay the journal.
 /// Each journal entry describes a Create or Update operation on one of the entities mentioned above (GamingEvent,
-/// Game, WishList, Session or Person).  There is an additional entity type, SignUp, that a journal entry can represent - 
+/// Game, Session or Person), or a Create, Update or Delete operation on WishList.
+/// There is an additional entity type, SignUp, that a journal entry can represent - 
 /// and this supports operations Create and Delete.  In the viewmodel, creating and deleting signups consists
 /// of modifying the 'SignUps' member of a Session object (which is a string containing a comma-separated
 /// list of user handles).
@@ -69,8 +70,8 @@ namespace LobsterConnect;
 ///      
 /// There are plenty of pathological cases in which inconsistent updates from multiple devices might collide and
 /// leave the local viewmodel (and indeed the global journal held on the cloud sync server) in a state that does
-/// not make sense.  Because it's not actually permitted to delete any objects except sign-ups, the kinds of 
-/// inconsistency that could happen are: lost updates to persons, gaming events or sessions; missing sign-ups;
+/// not make sense.  Because it's not actually permitted to delete any objects except sign-ups and wish-list items, the kinds 
+/// of inconsistency that could happen are: lost updates to persons, gaming events or sessions; missing sign-ups;
 /// duplicate sign-ups; sign-ups to sessions that have been declared full or abandoned; and sign-ups or session
 /// proposals by users who are inactive (or have had their data scrubbed and replaced by '#deleted').
 /// These cases will mainly happen if a user is logged and and doing things simultaneously on two devices, or
