@@ -7,6 +7,7 @@
              x:Class="LobsterConnect.V.MainPage">
     <ContentPage.Resources>
         <local:SeverityToColorConverter x:Key="severityToColor"/>
+        <local:BooleanNegationConverter x:Key="booleanNegation"/>
     </ContentPage.Resources>
     <Grid RowSpacing="0" ColumnSpacing="0" Background="Black" x:Name="gdMainPage">
 		<Grid.RowDefinitions>
@@ -68,9 +69,8 @@
                 </Label.GestureRecognizers>
             </Label>
         </Grid>
-        
 
-        <AbsoluteLayout x:Name="alSlotLabels" Grid.Row="2" Grid.Column="0" HeightRequest="40" BackgroundColor="Black" HorizontalOptions="Start">
+        <AbsoluteLayout x:Name="alSlotLabels" Grid.Row="2" Grid.Column="0" HeightRequest="40" BackgroundColor="Black" HorizontalOptions="Start" IsVisible="{Binding x:DataType='Switch', Source={x:Reference swSessionsLayout}, Path=IsToggled}">
             <Grid  x:Name="gdSlotLabels" RowSpacing="0" ColumnSpacing="0" HeightRequest="40"  BackgroundColor="Black"
                    AbsoluteLayout.LayoutBounds="0,0">
                 <Grid.GestureRecognizers>
@@ -80,17 +80,32 @@
             </Grid>
         </AbsoluteLayout>
 
-        
-        <ScrollView  Grid.Row="3" Grid.Column="0" x:Name="svSessions" Orientation="Both" VerticalOptions="Fill" HorizontalOptions="Fill" Scrolled="svSessions_Scrolled">
-            <Grid x:Name="gdSessions" RowSpacing="0" ColumnSpacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
+        <ScrollView  Grid.Row="3" Grid.Column="0" x:Name="svSessionsTable" Orientation="Both" VerticalOptions="Fill" HorizontalOptions="Fill" Scrolled="svSessionsTable_Scrolled" IsVisible="{Binding x:DataType='Switch', Source={x:Reference swSessionsLayout}, Path=IsToggled}">
+            <Grid x:Name="gdSessionsTable" RowSpacing="0" ColumnSpacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
                 <Grid.GestureRecognizers>
                     <TapGestureRecognizer 
                         Tapped="gridSessionTimeSlotTapped"/>
                 </Grid.GestureRecognizers>
             </Grid>
         </ScrollView>
-	
-		<CollectionView Grid.Row="4" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog" ItemsUpdatingScrollMode="KeepScrollOffset">
+
+        <ScrollView  Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" x:Name="svSessionsList" Orientation="Both" VerticalOptions="Fill" HorizontalOptions="Fill" IsVisible="{Binding x:DataType='Switch', Source={x:Reference swSessionsLayout}, Path=IsToggled, Converter={StaticResource booleanNegation}}">
+            <VerticalStackLayout x:Name="slSessionsList" Spacing="0" BackgroundColor="DarkGray" HorizontalOptions="Fill">
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Grid  Grid.Row="3" Grid.Column="0" WidthRequest="90" HeightRequest="45" Margin="5,5,5,5"
+               VerticalOptions="End" HorizontalOptions="End"
+               >
+            <RoundRectangle  Stroke="White" Fill="Black" CornerRadius="5"></RoundRectangle>
+            <HorizontalStackLayout>
+                <Label Padding="5" Text="&#xE24D;" FontFamily="FluentSystemIcons-Regular" FontSize="16" TextColor="White" IsVisible="{Binding x:DataType='Switch', Source={x:Reference swSessionsLayout}, Path=IsToggled}"></Label>
+                <Label Padding="5"  Text="&#xE779;" FontFamily="FluentSystemIcons-Regular" FontSize="16" TextColor="White" IsVisible="{Binding x:DataType='Switch', Source={x:Reference swSessionsLayout}, Path=IsToggled, Converter={StaticResource booleanNegation}}"></Label>
+                <Switch x:Name="swSessionsLayout" IsToggled="True" ></Switch>
+            </HorizontalStackLayout>
+        </Grid>
+
+        <CollectionView Grid.Row="4" ItemsSource="{Binding UserMessages}" Background="Black" x:Name="lvLog" ItemsUpdatingScrollMode="KeepScrollOffset">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
             </CollectionView.ItemsLayout>

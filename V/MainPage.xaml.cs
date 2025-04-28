@@ -15,7 +15,8 @@ public partial class MainPage : ContentPage
     /// including controls for logging on, for adding a session, for setting a 'would like to play' wish-list,
     /// for applying a filter and for selecting gaming events; below that is the main table of
     /// planned sessions, and at the bottom is a window showing logged messages (most recent message at
-    /// the top).
+    /// the top).  The planned sessions can alternatively be shown as a vertical list (without any gaps).  A toggle
+    /// control is provided, to switch between these views.
     /// There is a hamburger menu and a title bar heading - but these are defined in the AppShell.xaml file.
     /// 
     /// For design notes concerning the app as a whole, please refer to App.xaml.cs.
@@ -80,23 +81,23 @@ public partial class MainPage : ContentPage
         }
 
         // As long as this page is loaded, we need to respond to a 'sessions must be refreshed' event raised
-        // by the view model, by refreshing the main UI grid that shows all the sessions.
+        // by the view model, by refreshing the main UI grids that show all the sessions.
         this.Loaded += (o, e) =>
 		{
-			MainViewModel.Instance.SessionsMustBeRefreshed += RefreshSessionsGrid;
+			MainViewModel.Instance.SessionsMustBeRefreshed += RefreshSessionsGrids;
 		};
 
 
         this.Unloaded += (o, e) =>
         {
-            MainViewModel.Instance.SessionsMustBeRefreshed -= RefreshSessionsGrid;
+            MainViewModel.Instance.SessionsMustBeRefreshed -= RefreshSessionsGrids;
         };
 
         // Standard XAML-loading stuff.
         InitializeComponent();
 
-        // populate the main table of session details (the two null parameters don't mean anything)
-		RefreshSessionsGrid(null, null);
+        // populate the main table and list of session details (the two null parameters don't mean anything)
+		RefreshSessionsGrids(null, null);
     }
 
     public static MainPage Instance = null;
@@ -172,11 +173,10 @@ public partial class MainPage : ContentPage
     }
 
     /// <summary>
-    /// Reload the contents of the table of sessions
-    /// </summary>
+    /// Reload the contents of the table of sessions and the list of sessions
     /// <param name="o"></param>
     /// <param name="a"></param>
-    public void RefreshSessionsGrid(object o, SessionsRefreshEventArgs a)
+    public void RefreshSessionsGrids(object o, SessionsRefreshEventArgs a)
 	{
         List<Session>[] sessions;
         if (MainViewModel.Instance.CurrentEvent == null)
@@ -188,22 +188,25 @@ public partial class MainPage : ContentPage
             sessions = MainViewModel.Instance.GetAllSessions(MainViewModel.Instance.CurrentEvent.Name, MainViewModel.Instance.CurrentFilter);
         }
 
-        // If the grid isn't changing its width, then we won't want to scroll to a new position.
-        bool resizeGrid = this.gdSlotLabels.WidthRequest!= sessions.Length * 100;
+        // If the table grid isn't changing its width, then we won't want to scroll it to a new position.
+        bool resizeTableGrid = this.gdSlotLabels.WidthRequest!= sessions.Length * 100;
 
         this.gdSlotLabels.Children.Clear();
 		this.gdSlotLabels.WidthRequest = sessions.Length * 100;
 
-        if (resizeGrid)
+        if (resizeTableGrid)
         {
             this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(0, 0, gdSlotLabels.WidthRequest, 30));
-            this.svSessions.ScrollToAsync(0, 0, false);
+            this.svSessionsTable.ScrollToAsync(0, 0, false);
         }
 
-        this.gdSessions.Children.Clear();
-		this.gdSessions.ColumnDefinitions.Clear();
+        this.gdSessionsTable.Children.Clear();
+		this.gdSessionsTable.ColumnDefinitions.Clear();
 
-		this.gdSlotLabels.Children.Add(
+        this.slSessionsList.Children.Clear();
+        this.svSessionsList.ScrollToAsync(0, 0, false);
+
+        this.gdSlotLabels.Children.Add(
 			new StackLayout() {
 				Orientation = StackOrientation.Horizontal,
 				WidthRequest= sessions.Length * 100,
@@ -216,7 +219,7 @@ public partial class MainPage : ContentPage
 		{
 			SessionTime t = new SessionTime(s);
 
-            // a heading for this column, containing the label for the session time slot
+            // a heading for this column, containing the label for the session time slot in the table view
 			slSlotLabels.Children.Add(
 				new Label() {
 					WidthRequest = 100,
@@ -225,13 +228,13 @@ public partial class MainPage : ContentPage
 					HorizontalTextAlignment= TextAlignment.Center,
 					Text = t.ToString() });
 
-			this.gdSessions.ColumnDefinitions.Add(new ColumnDefinition() { Width = 100 });
+			this.gdSessionsTable.ColumnDefinitions.Add(new ColumnDefinition() { Width = 100 });
 			if (sessions[s]!=null)
 			{
-                // a stacklayout to hold all the sessions that belong in this time slot column
-				this.gdSessions.Add(
+                // Add a vertical stacklayout to hold all the sessions that belong in this time slot column in the table view
+				this.gdSessionsTable.Add(
 					new StackLayout() {
-						HeightRequest = 75 * sessions[s].Count(),
+						HeightRequest = 75 * sessions[s].Count,
 						WidthRequest = 100,
 						Orientation = StackOrientation.Vertical,
 						Spacing = 0,
@@ -240,32 +243,77 @@ public partial class MainPage : ContentPage
 					.Assign(out StackLayout slSessions)
 					.Invoke(sl => Grid.SetColumn(sl,s)));
 
+                // Add each of the sessions that belong to this column in the table view
 				foreach (Session session in sessions[s])
 				{
-                    // a border containing all the information about the session
-					slSessions.Children.Add(
-						new Border()
-						{
-							Stroke = Colors.White,
-							HeightRequest = 73,
-							WidthRequest = 98,
-							Margin=1,
-							Padding=1,
-							Content = new StackLayout()
-							{
-								Background = Colors.LightGray,
-								HeightRequest = 69,
-								WidthRequest = 94,
-								Orientation = StackOrientation.Vertical,
-								Spacing=0,
-								Margin=0,
-								Padding=1,
-								Children =
-								{
-									new Label() { // name of the game
+                    View v = CreateSessionView(session);
+                    slSessions.Children.Add(v);
+                }
+
+                // Add a horizontal stacklayout to the sessions list stacklayout, to contain the slot
+                // label text, then all the sessions that belong in this time slot row in the list
+                if (sessions[s]!=null && sessions[s].Count>0)
+                {
+                    this.slSessionsList.Add(new HorizontalStackLayout()
+                    {
+                        HeightRequest = 75,
+                        WidthRequest = 100 * (1 + sessions[s].Count),
+                        Spacing = 0,
+                        HorizontalOptions = LayoutOptions.Start
+                    }.Assign(out HorizontalStackLayout hslSessions));
+
+                    hslSessions.Children.Add(new Label()
+                    {
+                        WidthRequest = 100,
+                        HeightRequest = 75,
+                        TextColor = Colors.Black,
+                        Padding = 5,
+                        HorizontalTextAlignment = TextAlignment.Start,
+                        VerticalOptions = LayoutOptions.Center,
+                        Text = t.ToString()  
+                    });
+
+                    foreach (Session session in sessions[s])
+                    {
+                        View v = CreateSessionView(session);
+                        hslSessions.Children.Add(v);
+                    }
+                }
+            }
+		}
+    }
+
+    /// <summary>
+    /// Create a view (a border) containing all the information about the session.  It will fit nicely into
+    /// a soace 75 wide and 100 high.  If tapped, it will present a popup for editing the session.
+    /// </summary>
+    /// <param name="session"></param>
+    /// <returns></returns>
+    private View CreateSessionView(Session session)
+    {
+        Border bdr =
+            new Border()
+            {
+                Stroke = Colors.White,
+                HeightRequest = 73,
+                WidthRequest = 98,
+                Margin = 1,
+                Padding = 1,
+                Content = new StackLayout()
+                {
+                    Background = Colors.LightGray,
+                    HeightRequest = 69,
+                    WidthRequest = 94,
+                    Orientation = StackOrientation.Vertical,
+                    Spacing = 0,
+                    Margin = 0,
+                    Padding = 1,
+                    Children =
+                    {
+                                    new Label() { // name of the game
 										HeightRequest = 22,
-										WidthRequest = 92,
-										LineBreakMode = LineBreakMode.TailTruncation,
+                                        WidthRequest = 92,
+                                        LineBreakMode = LineBreakMode.TailTruncation,
                                         Text = session.ToPlay },
                                     new Label() { // state of the session (OPEN/FULL/ABANDONED)
                                         HeightRequest = 22,
@@ -277,15 +325,15 @@ public partial class MainPage : ContentPage
                                         WidthRequest = 92,
                                         Orientation = StackOrientation.Horizontal,
                                         Spacing=0,
-										Margin=0,
-										Padding=0,
+                                        Margin=0,
+                                        Padding=0,
                                         Children =
-										{
-											new Label() {
-												HeightRequest = 22,
-											}
-											.Assign(out Label lbNumSignUps),
-											new Label(){ HeightRequest = 22, Text="/"},
+                                        {
+                                            new Label() {
+                                                HeightRequest = 22,
+                                            }
+                                            .Assign(out Label lbNumSignUps),
+                                            new Label(){ HeightRequest = 22, Text="/"},
                                             new Label() {
                                                 HeightRequest = 22,
                                             }
@@ -298,40 +346,39 @@ public partial class MainPage : ContentPage
                                             new Label(){ HeightRequest = 22, Text=": "+session.Proposer},
                                         }
                                     }
-                                }
-							}.Assign(out StackLayout slSession)
-						});
+                    }
+                }.Assign(out StackLayout slSession)
+            };
 
-                    lbState.BindingContext = session;
-                    lbState.Bind(Label.TextProperty, "State");
-                    lbState.BindingContext = session;
-                    lbState.Bind(Label.TextColorProperty, "State", converter: new StateToColorConverter());
+        lbState.BindingContext = session;
+        lbState.Bind(Label.TextProperty, "State");
+        lbState.BindingContext = session;
+        lbState.Bind(Label.TextColorProperty, "State", converter: new StateToColorConverter());
 
-                    lbNumSignUps.BindingContext = session;
-                    lbNumSignUps.Bind(Label.TextProperty, "NumSignUps");
+        lbNumSignUps.BindingContext = session;
+        lbNumSignUps.Bind(Label.TextProperty, "NumSignUps");
 
-                    lbSitsMinimum.BindingContext = session;
-                    lbSitsMinimum.Bind(Label.TextProperty, "SitsMinimum");
+        lbSitsMinimum.BindingContext = session;
+        lbSitsMinimum.Bind(Label.TextProperty, "SitsMinimum");
 
-                    lbSitsMaximum.BindingContext = session;
-                    lbSitsMaximum.Bind(Label.TextProperty, "SitsMaximum");
+        lbSitsMaximum.BindingContext = session;
+        lbSitsMaximum.Bind(Label.TextProperty, "SitsMaximum");
 
-                    // Tapping on the session box will open the session management popup
-					TapGestureRecognizer tr = new TapGestureRecognizer();
-					tr.BindingContext = session;
-                    tr.Tapped += (object sender, TappedEventArgs e)=>
-					{
-						Session s = ((StackLayout) sender ).BindingContext as Session;
+        // Tapping on the session box will open the session management popup
+        TapGestureRecognizer tr = new TapGestureRecognizer();
+        tr.BindingContext = session;
+        tr.Tapped += (object sender, TappedEventArgs e) =>
+        {
+            Session s = ((StackLayout)sender).BindingContext as Session;
 
 #pragma warning disable 4014 // the method below will run asynchronously, but I am fine to let the tapped handler exit in the meantime
-                        ShowSessionManagementPopup(s);
+            ShowSessionManagementPopup(s);
 #pragma warning restore 4014
-					};
-					slSession.GestureRecognizers.Add(tr);
-					slSession.BindingContext = session;
-                }
-			}
-		}
+        };
+        slSession.GestureRecognizers.Add(tr);
+        slSession.BindingContext = session;
+
+        return bdr;
     }
 
     /// <summary>
@@ -620,12 +667,12 @@ public partial class MainPage : ContentPage
 	}
 
     /// <summary>
-    /// When the sessions scrollview is scrolled, we need to reposition the slot labels above it, to be displaced
+    /// When the sessions table scrollview is scrolled, we need to reposition the slot labels above it, to be displaced
     /// by the same amount.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void svSessions_Scrolled(object sender, ScrolledEventArgs e)
+    private void svSessionsTable_Scrolled(object sender, ScrolledEventArgs e)
     {
         this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(-e.ScrollX, 0, gdSlotLabels.WidthRequest, 30));
 	}
@@ -747,11 +794,18 @@ public partial class MainPage : ContentPage
 		else if (action=="people") // view a list of all persons
 		{
 			List<string> allPersons = MainViewModel.Instance.GetAvailablePersons();
+            allPersons.Sort();
             PopupViewPersons personsViewer = new PopupViewPersons();
             personsViewer.SetPersons(allPersons);
             var popupResult = await MainPage.Instance.ShowPopupAsync(personsViewer, CancellationToken.None);
         }
-		else if (action == "addsession") // add a new gaming session
+        else if (action == "games") // view a list of all games
+        {
+            List<string> allGames = MainViewModel.Instance.GetAvailableGames();
+            PopupViewGames gamesViewer = new PopupViewGames();
+            var popupResult = await MainPage.Instance.ShowPopupAsync(gamesViewer, CancellationToken.None);
+        }
+        else if (action == "addsession") // add a new gaming session
 		{
 			btnAddSessionClicked(this, new EventArgs());
         }
@@ -763,6 +817,10 @@ public partial class MainPage : ContentPage
 		{
 			btnFilterClicked(this, new EventArgs());
 		}
+        else if (action == "layout") // switch between table and list layout of sessions
+        {
+            this.swSessionsLayout.IsToggled = !this.swSessionsLayout.IsToggled;
+        }
         else if (action == "openlink") // open a session link (an app url like lobsterconnect:///<session-id>)
         {
             string s = await DisplayPromptAsync("Open Link to a Session", "If you've been sent a link to a session (some text beginning 'lobsterconnect://') enter it here, to open the gaming session");

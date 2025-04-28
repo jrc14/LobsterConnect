@@ -17,7 +17,6 @@
     Shell.TitleColor="White"
     Shell.FlyoutBackgroundColor="DarkRed"
     Shell.UnselectedColor="DarkRed">
-
     <Shell.TitleView>
         <Grid>
             <Label Text="LobsterConnect"
@@ -52,7 +51,12 @@
         <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xe906;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
-    </MenuItem>    
+    </MenuItem>
+    <MenuItem Text="List Games" Clicked="AppShell_MenuItemClicked" CommandParameter="games">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xe15e;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
     <MenuItem Text="Add Session" Clicked="AppShell_MenuItemClicked" CommandParameter="addsession">
         <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xf10a;" FontFamily="FluentSystemIcons-Regular"/>
@@ -66,6 +70,11 @@
     <MenuItem Text="Filter" Clicked="AppShell_MenuItemClicked" CommandParameter="filter">
         <MenuItem.IconImageSource>
             <FontImageSource Glyph="&#xf407;" FontFamily="FluentSystemIcons-Regular"/>
+        </MenuItem.IconImageSource>
+    </MenuItem>
+    <MenuItem Text="Change Layout" Clicked="AppShell_MenuItemClicked" CommandParameter="layout">
+        <MenuItem.IconImageSource>
+            <FontImageSource Glyph="&#xE24D;" FontFamily="FluentSystemIcons-Regular"/>
         </MenuItem.IconImageSource>
     </MenuItem>
     <MenuItem Text="Open Link" Clicked="AppShell_MenuItemClicked" CommandParameter="openlink">

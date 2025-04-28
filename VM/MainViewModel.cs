@@ -1368,7 +1368,6 @@ namespace LobsterConnect.VM
 
                     ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
 
-
                     if (informJournal)
                     {
                         string id = person + "," + game + "," + gamingEvent;
@@ -1834,6 +1833,37 @@ namespace LobsterConnect.VM
 
             return allSessions;
         }
+
+
+        /// <summary>
+        /// Constructs a list all sessions for the given game, filtered by some criterion.
+        /// </summary>
+        /// <param name="gameName">sessions for this game will be returned</param>
+        /// <param name="eventName">only sessions for this gaming event will be included (defaulted to current event)</param>
+        /// <param name="criteria">only sessions matching this filter will be included</param>
+        /// <returns></returns>
+        public List<Session> GetSessionsForGame(string gameName, string eventName=null, Predicate<Session> criterion=null)
+        {
+            List<Session> allSessions = new List<Session>();
+            if (eventName == null) eventName = this.CurrentEvent.Name;
+
+            foreach (Session s in this._sessions)
+            {
+                if (s.EventName != eventName)
+                    continue;
+
+                if (s.ToPlay != gameName)
+                    continue;
+
+                if (criterion != null && !criterion(s))
+                    continue;
+
+                allSessions.Add(s);
+            }
+
+            return allSessions;
+        }
+
 
         /// <summary>
         /// Fire this event when you do something that would necessitate refreshing the table of sessions in the UI.

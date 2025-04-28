@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:local="clr-namespace:LobsterConnect.V"
+               xmlns:vm="clr-namespace:LobsterConnect.VM"
+               x:DataType="vm:Person"
+               x:Class="LobsterConnect.V.PopupViewGames">
+    <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="Auto" x:Name="rdefButtons"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="colDef0" Width="200"/>
+            <ColumnDefinition x:Name="colDef1" Width="200"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Game List" FontAttributes="Bold"></Label>
+
+        <Border Grid.Row="1" Grid.Column="0"  Grid.ColumnSpan="2"  HeightRequest="200" VerticalOptions="Start" Stroke="Gray">
+            <CollectionView HorizontalOptions="Start" Margin="5" VerticalOptions="Start" x:Name="lvGames" SelectionChanged="lvGames_SelectionChanged" SelectionMode="Single">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate  x:DataType="x:String">
+                        <Label Text="{Binding}" LineBreakMode="TailTruncation" ></Label>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+
+
+        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Show Games:" HorizontalOptions="Start"></Label>
+        <RadioButton Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" x:Name="rbtnAll" Content="All games" Value="all" HorizontalOptions="Start" CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
+        <RadioButton Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" Content="Someone has proposed" Value="sessions" HorizontalOptions="Start"  CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
+        <RadioButton Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" Content="Someone wants to play" Value="wishlist" HorizontalOptions="Start"  CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
+
+        <Button Grid.Row="7" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+
+    </Grid>
+</toolkit:Popup>
