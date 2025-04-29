@@ -70,6 +70,10 @@
             </Label>
         </Grid>
 
+        <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="0"  Background="DarkGray">
+            
+        </Grid>
+
         <AbsoluteLayout x:Name="alSlotLabels" Grid.Row="2" Grid.Column="0" HeightRequest="40" BackgroundColor="Black" HorizontalOptions="Start" IsVisible="{Binding x:DataType='Switch', Source={x:Reference swSessionsLayout}, Path=IsToggled}">
             <Grid  x:Name="gdSlotLabels" RowSpacing="0" ColumnSpacing="0" HeightRequest="40"  BackgroundColor="Black"
                    AbsoluteLayout.LayoutBounds="0,0">

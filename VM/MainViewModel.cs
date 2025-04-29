@@ -2330,7 +2330,7 @@ namespace LobsterConnect.VM
                 case Logger.Level.DEBUG:   l = "DEBUG:"; break;
                 case Logger.Level.INFO:    l = "INFO: "; break;
                 case Logger.Level.ALERT:   l = "ALERT:"; break;
-                case Logger.Level.WARNING: l = "WARN: ";  break;
+                case Logger.Level.WARNING: l = "WARNING: ";  break;
                 case Logger.Level.ERROR:   l = "ERROR:"; break;
                 default:break;
             }

@@ -12,7 +12,7 @@
             {
                 if ((value as string).Contains("ERROR:"))
                     return Colors.Red;
-                else if ((value as string).Contains("WARN:"))
+                else if ((value as string).Contains("WARNING:"))
                     return Colors.OrangeRed;
                 else if ((value as string).Contains("ALERT:"))
                     return Colors.AliceBlue;
