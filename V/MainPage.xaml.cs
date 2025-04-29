@@ -852,9 +852,9 @@ public partial class MainPage : ContentPage
 			
             // Only if the user is an admin do we include the 'Admin Actions' items
 			if(MainViewModel.Instance.LoggedOnUser!=null && MainViewModel.Instance.LoggedOnUser.IsAdmin)
-				action2 = await DisplayActionSheet("Support", "Dismiss", null, "Admin Action", "Show First Run Message", "Email for support", "Reset App");
+				action2 = await DisplayActionSheet("Support", "Dismiss", null, "Admin Action", "Show First Run Message", "Email for support", "Reset App", "View Source Code");
 			else
-                action2 = await DisplayActionSheet("Support", "Dismiss", null, "Show First Run Message", "Email for support", "Reset App");
+                action2 = await DisplayActionSheet("Support", "Dismiss", null, "Show First Run Message", "Email for support", "Reset App", "View Source Code");
 
             if (action2 == "Admin Action")
 			{
@@ -907,6 +907,10 @@ public partial class MainPage : ContentPage
                     await MainViewModel.Instance.ResetApp();
                 }
             }
+            else if (action2 == "View Source Code")
+            {
+                await Browser.Default.OpenAsync("https://github.com/jrc14/LobsterConnect");
+            }
 
         }
 		else if (action == "legal")
@@ -925,7 +929,7 @@ public partial class MainPage : ContentPage
             int minor = AppInfo.Version.Minor;
             int build = AppInfo.Version.Build;
 
-			string msg = "LobsterConnect © Turnipsoft 2025\n\nVersion " + major.ToString() + "." + minor.ToString() + " build " + build.ToString();
+			string msg = "LobsterConnect © Turnipsoft 2025\n\nGNU General Public Licence v3.0\n\nVersion " + major.ToString() + "." + minor.ToString() + " build " + build.ToString();
 
 			await DisplayAlert("About", msg, "Dismiss");
         }
