@@ -23,6 +23,9 @@ using System.Threading.Tasks;
 
 namespace LobsterConnect.V
 {
+    /// <summary>
+    /// Converts boolean false to true, and anything else to false
+    /// </summary>
     public sealed class BooleanNegationConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo language)

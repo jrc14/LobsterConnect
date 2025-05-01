@@ -50,8 +50,6 @@ namespace LobsterConnect.Model
 
                     if(string.IsNullOrEmpty(_installationId))
                     {
-                        //int r = System.Random.Shared.Next();
-                        //_installationId = String.Format("{0:X8}", r);
                         _installationId = Guid.NewGuid().ToString("N");
 
                         Microsoft.Maui.Storage.Preferences.Set("InstallationId", _installationId);

@@ -100,7 +100,7 @@
 
         <Grid  Grid.Row="3" Grid.Column="0" WidthRequest="90" HeightRequest="45" Margin="5,5,5,5"
                VerticalOptions="End" HorizontalOptions="End"
-               >
+               x:Name="gdLayoutSwitch">
             <RoundRectangle  Stroke="White" Fill="Black" CornerRadius="5"></RoundRectangle>
             <HorizontalStackLayout>
                 <Label Padding="5" Text="&#xE24D;" FontFamily="FluentSystemIcons-Regular" FontSize="16" TextColor="White" IsVisible="{Binding x:DataType='Switch', Source={x:Reference swSessionsLayout}, Path=IsToggled}"></Label>

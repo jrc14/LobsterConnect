@@ -41,13 +41,6 @@ public class MainActivity : MauiAppCompatActivity
         var uri = Intent?.Data;
         if (uri != null)
         {
-            /*
-            var parameters = uri.GetQueryParameters(null);
-            if (parameters != null && parameters.Count > 0)
-            {
-
-            }
-            */
             Model.Logger.LogMessage(Model.Logger.Level.INFO, "MainActivity.OnCreate", "intent data contains URI " + uri.ToString());
 
             Model.DispatcherHelper.RunAsyncOnUI(async () =>

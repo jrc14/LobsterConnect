@@ -26,22 +26,22 @@ namespace LobsterConnect.Model
     /// The journal of changes to the LobsterConnect local viewmodel (and the remote cloud store).  By replaying a
     /// journal, you bring the viewmodel up to date.
     /// 
-    /// The types of entity and the available types of changes are:
+    /// Journal entries represent changes to entities; the types of entity and changes are:
     /// 
-    /// Game (Create and Update only): a game that can be played at a session
+    /// Game (Create and Update only): a game that can be played at a session, organised at a certain gaming event
     ///     ID is the game's full name
     ///     Attributes are:
     ///         BGGLINK: the URL for the game on the BGG site
-    ///         ISACTIVE: True or False; if false then the game is not available for sign-up
+    ///         ISACTIVE: True or False; if false then the game is not available to be played or wish-listed
     ///         
-    /// Person (Create and Update only): a person who can sign in to the app, and organise and join gaming sessions
+    /// Person (Create and Update only): a person who can sign in to the app, and organise and join gaming sessions, and define their wish-list
     ///     ID is the person's handle
     ///     Attributes are:
     ///         FULLNAME: the full name of the person
     ///         PHONENUMBER: the person's phone number
     ///         EMAIL: the person's email address
     ///         PASSWORD: the hash of the person's password         
-    ///         ISACTIVE: True or False; if false then the person is not allowed to organise or participate in games
+    ///         ISACTIVE: True or False; if false then the person is not allowed to organise or participate in gaming sessions, or set up a wish-list
     ///         ISADMIN: True or False; if true then the UI will allow this person change things belonging to other people
     ///         
     /// Session (Create and Update only): a session to play a certain game, at a certain event, at a certain time
@@ -60,14 +60,14 @@ namespace LobsterConnect.Model
     ///         SITSMAXIMUM: an integer, the highest number of people who are being sought to play the game at this session
     ///         STATE: one of: OPEN = looking for people to play; FULL = no more players are wanted, the game will take place; ABANDONED = the game will not take place
     ///         
-    /// SignUp (Create and Delete only): a record that a certain person is going to play in a certain session
+    /// SignUp (Create and Delete only): a record that a certain person is going to play in a certain gaming session
     ///     ID consists of a person handle (ID) then ',' and then a Session ID.
     ///     Journal entries for sign-ups must always include EVENTNAME, the name of the gaming event at which the session happens
     ///     Attributes are:
     ///         EVENTNAME (Mandatory in all journal entries): the name of the gaming event at which the session is happening
     ///         MODIFIEDBY: the handle of the person making this change (creating or deleting the sign-up)
     ///         
-    /// WishList (Create, Update and Delete): a record that a certain person is interested in playing a certain game at a certain event
+    /// WishList (Create, Update and Delete): a record that a certain person is interested in playing a certain game at a certain gaming event
     ///     ID consists of person handle (ID) , game name (ID), gaming event name (ID).
     ///     Attributes are:
     ///         NOTES: explanatory notes written by the person who's expressing interest in playing the game
@@ -77,13 +77,13 @@ namespace LobsterConnect.Model
     ///     modified by a subsequent Update entry (because changing an event's type would allow changes that would invalidate
     ///     existing sessions' slot times).
     ///     Attributes are:
-    ///         EVENTTYPE: EVENING, DAY, CONVENTION; Application logic dictates how many session times
+    ///         EVENTTYPE: EVENING, DAY, CONVENTION; Application logic dictates how many time slots
     ///         are available for an event, according to its event type.  This attribute is immutable.
     ///         ISACTIVE: True or False; if false then sessions can't be set up at this event     
     ///     
     /// NB: IDs and attribute values are all strings.  It is an error if any of these strings contains the characters '\' or '|',
     ///     or the new-line character '\n'.
-    ///     The IDs of person,game and gaming event entities are, in addition, not allowed to include the character ','
+    ///     The IDs of person, game and gaming event entities are, in addition, not allowed to include the character ','
     /// 
     /// </summary>
     public class Journal
@@ -94,7 +94,7 @@ namespace LobsterConnect.Model
         /// <param name="entityType">The type of entity: GamingEvent, Game, WishList, Session, Person or Signup</param>
         /// <param name="operationType">What is being done to the entity: Create, Update or Delete</param>
         /// <param name="entityId">ID of the entity</param>
-        /// <param name="journalParameters">an even number of strings parameter name then parameter value</param>
+        /// <param name="journalParameters">an even number of strings, consisting of parameter name then parameter value, zero or more times</param>
         public static void AddJournalEntry(EntityType entityType, OperationType operationType, string entityId, params string[] journalParameters)
         {
             if (journalParameters == null || journalParameters.Length == 0)
@@ -115,7 +115,7 @@ namespace LobsterConnect.Model
         /// <param name="entityType">The type of entity: GamingEvent, Game, Session, Person or Signup</param>
         /// <param name="operationType">What is being done to the entity: Create, Update or Delete</param>
         /// <param name="entityId">ID of the entity</param>
-        /// <param name="journalParameters">an even number of strings parameter name then parameter value</param>
+        /// <param name="journalParameters">an even number of strings, consisting of parameter name then parameter value, zero or more times</param>
         public static void AddJournalEntry(EntityType entityType, OperationType operationType, string entityId, List<string> journalParameters)
         {
             if (journalParameters.Count % 2 == 1)
@@ -189,7 +189,7 @@ namespace LobsterConnect.Model
 
         /// <summary>
         /// The operations that can be performed on entities; not all combinations of operation type and entity type
-        /// are valid; refer to the comment at the top of Journal.cs
+        /// are valid; refer to the comment at the top of Journal.cs.
         /// </summary>
         public enum OperationType
         {
@@ -211,11 +211,10 @@ namespace LobsterConnect.Model
         private static List<JournalEntry> _LocalJournal = new List<JournalEntry>();
 
         /// <summary>
-        /// The local sequence number that we will give to the next entry to be added to the journal as a resul
+        /// The local sequence number that we will give to the next entry to be added to the journal as a result
         /// of a change made on this device.
         /// </summary>
         private static Int32 _LocalJournalNextSeq = 1;
-
 
         // Lock this while changing or viewing the journal.  Don't lock the QLock at the same time,
         // and if you need to lock the JournalFileLock at the same time as JournalLock, then lock JournalLock first,
@@ -235,7 +234,7 @@ namespace LobsterConnect.Model
         ///    each time that machine originates another entry.
         ///  - Cloud Sequence Number: Numbers, beginning at 1 and increasing by 1 each time another entry is notified
         ///    to the cloud sync service.  If a journal entry has a 0 cloud sequence number it means that it hasn't
-        ///    yet been notified to the cloud sync service (to be precise, it means that the local machine hasn't yey
+        ///    yet been notified to the cloud sync service (to be precise, it means that the local machine hasn't yet
         ///    processed an acknowledgement from the cloud sync server, saying that this local entry has been recorded
         ///    in the cloud data store).
         /// </summary>
@@ -264,11 +263,12 @@ namespace LobsterConnect.Model
                 _localSeq = localSeq;
                 _installationId = installationId;
 
-                if (e == EntityType.Session || e == EntityType.SignUp)
+                // Support for selective loading of the viewmodel according to the current event name (it's not implemented yet)
+                if (e == EntityType.Session || e == EntityType.SignUp) // event name for sessions and sign-ups is in the EVENTNAME parameter
                 {
                     _gamingEventFilter = GetParameterValue("EVENTNAME", p,"");
                 }
-                else if (e == EntityType.WishList)
+                else if (e == EntityType.WishList) // event name for wishlist entries is the third part of the id string
                 {
                     if (i.Count(ch => ch == ',') == 2) // id should be person,game,event
                     {
@@ -277,7 +277,7 @@ namespace LobsterConnect.Model
                     else
                         _gamingEventFilter = "";
                 }
-                else
+                else // other entity types don't get selectively loaded according to the gaming event
                 {
                     _gamingEventFilter = "";
                 }
@@ -561,7 +561,7 @@ namespace LobsterConnect.Model
             /// Prints, over several lines, a human-readable description of this entry
             /// </summary>
             /// <param name="vm">a viewmodel to use for looking up things, so ids can be given less
-            /// opaque descriptons</param>
+            /// opaque descriptions</param>
             /// <returns>a human-readable description of self</returns>
             /// <exception cref="Exception"></exception>
             public string PrettyPrint(MainViewModel vm)
@@ -1221,7 +1221,6 @@ namespace LobsterConnect.Model
                 Logger.LogMessage(Logger.Level.INFO, "Journal.LoadJournal: loaded " + _LocalJournal.Count.ToString() + " entries");
                 Logger.LogMessage(Logger.Level.INFO, "Journal.LoadJournal: next entry to be created will be given local sequence number " + _LocalJournalNextSeq.ToString());
 
-
                 foreach (JournalEntry entry in _LocalJournal)
                     toReplay.Add(entry);
             }
@@ -1292,7 +1291,7 @@ namespace LobsterConnect.Model
         /// <summary>
         /// Set this variable if you want to encourage the journal worker to do nothing for a while (for example because you're
         /// resetting the app's state).  You should wait a while once you've set it, because journal sync operations
-        /// can go on for a while, if they're waiting for a response from the cloud sync service.
+        /// can go on for some time, if they're waiting for a response from the cloud sync service.
         /// </summary>
         public static bool SuspendJournalSync = false;
 
@@ -1625,7 +1624,7 @@ namespace LobsterConnect.Model
         /// <summary>
         /// Deals with a line of text received in the response from the cloud sync service.  The line is either an
         /// acknowledgement of a local journal entry that we uploaded (now being sent back to us, with a cloud seq
-        /// number applied to it) or it is an update (normally originating from some ohher device) that needs to be applied to
+        /// number applied to it) or it is an update (normally originating from some other device) that needs to be applied to
         /// this device to bring it up to date.
         /// NB: This method doesn't itself lock JournalLock, but the calling method should make sure that
         /// it does hold that lock, as there can otherwise be inconsistent updates to the journal.

@@ -1111,7 +1111,6 @@ namespace LobsterConnect.VM
                     succeeded = true;
                 }
 
-
                 // If there is a filter active, then changing a session's sign-ups could affect whether or not
                 // a certain session is visible, if the active filter criteria include sign-ups.
                 if (succeeded && CurrentEvent != null && CurrentEvent.Name == session.EventName)
@@ -1288,8 +1287,16 @@ namespace LobsterConnect.VM
 
                     if (existing != null)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "item already exists:'" + person + "," + game + "," + gamingEvent + "'");
-                        throw new ArgumentException("MainViewModel.CreateWishList: duplicate item:'" + person + "," + game + "," + gamingEvent + "'");
+                        if (person == "#deleted")
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "ignoring duplicate wish-list item for #deleted person: " + game + "," + gamingEvent + "'");
+                            return;
+                        }
+                        else
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.CreateWishList", "item already exists:'" + person + "," + game + "," + gamingEvent + "'");
+                            throw new ArgumentException("MainViewModel.CreateWishList: duplicate item:'" + person + "," + game + "," + gamingEvent + "'");
+                        }
                     }
 
                     if (notes == null)
@@ -1301,7 +1308,7 @@ namespace LobsterConnect.VM
                     ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
 
 
-                    // If the filter is currently set to 'show only sessions whose gaeme is on the current
+                    // If the filter is currently set to 'show only sessions whose game is on the current
                     // user's wishlist' then a change to the logged on user's wishlist means that the filter results
                     // will change, so the sessions table must be refreshed.
                     if (CurrentFilter != null && this.CurrentFilter.OnWishList
@@ -1367,6 +1374,12 @@ namespace LobsterConnect.VM
                 }
                 else
                 {
+                    if (person == "#deleted")
+                    {
+                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.UpdateWishList", "ignoring wish-list update for #deleted person: " + game + "," + gamingEvent + "'");
+                        return;
+                    }
+
                     WishListItem existing = this._wishlist.FirstOrDefault(
                         i => i.Person == person && i.Game == game && i.GamingEvent == gamingEvent);
 
@@ -1441,15 +1454,23 @@ namespace LobsterConnect.VM
 
                     if (existing == null)
                     {
-                        Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "item does not exist exists:'" + person + "," + game + "," + gamingEvent + "'");
-                        throw new ArgumentException("MainViewModel.DeleteWishList: item not found: '" + person + "," + game + "," + gamingEvent + "'");
+                        if (person == "#deleted")
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "ignoring absence of wish-list item for #deleted person: " + game + "," + gamingEvent + "'");
+                            return;
+                        }
+                        else
+                        {
+                            Logger.LogMessage(Logger.Level.ERROR, "MainViewModel.DeleteWishList", "item does not exist exists:'" + person + "," + game + "," + gamingEvent + "'");
+                            throw new ArgumentException("MainViewModel.DeleteWishList: item not found: '" + person + "," + game + "," + gamingEvent + "'");
+                        }
                     }
 
                     _wishlist.Remove(existing);
 
                     ResetWishListCachedItems(); // changing the wish-list invalidates the cached inversions of the wish-list
 
-                    // If the filter is currently set to 'show only sessions whose gaeme is on the current
+                    // If the filter is currently set to 'show only sessions whose game is on the current
                     // user's wishlist' then a change to the logged on user's wishlist means that the filter results
                     // will change, so the sessions table must be refreshed.
                     if (CurrentFilter != null && this.CurrentFilter.OnWishList

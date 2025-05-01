@@ -14,6 +14,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+// // //
+// TO DO
+// // //
+// - BUG: Dark Mode on Android looks nasty (fix it so text is always shown in black on the 'session' rectangles)
+// - Make Dark Mode/Light Mode work more consistently overall - get the app to respect system theme, or to
+//   'force dark mode' or 'force light mode'.  That needs a 'settings' page, of course ... .  Maybe initially it
+//   be useful just to respect the system theme.
+// - Put a 'sync now' option on the main menu
+//
+
 using LobsterConnect.Model;
 
 namespace LobsterConnect;
@@ -109,7 +120,7 @@ public partial class App : Application
         App.ApplicationSuspended = false; // allow logging to happen
 
         // Set up the dispatcher helper (tell it that this thread is the dispatcher thread)
-        DispatcherHelper.Initialise(Environment.CurrentManagedThreadId, this.Dispatcher); // because I am pretty sure that Window.Current exists at this stage.
+        DispatcherHelper.Initialise(Environment.CurrentManagedThreadId, this.Dispatcher); // because I am pretty sure that there is now a dispatcher.
 
         if (!DispatcherHelper.UIDispatcherHasThreadAccess)
         {

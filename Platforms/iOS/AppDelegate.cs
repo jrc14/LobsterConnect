@@ -27,7 +27,7 @@ public class AppDelegate : MauiUIApplicationDelegate
 {
 	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
-    // As far as I can tell, this is never getting called.  The only way that iOS is actually asking my
+    // As far as I can tell, this is never getting called.  The only way that iOS is actually asking the
     // app to activate using a URL link is through the invocation of OpenUrl.
     [Export("application:continueUserActivity:restorationHandler:")]
     public override bool ContinueUserActivity(UIKit.UIApplication application, NSUserActivity userActivity, UIKit.UIApplicationRestorationHandler completionHandler)
@@ -54,9 +54,6 @@ public class AppDelegate : MauiUIApplicationDelegate
                             url = userActivity.UserInfo[new NSString("link")].ToString();
                         break;
                 }
-
-                //string url = userActivity.WebPageUrl?.ToString();
-                // use the url to extract any query parameters with values if needed
 
                 Model.Logger.LogMessage(Model.Logger.Level.INFO, "AppDelegate.ContinueUserActivity", "found url: " + url);
 

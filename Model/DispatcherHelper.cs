@@ -82,6 +82,8 @@ namespace LobsterConnect.Model
             return await taskCompletionSource.Task;
 
         }
+
+
         // There is no TaskCompletionSource<void> so we use a bool that we throw away.
         public static async Task RunAsyncTaskOnUIAsync(
             Func<Task> func) =>
@@ -166,8 +168,6 @@ namespace LobsterConnect.Model
 
         public static bool Initialise(int mainThread, Microsoft.Maui.Dispatching.IDispatcher mainDispatcher)
         {
-            //if(_MainThreadId==-1)
-            //    _MainThreadId = Environment.CurrentManagedThreadId;
             _MainThreadId = mainThread;
             _MainDispatcher = mainDispatcher;
 
@@ -183,7 +183,6 @@ namespace LobsterConnect.Model
                 else
                     return false;
             }
-
         }
 
         public static void RunOnNewThread(Action action)

@@ -25,18 +25,23 @@ using LobsterConnect.Model;
 
 namespace LobsterConnect.V;
 
+/// <summary>
+/// There is only one content page in the app; it's this one.  It consists of a menu bar at the top
+/// including controls for logging on, for adding a session, for setting a 'would like to play' wish-list,
+/// for applying a filter and for selecting gaming events; below that is the main table of
+/// planned sessions, and at the bottom is a window showing logged messages (most recent message at
+/// the top).  The planned sessions can alternatively be shown as a vertical list (without any gaps).  A toggle
+/// control is provided, to switch between these views.
+/// There is a hamburger menu and a title bar heading - but these are defined in the AppShell.xaml file.
+/// 
+/// For design notes concerning the app as a whole, please refer to App.xaml.cs.
+/// </summary>
 public partial class MainPage : ContentPage
 {
     /// <summary>
-    /// There is only one content page in the app; it's this one.  It consists of a menu bar at the top
-    /// including controls for logging on, for adding a session, for setting a 'would like to play' wish-list,
-    /// for applying a filter and for selecting gaming events; below that is the main table of
-    /// planned sessions, and at the bottom is a window showing logged messages (most recent message at
-    /// the top).  The planned sessions can alternatively be shown as a vertical list (without any gaps).  A toggle
-    /// control is provided, to switch between these views.
-    /// There is a hamburger menu and a title bar heading - but these are defined in the AppShell.xaml file.
-    /// 
-    /// For design notes concerning the app as a whole, please refer to App.xaml.cs.
+    /// Construct the main page (expect this to be called from MAUI boilerplate code when the app is launched).
+    /// Since we know that this will be called only once, and will be called soon after the app is launched,
+    /// we put all the app initialisation code here.
     /// </summary>
 	public MainPage()
 	{
@@ -69,7 +74,7 @@ public partial class MainPage : ContentPage
 		Journal.EnsureJournalWorkerRunning();
         MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Cloud sync service has been started");
 
-        // "UserHandle" preference contains the name of a person; if present, this person
+        // The "UserHandle" preference contains the name of a person; if present, this person
         // will be automatically logged on at startup, without any need to enter a password.
         if (Preferences.ContainsKey("UserHandle"))
         {
@@ -89,7 +94,7 @@ public partial class MainPage : ContentPage
         // showing two alerts at the same time.
         if (!Preferences.ContainsKey("AgeConfirmed"))
         {
-            this.ParentChanged += AgeVerification;
+            this.ParentChanged += AgeVerification; // the ParentChanged event fires when the main page is inserted into the visual hierarchy
         }
         else
         {
@@ -98,12 +103,11 @@ public partial class MainPage : ContentPage
         }
 
         // As long as this page is loaded, we need to respond to a 'sessions must be refreshed' event raised
-        // by the view model, by refreshing the main UI grids that show all the sessions.
+        // by the viewmodel, by refreshing the main UI grids that show all the sessions.
         this.Loaded += (o, e) =>
 		{
 			MainViewModel.Instance.SessionsMustBeRefreshed += RefreshSessionsGrids;
 		};
-
 
         this.Unloaded += (o, e) =>
         {
@@ -113,8 +117,12 @@ public partial class MainPage : ContentPage
         // Standard XAML-loading stuff.
         InitializeComponent();
 
+#if IOS // nasty fix for a layout oddity with the layout toggle switch on iOS
+        this.gdLayoutSwitch.HeightRequest=60;
+#endif
+
         // populate the main table and list of session details (the two null parameters don't mean anything)
-		RefreshSessionsGrids(null, null);
+        RefreshSessionsGrids(null, null);
     }
 
     public static MainPage Instance = null;
@@ -149,7 +157,7 @@ public partial class MainPage : ContentPage
     /// <summary>
     /// Show a message to confirm the user is an adult.  Note that this method is called in response to ParentChanged
     /// events on the main page (because this is the earliest indication we get that we have a UI that's capable
-    /// of displaying a message).
+    /// of displaying an alert).
     /// </summary>
     /// <param name="o"></param>
     /// <param name="e"></param>
@@ -213,7 +221,10 @@ public partial class MainPage : ContentPage
 
         if (resizeTableGrid)
         {
+            // Position the row of time slot labels at coordinate 0.
             this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(0, 0, gdSlotLabels.WidthRequest, 30));
+            
+            // Scroll the sessions table to (0,0)
             this.svSessionsTable.ScrollToAsync(0, 0, false);
         }
 
