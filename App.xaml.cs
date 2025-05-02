@@ -117,6 +117,8 @@ public partial class App : Application
 	{
 		InitializeComponent();
 
+        UserAppTheme = AppTheme.Light; // Quick fix for the issue that dark theme looks ugly.
+
         App.ApplicationSuspended = false; // allow logging to happen
 
         // Set up the dispatcher helper (tell it that this thread is the dispatcher thread)
