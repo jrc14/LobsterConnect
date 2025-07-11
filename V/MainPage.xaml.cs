@@ -171,15 +171,15 @@ public partial class MainPage : ContentPage
             {
                 await DispatcherHelper.SleepAsync(2000);
 
-                bool confirmation = await DisplayAlert("Age Verification",
-                    "Because the app allows you to enter personal data and to create and view user-created content, it is not suitable for persons under 18 years of age; such persons must not use the app. Are you under 18 years of age?",
-                    "No", "Yes");
+                bool tooYoung = await DisplayAlert("Age Verification",
+                    "Because the app allows you to enter personal data and to create and view user-created content, it is not suitable for persons under 18 years of age; such persons must not use the app. Are you aged 18 or more?",
+                    "Yes", "No");
                 // If the user is not over 18, hide the UI (the user won't be able to do anything more with the app).
-                if (!confirmation)
+                if (tooYoung)
                 {
                     this.gdMainPage.IsVisible = false;
 
-                    await this.DisplayAlert("Age Verification", "Because you answered YES to the age verification question, you will not be able to run the app.  Please close it now", "Dismiss");
+                    await this.DisplayAlert("Age Verification", "Because you answered NO to the age verification question, you will not be able to run the app.  Please close it now", "Dismiss");
                 }
                 else // If the user is 18 or over, save True into the app's preferences, so we don't ask again.
                 {
@@ -313,7 +313,7 @@ public partial class MainPage : ContentPage
 
     /// <summary>
     /// Create a view (a border) containing all the information about the session.  It will fit nicely into
-    /// a soace 75 wide and 100 high.  If tapped, it will present a popup for editing the session.
+    /// a space 75 wide and 100 high.  If tapped, it will present a popup for editing the session.
     /// </summary>
     /// <param name="session"></param>
     /// <returns></returns>
@@ -513,7 +513,6 @@ public partial class MainPage : ContentPage
 
 							Person user = MainViewModel.Instance.GetPerson(userAndPassword.Item1);
 
-                            
 							if (user == null)
                             // check the user exists
                             {

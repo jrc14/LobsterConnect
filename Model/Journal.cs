@@ -69,7 +69,11 @@ namespace LobsterConnect.Model
     ///         
     /// WishList (Create, Update and Delete): a record that a certain person is interested in playing a certain game at a certain gaming event
     ///     ID consists of person handle (ID) , game name (ID), gaming event name (ID).
+    ///     Journal entries for wishlist records must always include EVENTNAME, the name of the gaming event at which tperson hopes to play the game.
+    ///     This value cannot be updated after a record has been created.  Note that it duplicates information that's
+    ///     already present in the ID (but it's a good idea anyway, to make it easier to filter the journal by event name).
     ///     Attributes are:
+    ///         EVENTNAME (Mandatory in all journal entries and immutable): the name of the gaming event at which the person hopes to play the game
     ///         NOTES: explanatory notes written by the person who's expressing interest in playing the game
     ///         
     /// GamingEvent (Create and Update only): a record of an event (an evening, a gaming day, a convention) at which games can be played.
@@ -230,7 +234,7 @@ namespace LobsterConnect.Model
         /// A journal entry will have:
         ///  - Installation ID: a GUID identifying which machine it originated from
         ///  - Local Sequence Number: the sequence number, on the originating machine, of the entry.  Entries
-        ///    created on any one machine ought to begin with sequence number 1, and go on from that increading by 1
+        ///    created on any one machine ought to begin with sequence number 1, and go on from that increasing by 1
         ///    each time that machine originates another entry.
         ///  - Cloud Sequence Number: Numbers, beginning at 1 and increasing by 1 each time another entry is notified
         ///    to the cloud sync service.  If a journal entry has a 0 cloud sequence number it means that it hasn't
@@ -264,19 +268,20 @@ namespace LobsterConnect.Model
                 _installationId = installationId;
 
                 // Support for selective loading of the viewmodel according to the current event name (it's not implemented yet)
-                if (e == EntityType.Session || e == EntityType.SignUp) // event name for sessions and sign-ups is in the EVENTNAME parameter
+                if (e == EntityType.Session || e == EntityType.SignUp || e == EntityType.WishList) // event name for sessions, wishlist items and sign-ups is in the EVENTNAME parameter
                 {
                     _gamingEventFilter = GetParameterValue("EVENTNAME", p,"");
                 }
-                else if (e == EntityType.WishList) // event name for wishlist entries is the third part of the id string
-                {
-                    if (i.Count(ch => ch == ',') == 2) // id should be person,game,event
-                    {
-                        _gamingEventFilter = i.Split(',')[2];
-                    }
-                    else
-                        _gamingEventFilter = "";
-                }
+                // commented out because wish-list items now always have an EVENTNAME parameter
+                //else if (e == EntityType.WishList) // event name for wishlist entries is the third part of the id string
+                //{
+                //    if (i.Count(ch => ch == ',') == 2) // id should be person,game,event
+                //    {
+                //        _gamingEventFilter = i.Split(',')[2];
+                //    }
+                //    else
+                //        _gamingEventFilter = "";
+                //}
                 else // other entity types don't get selectively loaded according to the gaming event
                 {
                     _gamingEventFilter = "";
@@ -834,10 +839,16 @@ namespace LobsterConnect.Model
                         throw new Exception("JournalEntry.ReplaySession: game name is null or missing");
                     }
 
+                    string eventName = GetParameterValue("EVENTNAME", this._parameters);
+                    if (string.IsNullOrEmpty(eventName))
+                    {
+                        throw new Exception("JournalEntry.ReplaySession: event name is null or missing");
+                    }
+
                     vm.CreateSession(false, sessionId,
                         proposer,
                         toPlay,
-                        GetParameterValue("EVENTNAME", this._parameters),
+                        eventName,
                         startAt,
                         false,
                         GetParameterValue("NOTES", this._parameters,""),
@@ -887,24 +898,32 @@ namespace LobsterConnect.Model
                 string sessionId = personAndSession.Split(',')[1];
 
                 string modifiedBy = GetParameterValue("MODIFIEDBY", this._parameters);
+                string eventName = GetParameterValue("EVENTNAME", this._parameters);
+
+                if(string.IsNullOrEmpty(eventName))
+                {
+                    throw new Exception("JournalEntry.ReplaySignUp: event name is missing");
+                }
 
                 if (!vm.CheckPersonHandleExists(personHandle))
                 {
                     throw new Exception("JournalEntry.ReplaySignUp: personHandle is not recognised: '"+personHandle+"'");
                 }
 
-                if (vm.GetSession(sessionId)==null)
+                Session session = vm.GetSession(sessionId);
+                if (session == null)
                 {
                     throw new Exception("JournalEntry.ReplaySignUp: sessionId is not recognised: '" + sessionId + "'");
                 }
-
+                if(session.EventName!=eventName)
+                {
+                    throw new Exception("JournalEntry.ReplaySignUp: event name for session is wrong: '" + sessionId + "': expected '" + session.EventName + "' but got '" + eventName + "'");
+                }
                 if (this._operationType == OperationType.Create)
                 {
-                    vm.SignUp(false, personHandle, sessionId, false,
-                        modifiedBy);
+                    vm.SignUp(false, personHandle, sessionId, false, modifiedBy);
 
                     vm.SyncCheckSignUp(sessionId, personHandle, modifiedBy);
-
                 }
                 else if (this._operationType == OperationType.Delete)
                 {
@@ -920,7 +939,7 @@ namespace LobsterConnect.Model
 
 
             /// <summary>
-            /// Replay a sign-up wish-list entry
+            /// Replay a wish-list entry
             /// </summary>
             /// <param name="vm"></param>
             /// <exception cref="Exception"></exception>
@@ -956,7 +975,6 @@ namespace LobsterConnect.Model
                 {
                     vm.CreateWishList(false, personHandle, gameId, eventName, notes);
                     vm.SyncCheckWishList(personHandle, gameId, eventName, notes);
-
                 }
                 else if (this._operationType == OperationType.Delete)
                 {
@@ -1325,7 +1343,7 @@ namespace LobsterConnect.Model
             {
                 List<JournalEntry> toDo = new List<JournalEntry>();
 
-                // Pick up any joutnal updates resulting from changes made through the UI
+                // Pick up any journal updates resulting from changes made through the UI
                 lock (QLock)
                 {
                     toDo.AddRange(Q);

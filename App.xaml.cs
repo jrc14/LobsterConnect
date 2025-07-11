@@ -19,10 +19,25 @@
 // TO DO
 // // //
 // - BUG: Dark Mode on Android looks nasty (fix it so text is always shown in black on the 'session' rectangles)
+// - A few of these changes mean popping up an informational/tip message, which probably doesn't need showing every time
+//   so I should code up a general purpose 'show tip' popup which includes a 'don't show this message again' checkbox. 
 // - Make Dark Mode/Light Mode work more consistently overall - get the app to respect system theme, or to
 //   'force dark mode' or 'force light mode'.  That needs a 'settings' page, of course ... .  Maybe initially it
 //   be useful just to respect the system theme.
+// - Make it clear that when you create a session you aren't automatically added to it.  Also make it clear
+//   that max/min player numbers are informational only and not enforced by the app (and that to actually declare
+//   a game full, the proposer has to make it full; just taking the last place won't do it)
+// - For the 'filter by person' filters, include a quick button for 'me' if there is a logged on user
+// - Clarify what 'games I'd like to play' will do, and show how you can look for games others would like
+//   to play, and note that when you've flagged a game as 'would like to play' you'll get notified if someone
+//   proposes it.
+// - Proposal items could include parameters for 'time commitment' and 'ok to teach rules / for new players'
+//   (at a minimum I could mention this is a good thing to include in 'notes')
 // - Put a 'sync now' option on the main menu
+// - If the event is actually underway, the scrolling views should initially autoscroll to the current time.
+// - (done) The 'age 18' prompt asks the question in a confusing fashion
+// - (done) BUG: create session from wishlist popup doesn't appear.  There may be other popup issues (check my WhatsApp reports)
+// - (done) All transactions on SignUp, WishList and Session must include EventKey (for selective loading purposes)
 //
 
 using LobsterConnect.Model;

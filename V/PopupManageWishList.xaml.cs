@@ -129,7 +129,7 @@ public partial class PopupManageWishList : Popup
                 "No longer interested",
                 "Update my notes",
                 "Who else is interested?",
-                "Propose session to play");
+                "Propose a session to play");
 
             if (option == "No longer interested")
             {

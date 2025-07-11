@@ -1324,6 +1324,7 @@ namespace LobsterConnect.VM
                     {
                         string id = person + "," + game + "," + gamingEvent;
                         Journal.AddJournalEntry(Journal.EntityType.WishList, Journal.OperationType.Create, id,
+                            "EVENTNAME", gamingEvent,
                             "NOTES", notes);
 
                         Journal.CloudSyncRequested = true;
@@ -1335,8 +1336,8 @@ namespace LobsterConnect.VM
 
         /// <summary>
         /// Update a wish-list entry.  The parameters are the person handle, game name and gaming event; the other attribute (notes) is optional,
-        /// but leaving it out would be an odd thing to do because the only thing that this method can do it
-        /// update the Notes attribute of a wish-list entry, there being no other attributes.
+        /// but leaving it out would be an odd thing to do because the only thing that this method can do is
+        /// update the Notes attribute of a wish-list entry, there being no other modifiable attributes.
         /// An exception is thrown if the person handle, game name or gaming event are null or invalid, or if a wish list item  having that
         /// person handle, game name and gaming event don't exist in the wish-list collection.
         /// </summary>
@@ -1402,6 +1403,7 @@ namespace LobsterConnect.VM
                     {
                         string id = person + "," + game + "," + gamingEvent;
                         Journal.AddJournalEntry(Journal.EntityType.WishList, Journal.OperationType.Update, id,
+                            "EVENTNAME", gamingEvent,
                             "NOTES", notes);
 
                         Journal.CloudSyncRequested = true;
@@ -1485,7 +1487,8 @@ namespace LobsterConnect.VM
                     if (informJournal)
                     {
                         string id = person + "," + game + "," + gamingEvent;
-                        Journal.AddJournalEntry(Journal.EntityType.WishList, Journal.OperationType.Delete, id);
+                        Journal.AddJournalEntry(Journal.EntityType.WishList, Journal.OperationType.Delete, id,
+                            "EVENTNAME", gamingEvent);
 
                         Journal.CloudSyncRequested = true;
                     }
@@ -1878,7 +1881,7 @@ namespace LobsterConnect.VM
         /// </summary>
         /// <param name="gameName">sessions for this game will be returned</param>
         /// <param name="eventName">only sessions for this gaming event will be included (defaulted to current event)</param>
-        /// <param name="criteria">only sessions matching this filter will be included</param>
+        /// <param name="criterion">only sessions matching this filter will be included</param>
         /// <returns></returns>
         public List<Session> GetSessionsForGame(string gameName, string eventName=null, Predicate<Session> criterion=null)
         {
