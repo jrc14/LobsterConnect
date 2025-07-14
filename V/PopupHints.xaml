@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="LobsterConnect.V.PopupHints">
+    <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" x:Name="rdefTextViewer"/>
+            <RowDefinition Height="Auto" x:Name="rdefDontShowAgain"/>
+            <RowDefinition Height="Auto" x:Name="rdefButtons"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="colDef0" Width="450"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" x:Name="lbCaption" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        <ScrollView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Black" Padding="4" Margin="4" >
+            <Label x:Name="lbTextViewer" LineBreakMode="WordWrap" TextColor="White"/>
+        </ScrollView>
+        <HorizontalStackLayout x:Name="hslDontShowAgain" IsVisible="False" Grid.Row="2" Grid.Column="0">
+            <Label TextColor="Black" Text="Don't show this message again:" VerticalOptions="Center"/>
+            <CheckBox x:Name="cbxDontShowAgain" VerticalOptions ="Center" IsChecked="False"/>
+        </HorizontalStackLayout>
+        <Button Grid.Row="3" Grid.Column="0" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+    </Grid>
+</toolkit:Popup>

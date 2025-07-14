@@ -35,7 +35,7 @@ public partial class PopupFirstRunMessage : Popup
         + " - Keep an eye on the scrolling list of messages at the bottom of the screen. If people join or leave a session that you organised, you'll get notifications in this area. Or if a session you joined is declared FULL or ABANDONED, you'll also get a notification here.  You'll also get notified here if someone proposes a session to play a game that is on your 'would like to play' list.";
 
     /// <summary>
-    /// Popup for displaying the legal terms associated with the app.
+    /// Popup for displaying the first run message for the app.
     /// </summary>
     public PopupFirstRunMessage()
     {
@@ -67,7 +67,7 @@ public partial class PopupFirstRunMessage : Popup
         }
         catch (Exception ex)
         {
-            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupLegalTerms ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
+            Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupFirstRunMessage ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
 
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);

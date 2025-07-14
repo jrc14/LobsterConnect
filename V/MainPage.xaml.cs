@@ -621,6 +621,9 @@ public partial class MainPage : ContentPage
 			}
 			else
 			{
+                if(!PopupHints.DontShowAgain("AddSession"))
+                    await this.ShowPopupAsync(new PopupHints().SetUp("AddSession", true), CancellationToken.None);
+
 				var popup = new PopupAddSession();
 				var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
 			}
@@ -746,6 +749,9 @@ public partial class MainPage : ContentPage
 
         if (sessionTimeSlot < 0)
             sessionTimeSlot = 0;
+
+        if (!PopupHints.DontShowAgain("AddSession"))
+            await this.ShowPopupAsync(new PopupHints().SetUp("AddSession", true), CancellationToken.None);
 
         var popup = new PopupAddSession();
         popup.SetTimeSlot(sessionTimeSlot); // set the initial selected value in the time slot picker in the popup

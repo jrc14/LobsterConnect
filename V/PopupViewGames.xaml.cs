@@ -100,6 +100,9 @@ public partial class PopupViewGames : Popup
                 {
                     try
                     {
+                        if (!PopupHints.DontShowAgain("AddSession"))
+                            await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("AddSession", true), CancellationToken.None);
+
                         var popup = new PopupAddSession();
                         popup.SetChosenGame(gg.Name);
                         var popupResult = await MainPage.Instance.ShowPopupAsync(popup, CancellationToken.None);

@@ -142,6 +142,15 @@ public partial class PopupAddSession : Popup
 
                 MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "You (user '"+proposer+"') have created a session to play '"+this.chosenGameName+"' at "+startTime.ToString());
 
+                bool signUp = await MainPage.Instance.DisplayAlert("Sign up to session",
+                    "You've just proposed a session to play '"+ this.chosenGameName +"'.  Do you want to sign up to play at this session yourself?",
+                    "Yes", "No");
+
+                if(signUp)
+                {
+                    MainViewModel.Instance.SignUp(true, proposer, sessionId, true, MainViewModel.Instance.LoggedOnUser.Handle);
+                    MainViewModel.Instance.LogUserMessage(Model.Logger.Level.INFO, "'" + proposer + "' has signed up to play '" + this.chosenGameName + "'");
+                }
             }
             catch(Exception ex)
             {

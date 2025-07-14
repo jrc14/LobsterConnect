@@ -155,8 +155,11 @@ public partial class PopupManageWishList : Popup
             else if (option == "Propose a session to play")
             {
                 await CloseAsync(null, CancellationToken.None);
-                Model.DispatcherHelper.RunAsyncOnUI(() =>
+                Model.DispatcherHelper.RunAsyncOnUI(async () =>
                 {
+                    if (!PopupHints.DontShowAgain("AddSession"))
+                        await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("AddSession", true), CancellationToken.None);
+
                     var popup = new PopupAddSession();
                     popup.SetChosenGame(item.Game);
                     MainPage.Instance.ShowPopup(popup);
