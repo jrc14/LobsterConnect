@@ -195,7 +195,7 @@ public partial class PopupManageSession : Popup
                         if(confirmation)
                         {
                             MainViewModel.Instance.CancelSignUp(true, personHandle, s.Id, MainViewModel.Instance.LoggedOnUser.Handle);
-                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "The sign-up for '" + personHandle + "' to play '" + s.ToPlay + "' has been cancelled by '"+ MainViewModel.Instance.LoggedOnUser.Handle);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "The sign-up for '" + personHandle + "' to play '" + s.ToPlay + "' has been cancelled by '"+ MainViewModel.Instance.LoggedOnUser.Handle+"'");
                         }
                     }
                 }
@@ -336,6 +336,10 @@ public partial class PopupManageSession : Popup
         Microsoft.Maui.ApplicationModel.DataTransfer.Clipboard.Default.SetTextAsync(shareUrl);
         MainPage.Instance.DisplayAlert("Sharing", "A link to this session has been copied. Please paste it into a chat session, message or email to share it.", "Dismiss");
 #pragma warning restore 4014
+    }
+    void btnHelpClicked(Object o, EventArgs e)
+    {
+        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ManageSession", false));
     }
 
     async void OnDismissClicked(object sender, EventArgs e)

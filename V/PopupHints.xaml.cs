@@ -76,6 +76,12 @@ public partial class PopupHints : Popup
     }
     private string settingsKey;
 
+    /// <summary>
+    /// Returns true if the user has already said "don't show again" for the hints popup
+    /// identified by key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
     public static bool DontShowAgain(string key)
     {
         bool dontShowAgain = Preferences.Get("DontShowAgain_"+key, false);
@@ -104,15 +110,34 @@ public partial class PopupHints : Popup
                     + " - There are numeric controls to set the minimum and maximum number of players that you want to include in this session.  Note that these are informational only - the app won't enforce these limits, though it will show a warning if they are violated.\n"
                     + " - Once you've created the session, you'll be prompted to add notes if you like.  Use this to specify any extra information, for instance indicating whether inexperienced players are welcome and a teach will be provided initially.\n"
                     + " - You'll then be given the opportunity to link to a chat for discussing sign-ups for this session. For a BGG Geek List link, just paste it from your web browser; for Wix use the 'share' button to get a link; for a WhatsApp link, set up a new group (or use an existing one that you own) and copy the 'invitation to group via link' link from it, and paste it into the popup in LobsterConnect.\n"
-                    + " - Finally the app will ask whether you want to sign up yourself; usually you'll want to answer YES, but it is quite OK to propose a session that you're not planning to participate in.\n";
-
+                    + " - Finally the app will ask whether you want to sign up yourself; usually you'll want to answer YES, but it is quite OK to propose a session that you're not planning to participate in.\n"
+                    ;
+                break;
+            case "ManageSession":
+                caption = "Manage Session";
+                hintsText =
+                      " - You're viewing details of a proposed gaming session to play the indicated game at the indicated time.  The game name, start time, proposer name and BGG link are shown in the top part of the popup.\n"
+                    + " - Below that, are the chat link, notes and session state.  If you're the proposer of the session, you'll see buttons on the right hand side that you can use to change these elements (admin users can also make changes event if they aren't the proposer).\n"
+                    + " - The chat link (if the proposer has set one up) will take you to a BGG Geek List entry, Wix page or WhatsApp chat for discussing signups to this gaming session.\n"
+                    + " - The notes text is for any additional information that the proposer chooses to include - for instance indicating whether inexperienced players are welcome and a teach will be provided initially.\n"
+                    + " - The session's state is one of OPEN, FULL or ABANDONED.  OPEN means that further players are welcome to join, FULL means that the gaming session is going ahead with the players who have already signed up, and ABANDONED means the session isn't happening after all.\n"
+                    + " - Note that the state is not set automatically.  In principle, in some cases it could be updated automatically by referencing the minimum/maximum/current player counts for the session, but an automated rule would sometimes do something stupid.  Therefore state can be changed only by the person proposing the session.\n"
+                    + " - If you're the organiser of a session, you should set it to FULL once you don't want any more players, and you should then keep an eye on it in case someone drops out (because in that case you might want to switch it back to OPEN).\n"
+                    + " - Below this, is the button for signing up to the session.  The button will show a list of the people already signed up; tap on the button to sign up (or if you're already signed up, to cancel your sign-up).  Next to this button there is 'share link' button; if you want to share details of this session with another LobsterConnect user, tap this button to obtain a suitable 'deep link'.\n"
+                    + " - Additionally, if you're the organiser, you'll have the option of removing other people's sign-ups.  There could be good reasons for wanting to remove someone else's sign-up, but obviously you should, as a matter of courtesy, contact the person whose sign-up you're cancelling.\n"
+                    ;
                 break;
             default:break;
         }
 
         this.SetCaption(caption);
         this.SetHintsText(hintsText);
-        this.SetDontShowAgain(false, key);
+
+        this.hslDontShowAgain.IsVisible = showComboBox;
+        if(showComboBox)
+        {
+            this.SetDontShowAgain(false, key);
+        }
 
         return this;
     }
@@ -125,7 +150,7 @@ public partial class PopupHints : Popup
         }
         else if(this.hslDontShowAgain.IsVisible==false)
         {
-            // don't save any preference because the show-again control was never made visible
+            // don't save any preference because the don't-show-again control was never made visible
         }
         else
         {
