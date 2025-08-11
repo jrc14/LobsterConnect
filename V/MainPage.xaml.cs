@@ -201,6 +201,7 @@ public partial class MainPage : ContentPage
     /// Reload the contents of the table of sessions and the list of sessions
     /// <param name="o"></param>
     /// <param name="a"></param>
+    /// </summary>
     public void RefreshSessionsGrids(object o, SessionsRefreshEventArgs a)
 	{
         List<Session>[] sessions;
@@ -431,6 +432,7 @@ public partial class MainPage : ContentPage
                          "Any information you enter here will be visible to other app users (and, potentially, anyone at all).\n"
                         +"Do not enter sensitive information (such as credit card numbers), do not enter personal information about anyone other than yourself, and do not enter anything defamatory, obscene, offensive or otherwise inappropriate.\n"
                         +"To see details of how we will use your personal information, tap the 'Review Policy' button below.", "Continue", "Review Policy");
+                    
                     if (!confirmation)
                     {
                         var popup = new PopupDataHandling();
@@ -672,6 +674,9 @@ public partial class MainPage : ContentPage
     /// <param name="e">ignored</param>
     async void btnFilterClicked(Object o, EventArgs e)
     {
+        if (!PopupHints.DontShowAgain("ManageFilter"))
+            await this.ShowPopupAsync(new PopupHints().SetUp("ManageFilter", true), CancellationToken.None);
+
         var popup = new PopupManageFilter();
         popup.SetFilter(new SessionFilter(MainViewModel.Instance.CurrentFilter));
         var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
@@ -689,6 +694,9 @@ public partial class MainPage : ContentPage
     /// <returns></returns>
 	public async Task<bool> ShowSessionManagementPopup(Session s)
 	{
+        if (!PopupHints.DontShowAgain("ManageSession"))
+            await this.ShowPopupAsync(new PopupHints().SetUp("ManageSession", true), CancellationToken.None);
+
         var popup = new PopupManageSession();
 		popup.SetSession(s);
         var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
@@ -715,6 +723,9 @@ public partial class MainPage : ContentPage
     /// <param name="e">ignored</param>
     private async void lblEventTapped(object sender, TappedEventArgs e)
     {
+        if (!PopupHints.DontShowAgain("ChooseEvent"))
+            await this.ShowPopupAsync(new PopupHints().SetUp("ChooseEvent", true), CancellationToken.None);
+
         var popup = new PopupChooseEvent();
 
 		popup.SetEventList(MainViewModel.Instance.GetAvailableEvents(), MainViewModel.Instance.CurrentEvent.Name);

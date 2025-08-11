@@ -79,6 +79,11 @@ public partial class PopupManageFilter : Popup
 
         persons.Insert(0, "[Any Person]");
 
+        if(MainViewModel.Instance.LoggedOnUser!=null)
+        {
+            persons.Insert(1, "[Me: "+ MainViewModel.Instance.LoggedOnUser.Handle+"]");
+        }
+
         List<string> allStates = new List<string>() { "[Any State]", "OPEN", "FULL", "ABANDONED" };
 
         this.pickerProposer.ItemsSource = persons;
@@ -126,13 +131,43 @@ public partial class PopupManageFilter : Popup
         SessionFilter f = new SessionFilter();
 
         if (this.pickerProposer.SelectedIndex > 0)
-            f.Proposer = this.pickerProposer.SelectedItem as string;
+        {
+            string pHandle = this.pickerProposer.SelectedItem as string;
+            if (string.IsNullOrEmpty(pHandle))
+            {
+                f.Proposer = null;
+            }
+            else if (pHandle.StartsWith("[Me:"))
+            {
+                if (MainViewModel.Instance.LoggedOnUser != null)
+                    f.Proposer = MainViewModel.Instance.LoggedOnUser.Handle;
+            }
+            else
+            {
+                f.Proposer = pHandle;
+            }
+        }
 
         if (!string.IsNullOrEmpty(this.entryGameName.Text))
             f.ToPlay = this.entryGameName.Text;
 
         if (this.pickerSignUps.SelectedIndex > 0)
-            f.SignUpsInclude = this.pickerSignUps.SelectedItem as string;
+        {
+            string sHandle = this.pickerSignUps.SelectedItem as string;
+            if (string.IsNullOrEmpty(sHandle))
+            {
+                f.SignUpsInclude = null;
+            }
+            else if (sHandle.StartsWith("[Me:"))
+            {
+                if (MainViewModel.Instance.LoggedOnUser != null)
+                    f.SignUpsInclude = MainViewModel.Instance.LoggedOnUser.Handle;
+            }
+            else
+            {
+                f.SignUpsInclude = sHandle;
+            }
+        }
 
         if (this.pickerState.SelectedIndex > 0)
             f.State = this.pickerState.SelectedItem as string;
@@ -203,5 +238,10 @@ public partial class PopupManageFilter : Popup
                 }
             }
         }
+    }
+
+    void btnHelpClicked(Object o, EventArgs e)
+    {
+        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ManageFilter", false));
     }
 }

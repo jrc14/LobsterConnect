@@ -14,6 +14,12 @@
             <ColumnDefinition x:Name="colDef0" Width="150"/>
             <ColumnDefinition x:Name="colDef1" Width="150"/>
         </Grid.ColumnDefinitions>
+        <ImageButton Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HorizontalOptions="End" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Transparent"  BorderWidth="0" BackgroundColor="Transparent" CornerRadius="5"
+			         Clicked="btnHelpClicked">
+            <ImageButton.Source>
+                <FontImageSource Glyph="&#xf638;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </ImageButton.Source>
+        </ImageButton>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Gaming Event" FontAttributes="Bold"></Label>
         <Label Grid.Row="1" Grid.Column="0" HeightRequest="50" Text="Choose an event"></Label>
         <Picker Grid.Row="1" Grid.Column="1" HeightRequest="50" x:Name="pickerEvents" ></Picker>

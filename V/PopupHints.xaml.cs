@@ -116,7 +116,7 @@ public partial class PopupHints : Popup
             case "ManageSession":
                 caption = "Manage Session";
                 hintsText =
-                      " - You're viewing details of a proposed gaming session to play the indicated game at the indicated time.  The game name, start time, proposer name and BGG link are shown in the top part of the popup.\n"
+                      " - You're viewing details of a proposed gaming session to play the indicated game at the indicated time.  The top part of the popup will show the game name, start time, proposer name and BGG link.\n"
                     + " - Below that, are the chat link, notes and session state.  If you're the proposer of the session, you'll see buttons on the right hand side that you can use to change these elements (admin users can also make changes event if they aren't the proposer).\n"
                     + " - The chat link (if the proposer has set one up) will take you to a BGG Geek List entry, Wix page or WhatsApp chat for discussing signups to this gaming session.\n"
                     + " - The notes text is for any additional information that the proposer chooses to include - for instance indicating whether inexperienced players are welcome and a teach will be provided initially.\n"
@@ -127,7 +127,33 @@ public partial class PopupHints : Popup
                     + " - Additionally, if you're the organiser, you'll have the option of removing other people's sign-ups.  There could be good reasons for wanting to remove someone else's sign-up, but obviously you should, as a matter of courtesy, contact the person whose sign-up you're cancelling.\n"
                     ;
                 break;
-            default:break;
+            case "ChooseEvent":
+                caption = "Choose Event";
+                hintsText =
+                      " - You're choosing among the available gaming events.\n"
+                    + " - The main screen shows the name of the currently selected event, and the table below it shows all the gaming sessions at that event.  It only shows sessions for that one event, so if you want to look at sessions for a different event, you need to switch events.\n"
+                    + " - This popup shows the list of events that you can switch between.  When you switch to a different event, you will see the gaming sessions planned for that event.\n"
+                    + " - There will always be a 'TEST Convention' event, which you can select if you just want to mess around with the app, and see how to propose sessions, sign up to play games, or manage a wish-list of games\n"
+                    + " - In addition to this, the list includes any LoB gaming events (such as LoBsterCon conventions) that are happening now, or being planned.\n"
+                    + " - To select a gaming event, choose it from the list, and then tap OK.  To make no change to your choice of current event, tap Cancel.\n"
+                    ;
+                break;
+            case "ManageFilter":
+                caption = "ManageFilter";
+                hintsText =
+                      " - You're setting up a filter so that only some gaming sessions will be shown in the main screen.\n"
+                    + " - You can filter according to the person proposing a session, or select '[Any Person]' to not filter by person.  If you're logged on at the moment, the second item in the list will be '[Me ...]', to make it easier to select yourself without having to hunt around for your name.  Next to the dropdown is a text field to search for a person name and skip straight to that person in the list.\n"
+                    + " - You can choose a game, if you only want to see sessions proposed for that particular game.\n"
+                    + " - You can choose a state (OPEN, FULL or ABANDONED), if you only want to see sessions in a particular state.\n"
+
+
+                    + " - To apply the chosen filter settings, tap OK.  To make no change to the filter, tap Cancel.\n"
+                    ;
+                break;
+            default:
+                caption = key;
+                hintsText = "Coding error: no help text is available for " + key;
+                break;
         }
 
         this.SetCaption(caption);

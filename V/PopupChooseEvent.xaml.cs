@@ -81,4 +81,8 @@ public partial class PopupChooseEvent : Popup
         await CloseAsync(this.pickerEvents.SelectedItem as string, CancellationToken.None);
     }
 
+    void btnHelpClicked(Object o, EventArgs e)
+    {
+        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ChooseEvent", false));
+    }
 }
