@@ -18,6 +18,13 @@
             <ColumnDefinition x:Name="colDef1" Width="200"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Games I'd Like to Play:" FontAttributes="Bold"></Label>
+        <ImageButton Grid.Row="0" Grid.Column="1"  HorizontalOptions="End" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Transparent"  BorderWidth="0" BackgroundColor="Transparent" CornerRadius="5"
+			         Clicked="btnHelpClicked">
+            <ImageButton.Source>
+                <FontImageSource Glyph="&#xf638;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
+            </ImageButton.Source>
+        </ImageButton>
+
         <ScrollView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="250" Orientation="Vertical">
             <Grid RowSpacing="0" ColumnSpacing="0" Padding="10" x:Name="gdGames">
                 <Grid.ColumnDefinitions>

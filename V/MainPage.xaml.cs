@@ -657,6 +657,9 @@ public partial class MainPage : ContentPage
             }
             else
             {
+                if (!PopupHints.DontShowAgain("ManageWishList"))
+                    await this.ShowPopupAsync(new PopupHints().SetUp("ManageWishList", true), CancellationToken.None);
+
                 var popup = new PopupManageWishList();
                 var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
             }

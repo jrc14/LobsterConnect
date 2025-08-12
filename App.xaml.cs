@@ -34,6 +34,8 @@
 // - Proposal items could include parameters for 'time commitment' and 'ok to teach rules / for new players'
 //   (at a minimum I could mention this is a good thing to include in 'notes')
 // - Put a 'sync now' option on the main menu
+// - The 'would like to play' list should include options to save and load list of games (so the user can
+//   carry them forward from one event to another.
 // - If the event is actually underway, the scrolling views should initially autoscroll to the current time.
 // - (done) The 'age 18' prompt asks the question in a confusing fashion
 // - (done) BUG: create session from wishlist popup doesn't appear.  There may be other popup issues (check my WhatsApp reports)

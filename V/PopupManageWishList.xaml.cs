@@ -224,4 +224,9 @@ public partial class PopupManageWishList : Popup
             await MainPage.Instance.DisplayAlert("Would Like to Play", "Sorry an error happened: "+ex.Message, "Dismiss");
         }
     }
+
+    void btnHelpClicked(Object o, EventArgs e)
+    {
+        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ManageWishList", false));
+    }
 }

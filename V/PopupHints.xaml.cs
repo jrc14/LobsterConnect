@@ -139,15 +139,29 @@ public partial class PopupHints : Popup
                     ;
                 break;
             case "ManageFilter":
-                caption = "ManageFilter";
+                caption = "Manage Filter";
                 hintsText =
                       " - You're setting up a filter so that only some gaming sessions will be shown in the main screen.\n"
                     + " - You can filter according to the person proposing a session, or select '[Any Person]' to not filter by person.  If you're logged on at the moment, the second item in the list will be '[Me ...]', to make it easier to select yourself without having to hunt around for your name.  Next to the dropdown is a text field to search for a person name and skip straight to that person in the list.\n"
-                    + " - You can choose a game, if you only want to see sessions proposed for that particular game.\n"
+                    + " - You can filter by game name, entering some part of the game's name to see only sessions involving games having names matching the text you entered.\n"
+                    + " - You can filter so that you see only sessions where a particular person has signed up.\n"
                     + " - You can choose a state (OPEN, FULL or ABANDONED), if you only want to see sessions in a particular state.\n"
-
-
+                    + " - Using the 'Only games that I'd 'like to play' checkbox, you can filter to see only gaming sessions involving games on your personal 'would like to play' wishlist.\n"
                     + " - To apply the chosen filter settings, tap OK.  To make no change to the filter, tap Cancel.\n"
+                    ;
+                break;
+            case "ManageWishList":
+                caption = "Manage Wish-List";
+                hintsText =
+                      " - You're managing your wish-list, which is to say the list of games that you would like to play at the currently selected gaming event.\n."
+                    + " - Putting a game on this list is not a definite arrangement to play any particular game at any particular time; rather it's an indication of interest.\n"
+                    + " - By adding a game to your 'would like to play' wish-list, you are letting other players know of your interest in the game, so that if they too are interested, one of you might make a definite proposal to play the game.\n"
+                    + " - If there are any games on your wish-list, you'll see them listed in this window; if no games are listed it means you haven't got any games on your wish-list to play at this event."
+                    + " - Each game in the list will, next to the game name, show any comments you've added, and then a button with one or more *s on it.  The number of *s indicates how many people have indicated that that would like to play this game.\n"
+                    + " - Tap on the button with the *s to take various actions, such as removing the game from your wish-list, update your comment, see details of the people who also want to play this game, or to propose a session to play the game.\n"
+                    + " - To put a game onto your wish-list, tap the 'Add a Game I'd Like to Play' button; a popup will appear, on which you can choose a game to add.\n"
+
+
                     ;
                 break;
             default:
