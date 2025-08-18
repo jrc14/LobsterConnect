@@ -17,6 +17,8 @@
 
 using System.ComponentModel;
 using LobsterConnect.Model;
+using System.Text.RegularExpressions;
+using CoreVideo;
 
 
 namespace LobsterConnect.VM
@@ -374,6 +376,8 @@ namespace LobsterConnect.VM
                 Preferences.Remove("GamingEvent");
                 Preferences.Remove("AgeConfirmed");
                 Preferences.Remove("LastRefreshedDate");
+
+                V.PopupHints.ResetDontShowAgain();
 
                 this._currentEvent = null;
                 this._availableEvents.Clear();
@@ -1517,7 +1521,9 @@ namespace LobsterConnect.VM
         private SessionFilter _currentFilter = new SessionFilter();
 
         /// <summary>
-        /// Sets the current event to a new event.  The name must correspond to an event in the list returned by GetAvailableEventNames()
+        /// Sets the current event to a new event.  The name must correspond to an event in the list returned by GetAvailableEventNames().
+        /// If the event name contains a string YYYY-MM-DD this will be used to set up the start date of the event, and
+        /// in that case SessionTime.Current will thereafter return a meaningful value once the event is underway.
         /// </summary>
         /// <param name="eventName"></param>
         public void SetCurrentEvent(string eventName)
@@ -1556,6 +1562,35 @@ namespace LobsterConnect.VM
                 ResetWishListCachedItems(); // because wish-list items are cached for the current event only, we must clear the cache when we change the event
                 SessionTime.SetEventType(g.EventType); // set the number of gaming time slots and their labels, according to the type of gaming event
                 this.CurrentEvent = g;
+
+                Regex rex = new Regex(@"20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]"); // matches date strings like 2025-08-16
+
+                Match m=rex.Match(g.Name);
+                bool success = true;
+                int yyyy=0, mm=0, dd=0;
+                if(!m.Success)
+                {
+                    success = false;
+                }
+                else // regex matched
+                {
+                    string YMD = m.Value;
+                    if (YMD.Length == 10)
+                    {
+                        if (!int.TryParse(YMD.Substring(0, 4), out yyyy))
+                            success = false;
+                        if (!int.TryParse(YMD.Substring(5, 2), out mm))
+                            success = false;
+                        if (!int.TryParse(YMD.Substring(8, 2), out dd))
+                            success = false;
+                    }
+                    else
+                        success = false;
+                }
+                if (success)
+                    SessionTime.SetEventDate(yyyy, mm, dd);
+                else
+                    SessionTime.SetEventDate(0, 0, 0);
             }
         }
 

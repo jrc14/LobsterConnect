@@ -95,6 +95,9 @@ public partial class PopupAddSession : Popup
 
     private async void OnChooseGameClicked(object sender, EventArgs e)
     {
+        if (!PopupHints.DontShowAgain("ChooseGame"))
+            await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("ChooseGame", true), CancellationToken.None);
+
         var popup = new PopupChooseGame();
         var popupResult = await MainPage.Instance.ShowPopupAsync(popup, CancellationToken.None);
 

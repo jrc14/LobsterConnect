@@ -166,6 +166,65 @@ namespace LobsterConnect.VM
             SetUpLabelsAndTimeSlots(eventType);
         }
 
+        /// <summary>
+        /// Change the event date (year, month and day) that will be used for trying to find the 'current' session time
+        /// (i.e. the timeslot that DateTime.Now falls within).  This is useful, once an event is ongoing,
+        /// for scrolling the session table/list so that is shows the current time.
+        /// Values of 0 mean that the event date can't be determined (for instance because event name
+        /// didn't contain a YYYY-MM-DD string).
+        /// </summary>
+        /// <param name="year">year number (such as 2025, or 0)</param>
+        /// <param name="month">month number (such as 8, or 0)</param>
+        /// <param name="day">day number (such as 18, or 0)</param>
+        public static void SetEventDate(int year, int month, int day)
+        {
+            _EventDateYYYY = year;
+            _EventDateMM = month;
+            _EventDateDD = day;
+        }
+        private static int _EventDateYYYY = 0;
+        private static int _EventDateMM = 0;
+        private static int _EventDateDD = 0;
+
+        /// <summary>
+        /// The session time corresponding to now (if DateTime.Now is before the first sesson time for the current
+        /// event, you'll get the first session time of the event, if DateTime.Now is after the last session time for
+        /// the current event you'll get the last session time of the event, if we couldn't determine the event date
+        /// you'll get the first session time for the current event.
+        /// </summary>
+        public static SessionTime Current
+        {
+            get
+            {
+                if(_NumberOfTimeSlots==0)
+                {
+                    return new SessionTime(0);
+                }
+                if(_EventDateYYYY==0 || _EventDateMM==0 || _EventDateDD == 0)
+                {
+                    return new SessionTime(0);
+                }
+                try
+                {
+                    // midnight preceding the start of the event
+                    DateTime eventStart = new DateTime(_EventDateYYYY, _EventDateMM, _EventDateDD, 0, 0, 0);
+                    DateTime now = DateTime.Now;
+
+                    for(int s = _NumberOfTimeSlots-1; s>=0; s--)
+                    {
+                        DateTime slotStart = eventStart.AddHours(_HourOffsets[s]);
+                        if (now > slotStart)
+                            return new SessionTime(s);
+                    }
+                    return new SessionTime(0);
+                }
+                catch (Exception)
+                {
+                    return new SessionTime(0);
+                }
+            }
+        }
+
         public static int NumberOfTimeSlots
         {
             get
@@ -182,12 +241,14 @@ namespace LobsterConnect.VM
                 _NumberOfTimeSlots = 13 + 16 + 16 + 4; // 13 slots on Fri, 16 slots on Sat, 16 slots on Sun, 4 slots on Mon
                 _DayLabels = new string[_NumberOfTimeSlots];
                 _TimeLabels = new string[_NumberOfTimeSlots];
+                _HourOffsets = new int[_NumberOfTimeSlots];
                 int l = 0;
 
                 for (int h = 12; h <= 24; h++) // Friday's hours
                 {
                     _DayLabels[l] = "Fri";
                     _TimeLabels[l] = string.Format("{0:D2}h00", h);
+                    _HourOffsets[l] = h;
 
                     l++;
                 }
@@ -197,6 +258,7 @@ namespace LobsterConnect.VM
                 {
                     _DayLabels[l] = "Sat";
                     _TimeLabels[l] = string.Format("{0:D2}h00", h);
+                    _HourOffsets[l] = 24+h;
 
                     l++;
                 }
@@ -206,6 +268,7 @@ namespace LobsterConnect.VM
                 {
                     _DayLabels[l] = "Sun";
                     _TimeLabels[l] = string.Format("{0:D2}h00", h);
+                    _HourOffsets[l] = 48 + h;
 
                     l++;
                 }
@@ -215,6 +278,7 @@ namespace LobsterConnect.VM
                 {
                     _DayLabels[l] = "Mon";
                     _TimeLabels[l] = string.Format("{0:D2}h00", h);
+                    _HourOffsets[l] = 72 + h;
 
                     l++;
                 }
@@ -225,6 +289,8 @@ namespace LobsterConnect.VM
                 _NumberOfTimeSlots = 3;
                 _DayLabels = new string[3];
                 _TimeLabels = new string[3];
+                _HourOffsets = new int[3];
+
                 int l = 0;
 
 
@@ -232,6 +298,7 @@ namespace LobsterConnect.VM
                 {
                     _DayLabels[l] = "";
                     _TimeLabels[l] = string.Format("{0:D2}h00", h);
+                    _HourOffsets[l] = h;
 
                     l++;
                 }
@@ -242,14 +309,15 @@ namespace LobsterConnect.VM
                 _NumberOfTimeSlots = 12;
                 _DayLabels = new string[12];
                 _TimeLabels = new string[12];
-                int l = 0;
+                _HourOffsets = new int[12];
 
+                int l = 0;
 
                 for (int h = 9; h <= 20; h++) //s
                 {
                     _DayLabels[l] = "";
                     _TimeLabels[l] = string.Format("{0:D2}h00", h);
-
+                    _HourOffsets[l] = h;
                     l++;
                 }
                 Debug.Assert(l == 12);
@@ -259,6 +327,7 @@ namespace LobsterConnect.VM
 
         private static string[] _DayLabels = null;
         private static string[] _TimeLabels = null;
+        private static int[] _HourOffsets = null;
 
     }
 }

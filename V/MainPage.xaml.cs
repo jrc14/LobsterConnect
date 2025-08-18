@@ -171,11 +171,11 @@ public partial class MainPage : ContentPage
             {
                 await DispatcherHelper.SleepAsync(2000);
 
-                bool tooYoung = await DisplayAlert("Age Verification",
+                bool oldEnough = await DisplayAlert("Age Verification",
                     "Because the app allows you to enter personal data and to create and view user-created content, it is not suitable for persons under 18 years of age; such persons must not use the app. Are you aged 18 or more?",
                     "Yes", "No");
                 // If the user is not over 18, hide the UI (the user won't be able to do anything more with the app).
-                if (tooYoung)
+                if (!oldEnough)
                 {
                     this.gdMainPage.IsVisible = false;
 
@@ -216,6 +216,12 @@ public partial class MainPage : ContentPage
 
         // If the table grid isn't changing its width, then we won't want to scroll it to a new position.
         bool resizeTableGrid = this.gdSlotLabels.WidthRequest!= sessions.Length * 100;
+
+        // Obtain the session time corresponding to 'now'; if non-zero then this will be used,
+        // if we're rebuilding the grid, to scroll the sessions table and sessions list scrollviews
+        // so as to being the current time slot into view.
+        SessionTime now = SessionTime.Current;
+
 
         this.gdSlotLabels.Children.Clear();
 		this.gdSlotLabels.WidthRequest = sessions.Length * 100;

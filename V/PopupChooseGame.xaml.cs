@@ -216,4 +216,9 @@ public partial class PopupChooseGame : Popup
             }
         }
     }
+
+    void btnHelpClicked(Object o, EventArgs e)
+    {
+        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ChooseGame", false));
+    }
 }

@@ -88,6 +88,17 @@ public partial class PopupHints : Popup
         return dontShowAgain;
     }
 
+    public static void ResetDontShowAgain(List<string> keys=null)
+    {
+        if(keys==null)
+            keys=new List<string>() { "AddSession", "ManageSession", "ChooseEvent", "ManageFilter", "ManageWishList", "ChooseGame" };
+        
+        foreach (string key in keys)
+        {
+            Preferences.Set("DontShowAgain_" + key, false);
+        }
+    }
+
     /// <summary>
     /// Set up a hints popup with the right caption and hints text for the specified key.  If the bool
     /// parameter is set, the popup will include a checkbox for specifying whether these hints should
@@ -156,12 +167,20 @@ public partial class PopupHints : Popup
                       " - You're managing your wish-list, which is to say the list of games that you would like to play at the currently selected gaming event.\n."
                     + " - Putting a game on this list is not a definite arrangement to play any particular game at any particular time; rather it's an indication of interest.\n"
                     + " - By adding a game to your 'would like to play' wish-list, you are letting other players know of your interest in the game, so that if they too are interested, one of you might make a definite proposal to play the game.\n"
-                    + " - If there are any games on your wish-list, you'll see them listed in this window; if no games are listed it means you haven't got any games on your wish-list to play at this event."
+                    + " - If there are any games on your wish-list, you'll see them listed in the window; if no games are listed it means you haven't got any games on your wish-list to play at this event.\n"
                     + " - Each game in the list will, next to the game name, show any comments you've added, and then a button with one or more *s on it.  The number of *s indicates how many people have indicated that that would like to play this game.\n"
                     + " - Tap on the button with the *s to take various actions, such as removing the game from your wish-list, update your comment, see details of the people who also want to play this game, or to propose a session to play the game.\n"
                     + " - To put a game onto your wish-list, tap the 'Add a Game I'd Like to Play' button; a popup will appear, on which you can choose a game to add.\n"
-
-
+                    ;
+                break;
+            case "ChooseGame":
+                caption = "Choose Gane";
+                hintsText =
+                      " - You're selecting a game.\n."
+                    + " - The app already knows about a number of games, and these are displayed in the list in the popup.\n"
+                    + " - To select one of the games from the list, scroll the list (the games are in alphabetical order) or enter some text into the filter box next to it, and tap on a game to select it.  Then tap the OK button.\n"
+                    + " - If the game you want is not in the list, tap the 'Choose a game not on the list' button.  You'll then be asked to enter the game's name and the url for that game's page on the Board Game Geek website.  Once you've entered these, you can then tap the 'OK' button to confirm the selection.\n"
+                    + " - If you decide you don't want to continue with selecting a game, tap the 'Cancel' button.\n"
                     ;
                 break;
             default:
