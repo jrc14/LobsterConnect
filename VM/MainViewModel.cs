@@ -18,7 +18,6 @@
 using System.ComponentModel;
 using LobsterConnect.Model;
 using System.Text.RegularExpressions;
-using CoreVideo;
 
 
 namespace LobsterConnect.VM
@@ -1561,8 +1560,8 @@ namespace LobsterConnect.VM
 
                 ResetWishListCachedItems(); // because wish-list items are cached for the current event only, we must clear the cache when we change the event
                 SessionTime.SetEventType(g.EventType); // set the number of gaming time slots and their labels, according to the type of gaming event
-                this.CurrentEvent = g;
 
+                // If the event's name contains a YYYY-MM-DD string, then set the event date accordingly
                 Regex rex = new Regex(@"20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]"); // matches date strings like 2025-08-16
 
                 Match m=rex.Match(g.Name);
@@ -1591,6 +1590,8 @@ namespace LobsterConnect.VM
                     SessionTime.SetEventDate(yyyy, mm, dd);
                 else
                     SessionTime.SetEventDate(0, 0, 0);
+
+                this.CurrentEvent = g;
             }
         }
 

@@ -100,6 +100,7 @@ public partial class PopupViewGames : Popup
                 {
                     try
                     {
+
                         if (!PopupHints.DontShowAgain("AddSession"))
                             await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("AddSession", true), CancellationToken.None);
 

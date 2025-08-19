@@ -221,19 +221,11 @@ public partial class MainPage : ContentPage
         // if we're rebuilding the grid, to scroll the sessions table and sessions list scrollviews
         // so as to being the current time slot into view.
         SessionTime now = SessionTime.Current;
-
+        int scrollTableTo = 100*now.Ordinal; // scroll the table to this horizontal offset
+        int scrollListTo = 0; // scroll the list to this vertica offset
 
         this.gdSlotLabels.Children.Clear();
 		this.gdSlotLabels.WidthRequest = sessions.Length * 100;
-
-        if (resizeTableGrid)
-        {
-            // Position the row of time slot labels at coordinate 0.
-            this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(0, 0, gdSlotLabels.WidthRequest, 30));
-            
-            // Scroll the sessions table to (0,0)
-            this.svSessionsTable.ScrollToAsync(0, 0, false);
-        }
 
         this.gdSessionsTable.Children.Clear();
 		this.gdSessionsTable.ColumnDefinitions.Clear();
@@ -279,7 +271,7 @@ public partial class MainPage : ContentPage
 					.Invoke(sl => Grid.SetColumn(sl,s)));
 
                 // Add each of the sessions that belong to this column in the table view
-				foreach (Session session in sessions[s])
+                foreach (Session session in sessions[s])
 				{
                     View v = CreateSessionView(session);
                     slSessions.Children.Add(v);
@@ -313,9 +305,46 @@ public partial class MainPage : ContentPage
                         View v = CreateSessionView(session);
                         hslSessions.Children.Add(v);
                     }
+
+                    if (now.Ordinal != 0) // if the event is going on at the moment, 'now' corresponds to some session time slot
+                    {
+                        if(t<=now) // if we're creating content for a session time at or before now, we'll scroll the sessions list past this row
+                        {
+                            scrollListTo += 75;
+                        }
+                    }
                 }
             }
 		}
+
+        if (resizeTableGrid)
+        {
+            // Position the row of time slot labels at coordinate 0.
+            this.alSlotLabels.SetLayoutBounds(this.gdSlotLabels, new Rect(0, 0, gdSlotLabels.WidthRequest, 30));
+
+            // Scroll the sessions table to (0,0)
+            this.svSessionsTable.ScrollToAsync(0, 0, false);
+
+            // If the event is ongoing, scroll the table and the list to bring the current session time into view
+            if (now.Ordinal != 0)
+            {
+                DispatcherHelper.RunAsyncOnUI(() =>
+                {
+                    try
+                    {
+                        if(scrollTableTo>0)
+                            this.svSessionsTable.ScrollToAsync(scrollTableTo, 0, true);
+
+                        if(scrollListTo>0)
+                            this.svSessionsList.ScrollToAsync(0, scrollListTo-75, true); // -75 because we want to make the top of the item visible, not the bottom
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                });
+            }
+        }
     }
 
     /// <summary>
@@ -759,6 +788,17 @@ public partial class MainPage : ContentPage
     /// <param name="e"></param>
     private async void gridSessionTimeSlotTapped(object sender, TappedEventArgs e)
     {
+        if (MainViewModel.Instance.LoggedOnUser == null)
+        {
+            await MainPage.Instance.DisplayAlert("Games", "Log in first please, before proposing a gaming session or setting up a wish-list", "Dismiss");
+            return;
+        }
+        else if (!MainViewModel.Instance.CurrentEvent.IsActive)
+        {
+            await MainPage.Instance.DisplayAlert("Games", "The current gaming event '" + MainViewModel.Instance.CurrentEvent.Name + "' is not active", "Dismiss");
+            return;
+        }
+
         // Position relative to the container view
         Point? pt = e.GetPosition((View)sender);
 
@@ -888,9 +928,9 @@ public partial class MainPage : ContentPage
 			
             // Only if the user is an admin do we include the 'Admin Actions' items
 			if(MainViewModel.Instance.LoggedOnUser!=null && MainViewModel.Instance.LoggedOnUser.IsAdmin)
-				action2 = await DisplayActionSheet("Support", "Dismiss", null, "Admin Action", "Show First Run Message", "Email for support", "Reset App", "View Source Code");
+				action2 = await DisplayActionSheet("Support", "Dismiss", null, "Admin Action", "Show First Run Message", "Email for support", "Sync Now", "Reset App", "View Source Code");
 			else
-                action2 = await DisplayActionSheet("Support", "Dismiss", null, "Show First Run Message", "Email for support", "Reset App", "View Source Code");
+                action2 = await DisplayActionSheet("Support", "Dismiss", null, "Show First Run Message", "Email for support", "Sync Now", "Reset App", "View Source Code");
 
             if (action2 == "Admin Action")
 			{
@@ -934,6 +974,12 @@ public partial class MainPage : ContentPage
                 {
                     MainViewModel.Instance.LogUserMessage(Logger.Level.ERROR, "Error while composing email: " + ex.Message);
                 }
+            }
+            else if (action2 == "Sync Now")
+            {
+                MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Cloud sync has been requested");
+                Journal.CloudSyncRequested = true;
+
             }
             else if (action2 == "Reset App")
             {

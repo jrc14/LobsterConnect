@@ -196,7 +196,7 @@ namespace LobsterConnect.VM
         {
             get
             {
-                if(_NumberOfTimeSlots==0)
+              if(_NumberOfTimeSlots==0)
                 {
                     return new SessionTime(0);
                 }
