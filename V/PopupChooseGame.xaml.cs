@@ -17,7 +17,6 @@
 
 using CommunityToolkit.Maui.Views;
 using LobsterConnect.VM;
-using Microsoft.VisualBasic;
 using System.Collections.ObjectModel;
 namespace LobsterConnect.V;
 
@@ -182,12 +181,38 @@ public partial class PopupChooseGame : Popup
             return;
         }
 
-
-        string l  = await MainPage.Instance.DisplayPromptAsync("New Game", "Please enter a BGG URL link for '" + g + "'");
-        if (string.IsNullOrEmpty(l))
+        bool bggLinkEntered = false;
+        string l = null;
+        int id = -1;
+        while (!bggLinkEntered)
         {
-            await MainPage.Instance.DisplayAlert("New Game", "The BGG URL Link can't be left blank'", "Dismiss");
-            return;
+            l = await MainPage.Instance.DisplayPromptAsync("New Game", "Please enter a BGG link for '" + g + "' either the URL or the numeric game id ");
+            if (l==null) // cancel
+            {
+                return;
+            }
+            else if (l=="")
+            {
+                await MainPage.Instance.DisplayAlert("New Game", "The BGG URL Link can't be left blank'", "Dismiss");
+            }
+            else if (l.StartsWith("https://boardgamegeek.com/boardgame/"))
+            {
+                bggLinkEntered = true;
+            }
+            else if(l.StartsWith("boardgamegeek.com/boardgame"))
+            {
+                l = "https://" + l;
+                bggLinkEntered = true;
+            }
+            else if (int.TryParse(l, out id) && id>0)
+            {
+                l = "https://boardgamegeek.com/boardgame/" + l;
+                bggLinkEntered = true;
+            }
+            else
+            {
+                await MainPage.Instance.DisplayAlert("New Game", "That doesn't look like a BGG link, please try again or choose 'Cancel' if you don't want to add a game", "Dismiss");
+            }
         }
 
         this.newGameName = g;

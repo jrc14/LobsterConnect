@@ -38,6 +38,7 @@
 //   carry them forward from one event to another).  Tricky issue: where do I save/load (because I don't
 //   really want to ask for file system permission).
 // - Fix the size of the 'layout' button on the main page, in iOS.
+// - (done) When prompting for the BGG link for a new game, validate the link somewhat, and allow the user to just enter the id if they want
 // - (done) If the event is actually underway, the scrolling views should initially autoscroll to the current time.
 // - (done) The 'age 18' prompt asks the question in a confusing fashion
 // - (done) BUG: create session from wishlist popup doesn't appear.  There may be other popup issues (check my WhatsApp reports)
@@ -68,7 +69,7 @@ namespace LobsterConnect;
 ///    The id of a person is a 'user handle', which is a short string entered by the user and intended to identify
 ///    them to other participants at a gaming event (perhaps being written on a lanyard badge for instance).
 ///  - The list of Games; these are things that people can play.  The app is initially set up with a list
-///    of 500 games, but if you want to organise a session of a game that is not on the list, you can create a new
+///    of 10,000 games, but if you want to organise a session of a game that is not on the list, you can create a new
 ///    one.
 ///  - The WishList, which is to say a list of expressions of interest, where a certain person is expressing
 ///    an interest in playing a certain game at a certain event.

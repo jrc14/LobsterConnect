@@ -117,7 +117,7 @@ public partial class PopupHints : Popup
                 caption = "Add Session";
                 hintsText =
                       " - You're proposing a new session, to play a certain game at a particular time. In the popup, please fill in the details of the session, including the game that will be played.\n"
-                    + " - The app comes with a list of 500 popular games, but if your chosen game isn't on the list,there's an option to add a game (take care to enter the correct Board Game Geek URL, because it's hard to change this after the game is added).\n"
+                    + " - The app comes with a list of popular games, but if your chosen game isn't on the list,there's an option to add a game (take care to enter the correct Board Game Geek URL, because it's hard to change this after the game is added).\n"
                     + " - There are numeric controls to set the minimum and maximum number of players that you want to include in this session.  Note that these are informational only - the app won't enforce these limits, though it will show a warning if they are violated.\n"
                     + " - Once you've created the session, you'll be prompted to add notes if you like.  Use this to specify any extra information, for instance indicating whether inexperienced players are welcome and a teach will be provided initially.\n"
                     + " - You'll then be given the opportunity to link to a chat for discussing sign-ups for this session. For a BGG Geek List link, just paste it from your web browser; for Wix use the 'share' button to get a link; for a WhatsApp link, set up a new group (or use an existing one that you own) and copy the 'invitation to group via link' link from it, and paste it into the popup in LobsterConnect.\n"
@@ -169,8 +169,9 @@ public partial class PopupHints : Popup
                     + " - By adding a game to your 'would like to play' wish-list, you are letting other players know of your interest in the game, so that if they too are interested, one of you might make a definite proposal to play the game.\n"
                     + " - If there are any games on your wish-list, you'll see them listed in the window; if no games are listed it means you haven't got any games on your wish-list to play at this event.\n"
                     + " - Each game in the list will, next to the game name, show any comments you've added, and then a button with one or more *s on it.  The number of *s indicates how many people have indicated that that would like to play this game.\n"
-                    + " - Tap on the button with the *s to take various actions, such as removing the game from your wish-list, update your comment, see details of the people who also want to play this game, or to propose a session to play the game.\n"
+                    + " - Tap on the button with the *s to take various actions, such as removing the game from your wish-list, updating your comment, seeing details of the people who also want to play this game, or to proposing a session to play the game.\n"
                     + " - To put a game onto your wish-list, tap the 'Add a Game I'd Like to Play' button; a popup will appear, on which you can choose a game to add.\n"
+                    + " - You can use the Import/Export button to manage a list of games (in a message or document perhaps) for your wish-list.  This can be helpful because your wish-list is specific to one gaming event (depending on the event, you might be hoping to play different games) - but you may want to keep a list of games ready in a document so you can paste them in to set up your event wish-list, when a new gaming event is announced.\n"
                     ;
                 break;
             case "ChooseGame":

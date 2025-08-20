@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:local="clr-namespace:LobsterConnect.V"
+               xmlns:vm="clr-namespace:LobsterConnect.VM"
+               x:Class="LobsterConnect.V.PopupImportWishList">
+    <Grid RowSpacing="0" ColumnSpacing="0" Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" x:Name="rdefButtons"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="colDef0" Width="150"/>
+            <ColumnDefinition x:Name="colDef1" Width="150"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" Text="Import games into Wish-List" FontAttributes="Bold"></Label>
+        <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="50" x:Name="lbGames" Text="Games that you'd like to play:"></Label>
+        <Editor Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="200" x:Name="editorGames" Placeholder="Paste or type in game names, one per line"></Editor>
+
+        <Button Grid.Row="3" Grid.Column="0" Text="Cancel" Clicked="OnCancelClicked" Margin="5" x:Name="btnCancel" ></Button>
+        <Button Grid.Row="3" Grid.Column="1" Text="OK" Clicked="OnOKClicked" Margin="5" x:Name="btnOk" ></Button>
+    </Grid>
+</toolkit:Popup>

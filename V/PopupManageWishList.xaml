@@ -35,6 +35,7 @@
             </Grid>
         </ScrollView>
         <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Add a Game I'd Like to Play"  Clicked="OnAddClicked" Margin="5" x:Name="btnAdd"></Button>
+        <Button Grid.Row="3" Grid.Column="0" Text="Import/Export" Clicked="OnImportExportClicked" Margin="5" x:Name="btnImportExport" ></Button>
         <Button Grid.Row="3" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
 
     </Grid>

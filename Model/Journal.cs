@@ -232,7 +232,8 @@ namespace LobsterConnect.Model
         /// UI action on this machine, or on another machine - in which case, it will get to this machine through the
         /// cloud sync service.
         /// A journal entry will have:
-        ///  - Installation ID: a GUID identifying which machine it originated from
+        ///  - Installation ID: a GUID identifying which machine it originated from (manually created backend updates
+        ///    in the cloud sync store will have the special value BACKEND).
         ///  - Local Sequence Number: the sequence number, on the originating machine, of the entry.  Entries
         ///    created on any one machine ought to begin with sequence number 1, and go on from that increasing by 1
         ///    each time that machine originates another entry.

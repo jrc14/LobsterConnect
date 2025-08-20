@@ -55,7 +55,7 @@ public partial class PopupManageWishList : Popup
             Model.Logger.LogMessage(Model.Logger.Level.ERROR, "PopupManageWishList ctor", ex, "While setting sizes for width " + MainPage.Instance.Width.ToString());
         }
 
-        V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons, this.btnAdd);
+        V.Utilities.StylePopupButtons(this.btnImportExport, this.btnDismiss, this.rdefButtons, this.btnAdd);
     }
 
     /// <summary>
@@ -225,6 +225,110 @@ public partial class PopupManageWishList : Popup
         catch(Exception ex)
         {
             await MainPage.Instance.DisplayAlert("Would Like to Play", "Sorry an error happened: "+ex.Message, "Dismiss");
+        }
+    }
+
+
+    /// <summary>
+    /// Import a bunch of games into the wish-list, or export the names of the games in the current wish-list
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private async void OnImportExportClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            string option = await MainPage.Instance.DisplayActionSheet("Wish-list games", "Dismiss", null,
+                "Import",
+                "Export");
+            if (option == "Export")
+            {
+                List<WishListItem> wishList = MainViewModel.Instance.GetWishListItemsForPerson(MainViewModel.Instance.LoggedOnUser.Handle);
+
+                if (wishList == null || wishList.Count == 0)
+                {
+                    await MainPage.Instance.DisplayAlert("Would Like to Play", "You haven't got any 'would like to play' games for this event", "Dismiss");
+                }
+                else
+                {
+                    int c = wishList.Count;
+
+                    MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Copied to clipboard: " + c.ToString() + " game names");
+
+                    string toExport = string.Join('\n', wishList.Select(x => x.Game));
+
+                    await Clipboard.Default.SetTextAsync(toExport);
+                    await MainPage.Instance.DisplayAlert("Would Like to Play", "Your list of 'would like to play' games for this event has been copied. Please paste it into a document to save it, or a message to share it.", "Dismiss");
+                }
+            }
+            else if (option == "Import")
+            {
+
+                var popup = new PopupImportWishList();
+
+                var popupResult = await MainPage.Instance.ShowPopupAsync(popup, CancellationToken.None);
+
+                string games = popupResult as string;
+
+                if (string.IsNullOrEmpty(games))
+                    return;
+                List<string> gameNames = new List<string>();
+                if (!games.Contains('\r'))
+                    gameNames.Add(games.Trim());
+                else
+                {
+                    foreach (string gameName in games.Split('\r'))
+                    {
+                        gameNames.Add(gameName.Trim());
+                    }
+                }
+                int numDuplicates = 0;
+                int numInvalid = 0;
+                int numAdded = 0;
+
+                List<string> availableGames = MainViewModel.Instance.GetAvailableGames();
+
+                foreach (string gameName in gameNames)
+                {
+                    // rebuild the wish-list each time, in case the import list contains duplicates
+                    if(MainViewModel.Instance.GetWishListItemsForPerson(MainViewModel.Instance.LoggedOnUser.Handle).Any(x=>x.Game==gameName))
+                    {
+                        numDuplicates++;
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Game not added because it was already on this user's wish-list: "+gameName);
+                    }
+                    else if(!availableGames.Contains(gameName))
+                    {
+                        numInvalid++;
+                        MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Game not added because the game name is not recognised: " + gameName);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            MainViewModel.Instance.CreateWishList(true, MainViewModel.Instance.LoggedOnUser.Handle, gameName, MainViewModel.Instance.CurrentEvent.Name);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Game added added to wish=list: " + gameName);
+                            numAdded++;
+                        }
+                        catch(Exception)
+                        {
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Game not added because an exception occurred: " + gameName);
+                            numInvalid++;
+                        }
+                    }
+                }
+
+                string msg = "Finished importing wish-list: " + numAdded.ToString() + " game(s) were added.";
+                if (numDuplicates != 0)
+                    msg += "  " + numDuplicates.ToString() + " game(s) were already on the list, and were not added again.";
+                if (numInvalid != 0)
+                    msg += "  " + numInvalid.ToString() + " game(s) were invalid and were not added.";
+
+                await MainPage.Instance.DisplayAlert("Would Like to Play", msg, "Dismiss");
+            }
+        }
+        catch (Exception ex)
+        {
+            await MainPage.Instance.DisplayAlert("Would Like to Play", "Sorry an error happened: " + ex.Message, "Dismiss");
         }
     }
 

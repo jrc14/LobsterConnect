@@ -187,6 +187,9 @@
 	  <MauiXaml Update="V\PopupHints.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="V\PopupImportWishList.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="V\PopupItemsViewer.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
