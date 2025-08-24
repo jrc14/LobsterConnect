@@ -109,19 +109,10 @@ public partial class PopupChooseGame : Popup
     {
         try
         {
-            List<string> existingGames = MainViewModel.Instance.GetAvailableGames();
+            List<string> existingGames = MainViewModel.Instance.GetAvailableGames(null, newFilter);
             existingGames.Sort();
 
-            if (!string.IsNullOrEmpty(newFilter))
-            {
-                for (int i = existingGames.Count - 1; i >= 0; i--) // work down from the top, so we can can remove items as we go
-                {
-                    if (!existingGames[i].Contains(newFilter, StringComparison.InvariantCultureIgnoreCase))
-                        existingGames.RemoveAt(i);
-                }
-            }
-
-            this.lvGame.ItemsSource = new ObservableCollection<string>(existingGames);
+            this.lvGame.ItemsSource = existingGames;
 
         }
         catch (Exception ex)
@@ -242,8 +233,8 @@ public partial class PopupChooseGame : Popup
         }
     }
 
-    void btnHelpClicked(Object o, EventArgs e)
+    async void btnHelpClicked(Object o, EventArgs e)
     {
-        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ChooseGame", false));
+        await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("ChooseGame", false));
     }
 }

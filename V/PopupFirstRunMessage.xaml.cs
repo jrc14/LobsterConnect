@@ -73,6 +73,10 @@ public partial class PopupFirstRunMessage : Popup
         V.Utilities.StylePopupButtons(null, this.btnDismiss, this.rdefButtons);
     }
 
+    async void Url_Tapped(object sender, TappedEventArgs e)
+    {
+        await Browser.Default.OpenAsync("https://www.turnipsoft.com/lobsterconnect");
+    }
     async void OnDismissClicked(object sender, EventArgs e)
     {
         await CloseAsync(true, CancellationToken.None);

@@ -2075,19 +2075,34 @@ namespace LobsterConnect.VM
         }
 
         /// <summary>
-        /// Retrieve a list of the games that we can manage signups for.
+        /// Retrieve a (possibly filtered) list of the games that we can manage signups for.
         /// </summary>
         /// <param name="ifActive">if true (the default), then only active games will be included in the list returned, if false, then only inactive ones, if null, then all games will be included.</param>
+        /// <param name="filter">if provided, this will filter the games; only games whose name (case-invariant-)contains the filter string will be included</param>
         /// <returns></returns>
-        public List<string> GetAvailableGames(bool? ifActive= true)
+        public List<string> GetAvailableGames(bool? ifActive= true, string filter=null)
         {
             List<string> gameNames = new List<string>();
 
             foreach (Game g in _games)
             {
-                if (ifActive == null)
-                    gameNames.Add(g.Name);
-                else if (ifActive == g.IsActive)
+                bool include = false;
+                if(ifActive==null || ifActive==g.IsActive)
+                {
+                    include = true;
+                }
+
+                if(include
+                && (string.IsNullOrEmpty(filter) || g.Name.Contains(filter, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    include = true;
+                }
+                else
+                {
+                    include = false;
+                }
+
+                if (include)
                     gameNames.Add(g.Name);
             }
 

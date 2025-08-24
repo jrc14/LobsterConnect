@@ -164,9 +164,9 @@ public partial class PopupAddSession : Popup
         }
     }
 
-    void btnHelpClicked(Object o, EventArgs e)
+    async void btnHelpClicked(Object o, EventArgs e)
     {
-         MainPage.Instance.ShowPopup(new PopupHints().SetUp("AddSession", false));
+         await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("AddSession", false));
     }
 
     async void OnCancelClicked(object sender, EventArgs e)

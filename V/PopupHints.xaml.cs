@@ -175,13 +175,22 @@ public partial class PopupHints : Popup
                     ;
                 break;
             case "ChooseGame":
-                caption = "Choose Gane";
+                caption = "Choose Game";
                 hintsText =
-                      " - You're selecting a game.\n."
+                      " - You're selecting a game.\n"
                     + " - The app already knows about a number of games, and these are displayed in the list in the popup.\n"
                     + " - To select one of the games from the list, scroll the list (the games are in alphabetical order) or enter some text into the filter box next to it, and tap on a game to select it.  Then tap the OK button.\n"
                     + " - If the game you want is not in the list, tap the 'Choose a game not on the list' button.  You'll then be asked to enter the game's name and the url for that game's page on the Board Game Geek website.  Once you've entered these, you can then tap the 'OK' button to confirm the selection.\n"
                     + " - If you decide you don't want to continue with selecting a game, tap the 'Cancel' button.\n"
+                    ;
+                break;
+            case "ViewGames": // not displayed as an initial hint, only in response to ? button
+                caption = "View Games";
+                hintsText =
+                      " - You're browsing the list of games that the app knows about.\n."
+                    + " - To select one of the games from the list, scroll the list (the games are in alphabetical order) or enter some text into the filter box next to it, and tap on a game to select it.\n"
+                    + " - When you select a game, you're offered the option to add it to yout 'would like to play' wish list, or to propose a session to play it.\n"
+                    + " - Using the radio buttons, you can change what games will be listed - it can be all games, or only the games that have been proposed at the current event, or only the games that appear on someone's wish-list ('would like to play' games) at this event.\n"
                     ;
                 break;
             default:

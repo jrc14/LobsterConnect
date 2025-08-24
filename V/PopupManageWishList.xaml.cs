@@ -150,7 +150,7 @@ public partial class PopupManageWishList : Popup
             {
                 var popup = new PopupViewWishList();
                 popup.SetGame(item.Game);
-                MainPage.Instance.ShowPopup(popup);
+                await MainPage.Instance.ShowPopupAsync(popup);
             }
             else if (option == "Propose a session to play")
             {
@@ -162,7 +162,7 @@ public partial class PopupManageWishList : Popup
 
                     var popup = new PopupAddSession();
                     popup.SetChosenGame(item.Game);
-                    MainPage.Instance.ShowPopup(popup);
+                    await MainPage.Instance.ShowPopupAsync(popup);
                 });
             }
         }
@@ -263,15 +263,17 @@ public partial class PopupManageWishList : Popup
             }
             else if (option == "Import")
             {
-
                 var popup = new PopupImportWishList();
 
                 var popupResult = await MainPage.Instance.ShowPopupAsync(popup, CancellationToken.None);
 
                 string games = popupResult as string;
-
+               
                 if (string.IsNullOrEmpty(games))
                     return;
+
+                games = games.Replace('\n', '\r'); // try to be compatible with Unix and Windows line breaks
+
                 List<string> gameNames = new List<string>();
                 if (!games.Contains('\r'))
                     gameNames.Add(games.Trim());
@@ -279,7 +281,8 @@ public partial class PopupManageWishList : Popup
                 {
                     foreach (string gameName in games.Split('\r'))
                     {
-                        gameNames.Add(gameName.Trim());
+                        if(!string.IsNullOrEmpty(gameName))
+                            gameNames.Add(gameName.Trim());
                     }
                 }
                 int numDuplicates = 0;
@@ -306,7 +309,7 @@ public partial class PopupManageWishList : Popup
                         try
                         {
                             MainViewModel.Instance.CreateWishList(true, MainViewModel.Instance.LoggedOnUser.Handle, gameName, MainViewModel.Instance.CurrentEvent.Name);
-                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Game added added to wish=list: " + gameName);
+                            MainViewModel.Instance.LogUserMessage(Logger.Level.INFO, "Game added added to wish-list: " + gameName);
                             numAdded++;
                         }
                         catch(Exception)
@@ -332,8 +335,8 @@ public partial class PopupManageWishList : Popup
         }
     }
 
-    void btnHelpClicked(Object o, EventArgs e)
+    async void btnHelpClicked(Object o, EventArgs e)
     {
-        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ManageWishList", false));
+        await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("ManageWishList", false));
     }
 }

@@ -118,7 +118,7 @@ public partial class MainPage : ContentPage
         InitializeComponent();
 
 #if IOS // nasty fix for a layout oddity with the layout toggle switch on iOS
-        this.gdLayoutSwitch.HeightRequest=60;
+        this.gdLayoutSwitch.Padding=new Thickness(0,15,0,0);
 #endif
 
         // populate the main table and list of session details (the two null parameters don't mean anything)
@@ -878,7 +878,10 @@ public partial class MainPage : ContentPage
 	public async void FlyoutMenuAction(string action)
 	{
         if (!Preferences.ContainsKey("AgeConfirmed"))
+        {
+            await DisplayAlert("Age Confirmation", "The user's age needs to be confirmed before you can continue.  Please exit and restart the app", "Dismiss");
             return;
+        }
 
         if (action=="event") // choose a gaming event
 		{
@@ -894,7 +897,6 @@ public partial class MainPage : ContentPage
         }
         else if (action == "games") // view a list of all games
         {
-            List<string> allGames = MainViewModel.Instance.GetAvailableGames();
             PopupViewGames gamesViewer = new PopupViewGames();
             var popupResult = await MainPage.Instance.ShowPopupAsync(gamesViewer, CancellationToken.None);
         }
@@ -1010,6 +1012,14 @@ public partial class MainPage : ContentPage
             int major = AppInfo.Version.Major;
             int minor = AppInfo.Version.Minor;
             int build = AppInfo.Version.Build;
+
+            if(major>=1000) // deal with the 'Apple' way of representing version info as Mmmb
+            {
+                minor = major % 1000;
+                build = minor % 10;
+                minor = minor / 10;
+                major = major / 1000;
+            }
 
 			string msg = "LobsterConnect © Turnipsoft 2025\n\nGNU General Public Licence v3.0\n\nVersion " + major.ToString() + "." + minor.ToString() + " build " + build.ToString();
 

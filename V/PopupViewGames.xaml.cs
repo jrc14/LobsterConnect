@@ -19,6 +19,7 @@ using CommunityToolkit.Maui.Views;
 using LobsterConnect.Model;
 using LobsterConnect.VM;
 using Microsoft.Maui.LifecycleEvents;
+using System.Collections.ObjectModel;
 namespace LobsterConnect.V;
 
 public partial class PopupViewGames : Popup
@@ -109,7 +110,7 @@ public partial class PopupViewGames : Popup
                         var popupResult = await MainPage.Instance.ShowPopupAsync(popup, CancellationToken.None);
 
                         Model.DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                            this.PopulateListView(null); // null means 'load with the same thing as last time'
+                            this.PopulateListView(null, null); // null means 'load with the same thing as last time'
                         });
                     }
                     catch (Exception ex)
@@ -119,7 +120,6 @@ public partial class PopupViewGames : Popup
                 }
                 else if(action == "Would Like to Play")
                 {
-
                     // Note that GetWishListItemsForPerson will only look at items for the currently selected event,
                     // which is the behaviour we want here.
                     bool duplicate = MainViewModel.Instance.GetWishListItemsForPerson(MainViewModel.Instance.LoggedOnUser.Handle)
@@ -139,7 +139,7 @@ public partial class PopupViewGames : Popup
                         MainViewModel.Instance.CreateWishList(true, MainViewModel.Instance.LoggedOnUser.Handle, gg.Name, MainViewModel.Instance.CurrentEvent.Name, notes);
 
                         Model.DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                            this.PopulateListView(null); // null means 'load with the same thing as last time'
+                            this.PopulateListView(null, null); // null means 'load with the same thing as last time'
                         });
                     }
                 }
@@ -155,29 +155,34 @@ public partial class PopupViewGames : Popup
             if (btnSender == null)
                 return;
 
-            PopulateListView(btnSender.Value as string);
+            PopulateListView(btnSender.Value as string, null);
         }
     }
 
-    // remember the last game type that we loaded the listview with, so we can do it again if necessary
+    // remember the last game type loaded, and the game name filter in the listview, so we can do it again if necessary
     string _latestGameType = null;
-    private void PopulateListView(string gameType=null)
+    string _latestGameFilter = null;
+
+    private void PopulateListView(string gameType=null, string gameFilter=null)
     {
         if (gameType == null && _latestGameType != null)
             gameType = _latestGameType;
 
+        if (gameFilter == null && _latestGameFilter != null)
+            gameFilter = _latestGameFilter;
+
         _latestGameType = gameType;
+        _latestGameFilter= gameFilter;
+
+        List<string> games = MainViewModel.Instance.GetAvailableGames(null, gameFilter);
+        games.Sort();
 
         if (gameType as string == "all")
         {
-            List<string> gameLabels = MainViewModel.Instance.GetAvailableGames();
-            gameLabels.Sort();
-            this.lvGames.ItemsSource = gameLabels;
+            this.lvGames.ItemsSource = games;
         }
         else if (gameType as string == "sessions")
         {
-            List<string> games = MainViewModel.Instance.GetAvailableGames();
-            games.Sort();
             List<string> sessionLabels = new List<string>();
             foreach (string g in games)
             {
@@ -192,8 +197,6 @@ public partial class PopupViewGames : Popup
         }
         else if (gameType as string == "wishlist")
         {
-            List<string> games = MainViewModel.Instance.GetAvailableGames();
-            games.Sort();
             List<string> wishListabels = new List<string>();
             foreach (string g in games)
             {
@@ -205,5 +208,58 @@ public partial class PopupViewGames : Popup
             }
             this.lvGames.ItemsSource = wishListabels;
         }
+    }
+
+    /// <summary>
+    /// Call this method to set the filter string that is used to restrict the list of
+    /// available game names.  Don't call it too often because it does a lot of work on the UI
+    /// thread.  Use the method ThrottledSetGameNameFilter instead of calling this one directly
+    /// in order to avoid calling this method too often.
+    /// Note BTW that there is, in theory, a clever optimisation you could use, whereby, when the filter
+    /// extended ("Bob" becomes "Bobby" for instance) you filter in place the exisitng contents of 
+    /// this.lvGame.ItemsSource rather then generating them all again.  In practice this doesn't work because the
+    /// operation of removing elements from an observable collection is horribly slow on iOS.
+    /// </summary>
+    /// <param name="newFilter"></param>
+    private void SetGameNameFilter(string newFilter)
+    {
+        try
+        {
+            PopulateListView(null, newFilter);
+        }
+        catch (Exception ex)
+        {
+            MainViewModel.Instance.LogUserMessage(Model.Logger.Level.ERROR, "Error setting filter: " + ex.Message);
+        }
+    }
+
+    private void entryGameFilter_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ThrottledSetGameNameFilter(e.NewTextValue);
+    }
+
+    /// <summary>
+    /// Set the filter string that is used to restrict the list of available game names, but do so
+    /// via a timer, which avoids actually changing the filter more often that two times per second.
+    /// </summary>
+    /// <param name="newFilter"></param>
+    private void ThrottledSetGameNameFilter(string newFilter)
+    {
+        _pendingNewFilter = newFilter;
+
+        Model.DispatcherHelper.StartTimer(ref filterTimer, 500, () =>
+        {
+            Model.DispatcherHelper.RunAsyncOnUI(() =>
+            {
+                SetGameNameFilter(_pendingNewFilter);
+            });
+        });
+    }
+    System.Threading.Timer filterTimer = null;
+    private string _pendingNewFilter = null;
+
+    async void btnHelpClicked(Object o, EventArgs e)
+    {
+        await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("ViewGames", false));
     }
 }

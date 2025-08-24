@@ -7,6 +7,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" x:Name="rdefTextViewer"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" x:Name="rdefButtons"/>
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
@@ -17,6 +19,13 @@
         <ScrollView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Black" Padding="4" Margin="4" >
             <Label x:Name="lbTextViewer" LineBreakMode="WordWrap" TextColor="White"/>
         </ScrollView>
-        <Button Grid.Row="2" Grid.Column="0" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+        <Label Grid.Row="2" Grid.Column="0" Text="This message (and other documentation) can be found at " Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        <Label Grid.Row="3" Grid.Column="0" TextColor="Blue" Text="https://www.turnipsoft.com/lobsterconnect" Margin="0" HorizontalOptions="Start" VerticalOptions="Center">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer 
+                        Tapped="Url_Tapped"/>
+            </Label.GestureRecognizers>
+        </Label>
+        <Button Grid.Row="4" Grid.Column="0" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
     </Grid>
 </toolkit:Popup>

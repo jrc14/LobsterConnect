@@ -22,13 +22,16 @@
             <ColumnDefinition x:Name="colDef0" Width="250"/>
             <ColumnDefinition x:Name="colDef1" Width="150"/>
         </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Propose a Gaming Session" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        
         <ImageButton Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HorizontalOptions="End" Padding="5" WidthRequest="45" HeightRequest="45" BorderColor="Transparent"  BorderWidth="0" BackgroundColor="Transparent" CornerRadius="5"
 			         Clicked="btnHelpClicked">
             <ImageButton.Source>
                 <FontImageSource Glyph="&#xf638;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
             </ImageButton.Source>
         </ImageButton>
-        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Propose a Gaming Session" FontAttributes="Bold" Margin="0" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+        
         <Label Grid.Row="1" Grid.Column="0" Text="Game to play:" HorizontalOptions="Start" Margin="5" VerticalOptions="Start"></Label>
         <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Choose a game" x:Name="btnChooseGame" Clicked="OnChooseGameClicked"></Button>
 

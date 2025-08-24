@@ -337,9 +337,9 @@ public partial class PopupManageSession : Popup
         MainPage.Instance.DisplayAlert("Sharing", "A link to this session has been copied. Please paste it into a chat session, message or email to share it.", "Dismiss");
 #pragma warning restore 4014
     }
-    void btnHelpClicked(Object o, EventArgs e)
+    async void btnHelpClicked(Object o, EventArgs e)
     {
-        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ManageSession", false));
+        await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("ManageSession", false));
     }
 
     async void OnDismissClicked(object sender, EventArgs e)

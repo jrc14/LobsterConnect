@@ -240,8 +240,8 @@ public partial class PopupManageFilter : Popup
         }
     }
 
-    void btnHelpClicked(Object o, EventArgs e)
+    async void btnHelpClicked(Object o, EventArgs e)
     {
-        MainPage.Instance.ShowPopup(new PopupHints().SetUp("ManageFilter", false));
+        await MainPage.Instance.ShowPopupAsync(new PopupHints().SetUp("ManageFilter", false));
     }
 }
