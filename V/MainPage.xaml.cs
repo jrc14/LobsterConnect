@@ -1027,7 +1027,7 @@ public partial class MainPage : ContentPage
         }
 		else if (action == "help")
 		{
-			await Browser.Default.OpenAsync("https://www.turnipsoft.com/lobsterconnect/");
+			await Browser.Default.OpenAsync("https://www.turnipsoft.com/lobsterconnect/index.html#manual");
         }
 		else
 		{

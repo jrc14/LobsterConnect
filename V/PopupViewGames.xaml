@@ -10,6 +10,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="200"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -29,7 +30,13 @@
                 <FontImageSource Glyph="&#xf638;" FontFamily="FluentSystemIcons-Regular" Color="Black"/>
             </ImageButton.Source>
         </ImageButton>
-        <Border Grid.Row="1" Grid.Column="0" HeightRequest="200" VerticalOptions="Start" Stroke="Gray">
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HorizontalOptions="Start" Margin="0" VerticalOptions="Start" Stroke="Gray">
+            <StackLayout Orientation="Horizontal" >
+                <Label Text="&#xf407;" FontFamily="FluentSystemIcons-Regular" FontSize="20" VerticalOptions="Center" WidthRequest="25"></Label>
+                <Entry HorizontalOptions="Start" MinimumWidthRequest="150" VerticalOptions="Center" x:Name="entryGameFilter" TextChanged="entryGameFilter_TextChanged"></Entry>
+            </StackLayout>
+        </Border>
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HeightRequest="200" VerticalOptions="Start" Stroke="Gray">
             <CollectionView HorizontalOptions="Start" Margin="5" VerticalOptions="Start" x:Name="lvGames" SelectionChanged="lvGames_SelectionChanged" SelectionMode="Single">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
@@ -41,20 +48,13 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Border>
-        <Border Grid.Row="1" Grid.Column="1" HorizontalOptions="Start" Margin="5,0,5,0" VerticalOptions="Start" Stroke="Gray">
-            <StackLayout Orientation="Horizontal" >
-                <Label Text="&#xf407;" FontFamily="FluentSystemIcons-Regular" FontSize="20" VerticalOptions="Center" WidthRequest="25"></Label>
-                <Entry HorizontalOptions="Start" WidthRequest="90" VerticalOptions="Center" x:Name="entryGameFilter" TextChanged="entryGameFilter_TextChanged"></Entry>
-            </StackLayout>
-        </Border>
 
+        <Label Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Text="Show Games:" HorizontalOptions="Start"></Label>
+        <RadioButton Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" x:Name="rbtnAll" Content="All games" Value="all" HorizontalOptions="Start" CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
+        <RadioButton Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" Content="Someone has proposed" Value="sessions" HorizontalOptions="Start"  CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
+        <RadioButton Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" Content="Someone wants to play" Value="wishlist" HorizontalOptions="Start"  CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
 
-        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Show Games:" HorizontalOptions="Start"></Label>
-        <RadioButton Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" x:Name="rbtnAll" Content="All games" Value="all" HorizontalOptions="Start" CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
-        <RadioButton Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" Content="Someone has proposed" Value="sessions" HorizontalOptions="Start"  CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
-        <RadioButton Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" GroupName="gametype" Content="Someone wants to play" Value="wishlist" HorizontalOptions="Start"  CheckedChanged="RadioButton_CheckedChanged"></RadioButton>
-
-        <Button Grid.Row="7" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
+        <Button Grid.Row="8" Grid.Column="1" Text="Dismiss" Clicked="OnDismissClicked" Margin="5" x:Name="btnDismiss" ></Button>
 
     </Grid>
 </toolkit:Popup>

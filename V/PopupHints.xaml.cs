@@ -128,7 +128,7 @@ public partial class PopupHints : Popup
                 caption = "Manage Session";
                 hintsText =
                       " - You're viewing details of a proposed gaming session to play the indicated game at the indicated time.  The top part of the popup will show the game name, start time, proposer name and BGG link.\n"
-                    + " - Below that, are the chat link, notes and session state.  If you're the proposer of the session, you'll see buttons on the right hand side that you can use to change these elements (admin users can also make changes event if they aren't the proposer).\n"
+                    + " - Below that, are the chat link, notes and session state.  If you're the proposer of the session, you'll see buttons on the right hand side that you can use to change these elements (admin users can also make changes even if they aren't the proposer).\n"
                     + " - The chat link (if the proposer has set one up) will take you to a BGG Geek List entry, Wix page or WhatsApp chat for discussing signups to this gaming session.\n"
                     + " - The notes text is for any additional information that the proposer chooses to include - for instance indicating whether inexperienced players are welcome and a teach will be provided initially.\n"
                     + " - The session's state is one of OPEN, FULL or ABANDONED.  OPEN means that further players are welcome to join, FULL means that the gaming session is going ahead with the players who have already signed up, and ABANDONED means the session isn't happening after all.\n"
@@ -179,17 +179,17 @@ public partial class PopupHints : Popup
                 hintsText =
                       " - You're selecting a game.\n"
                     + " - The app already knows about a number of games, and these are displayed in the list in the popup.\n"
-                    + " - To select one of the games from the list, scroll the list (the games are in alphabetical order) or enter some text into the filter box next to it, and tap on a game to select it.  Then tap the OK button.\n"
+                    + " - To select one of the games from the list, scroll the list (the games are in alphabetical order) or enter some text into the filter box above it, and tap on a game to select it.  Then tap the OK button.\n"
                     + " - If the game you want is not in the list, tap the 'Choose a game not on the list' button.  You'll then be asked to enter the game's name and the url for that game's page on the Board Game Geek website.  Once you've entered these, you can then tap the 'OK' button to confirm the selection.\n"
                     + " - If you decide you don't want to continue with selecting a game, tap the 'Cancel' button.\n"
                     ;
                 break;
-            case "ViewGames": // not displayed as an initial hint, only in response to ? button
+            case "ViewGames": // not displayed as an initial hint, only in response to the ? button
                 caption = "View Games";
                 hintsText =
                       " - You're browsing the list of games that the app knows about.\n."
-                    + " - To select one of the games from the list, scroll the list (the games are in alphabetical order) or enter some text into the filter box next to it, and tap on a game to select it.\n"
-                    + " - When you select a game, you're offered the option to add it to yout 'would like to play' wish list, or to propose a session to play it.\n"
+                    + " - To select one of the games from the list, scroll the list (the games are in alphabetical order) or enter some text into the filter box above it, and tap on a game to select it.\n"
+                    + " - When you select a game, you're offered the option to add it to your 'would like to play' wish list, or to propose a session to play it.\n"
                     + " - Using the radio buttons, you can change what games will be listed - it can be all games, or only the games that have been proposed at the current event, or only the games that appear on someone's wish-list ('would like to play' games) at this event.\n"
                     ;
                 break;

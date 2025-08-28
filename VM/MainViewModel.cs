@@ -373,7 +373,7 @@ namespace LobsterConnect.VM
 
                 Preferences.Remove("UserHandle");
                 Preferences.Remove("GamingEvent");
-                Preferences.Remove("AgeConfirmed");
+                // Preferences.Remove("AgeConfirmed"); resetting this does no possible good and produces confusing results
                 Preferences.Remove("LastRefreshedDate");
 
                 V.PopupHints.ResetDontShowAgain();

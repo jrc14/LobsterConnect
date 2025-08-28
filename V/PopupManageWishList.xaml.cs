@@ -327,6 +327,8 @@ public partial class PopupManageWishList : Popup
                     msg += "  " + numInvalid.ToString() + " game(s) were invalid and were not added.";
 
                 await MainPage.Instance.DisplayAlert("Would Like to Play", msg, "Dismiss");
+
+                Model.DispatcherHelper.RunAsyncOnUI(LoadWishList);
             }
         }
         catch (Exception ex)
