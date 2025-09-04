@@ -23,10 +23,10 @@ namespace LobsterConnect.V;
 public partial class PopupDataHandling : Popup
 {
     private static string _PolicyText=
-            "In order to propose or sign up to gaming sessions in the app, you need to set up a user.  If you do this, then we will store and use personal data about you, so we can manage game sign-ups for you.\n" +
-            "To set up a user you will have to enter a user handle (name) and password, and we will store this information in our on-line database.  " +
+            "In order to flag an interest in games you'd like to play, or to propose and sign up to gaming sessions in the app, you need to set up a user.  If you do this, then we will store and use personal data about you, so we can manage your game sign-ups and wish-list for you.\n" +
+            "To set up a user you will have to enter a user handle (name) and password, and we will store this information in our on-line database.\n" +
             "You may, additionally, provide a full name, phone number and/or email address.  You do not have to provide this data for the app to work, but if you do, it will be visible to other users of the app, and it will be stored in our on-line database.\n" +
-            "When you create gaming sessions or sign up to play games, the app will record this information in its on-line database, and make it visible to other users of the app.\n" +
+            "When you flag games you'd like to play, create gaming sessions or sign up to play games, the app will record this information in its on-line database, and make it visible to other users of the app.\n" +
             "We will not use this data for any purpose other than managing game sign-ups for you, and we won't give or sell it to anyone else, except as may be required to meet our legal obligations (to law enforcement authorities, for example).\n" +
             "All data held in our on-line database is protected by 256-bit AES encryption, but note that, once it's been downloaded into the app, it is visible to anyone who uses the app, and it could in principle be accessed by anyone at all.  " +
             "Accordingly, you should not enter any sensitive data (credit card details, for example) into the application.  If you are concerned that sensitive data has been exposed, please contact us at dataprotection@turnipsoft.co.uk.\n" +

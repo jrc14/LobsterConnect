@@ -19,7 +19,8 @@
 // TO DO
 // // //
 // - Proposal items could include parameters for 'time commitment' and 'ok to teach rules / for new players'
-//   (at a minimum I could mention this is a good thing to include in 'notes')
+//   (at a minimum I could mention this is a good thing to include in 'notes
+// - Wish-List items could include a boolean 'I can provide the game'
 // - Make Dark Mode/Light Mode work more consistently overall - get the app to respect system theme, or to
 //   'force dark mode' or 'force light mode'.  That needs a 'settings' page, of course ... .  Maybe initially it
 //   would be useful just to respect the system theme.  At the moment the app just puts itself into light mode,
@@ -43,9 +44,9 @@
 // - (done) Fix the size of the 'layout' button on the main page, in iOS.
 // - (done) When prompting for the BGG link for a new game, validate the link somewhat, and allow the user to just enter the id if they want
 // - (done) If the event is actually underway, the scrolling views should initially autoscroll to the current time.
-// - (done) The 'age 18' prompt asks the question in a confusing fashion
+// - (done) The 'age 18' prompt asks the question in a confusing fashion; make it clearer
 // - (done) BUG: create session from wishlist popup doesn't appear.  There may be other popup issues (check my WhatsApp reports)
-// - (done) All transactions on SignUp, WishList and Session must include EventKey (for selective loading purposes)
+// - (done) All transactions on SignUp, WishList and Session must include EventKey (for selective loading/clean-up purposes)
 //
 
 using LobsterConnect.Model;
